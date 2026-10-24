@@ -64,9 +64,9 @@ export function defaultLifePlan(identity, isDemo) {
         { id: id(), name: 'Home renovation', kind: 'home', age: 55, cost: 1500000 },
       ],
       family: [
-        { id: id(), name: 'Meenakshi Iyer', relation: 'Spouse', age: age - 2 },
-        { id: id(), name: 'Divya Iyer', relation: 'Daughter', age: 18 },
-        { id: id(), name: 'Arjun Iyer', relation: 'Son', age: 14 },
+        { id: id(), name: 'Meenakshi', relation: 'Spouse', age: age - 2 },
+        { id: id(), name: 'Divya', relation: 'Daughter', age: 18 },
+        { id: id(), name: 'Arjun', relation: 'Son', age: 14 },
       ],
     };
   }

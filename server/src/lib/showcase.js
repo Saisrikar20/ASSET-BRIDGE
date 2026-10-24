@@ -22,8 +22,8 @@ export function showcase() {
   const investments = holdings.filter((h) => bucketOf(h));
   const nominated = investments.filter((h) => h.nominee?.status === 'valid');
   const heirs = [
-    { name: 'Meenakshi Iyer', relation: 'Spouse', share: 50 },
-    { name: 'Divya Iyer', relation: 'Daughter', share: 50 },
+    { name: 'Meenakshi', relation: 'Spouse', share: 50 },
+    { name: 'Divya', relation: 'Daughter', share: 50 },
   ];
   const plan = defaultLifePlan(DEMO_IDENTITY, true);
   const life = runLifePlan({ plan, invPlan: { contributions: [] }, holdings, identity: DEMO_IDENTITY, heirs, settings: DEFAULT_SETTINGS, runs: 600 });

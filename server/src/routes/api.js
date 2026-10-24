@@ -65,8 +65,8 @@ api.post('/auth/demo', (_req, res) => {
 });
 
 function seedDemoHeirs(userId) {
-  store.insert('heirs', { id: uid('k_'), userId, name: 'Meenakshi Iyer', relation: 'Spouse', pan: 'ABCPI5678M', mobile: '9840055501', email: 'meenakshi@example.com', share: 50 });
-  store.insert('heirs', { id: uid('k_'), userId, name: 'Divya Iyer', relation: 'Daughter', pan: 'BCDPI4321Q', mobile: '9840055502', email: 'divya@example.com', share: 50 });
+  store.insert('heirs', { id: uid('k_'), userId, name: 'Meenakshi', relation: 'Spouse', pan: 'ABCPI5678M', mobile: '9840055501', email: 'meenakshi@example.com', share: 50 });
+  store.insert('heirs', { id: uid('k_'), userId, name: 'Divya', relation: 'Daughter', pan: 'BCDPI4321Q', mobile: '9840055502', email: 'divya@example.com', share: 50 });
 }
 
 api.get('/me', requireAuth, (req, res) => res.json({ user: publicUser(req.user) }));

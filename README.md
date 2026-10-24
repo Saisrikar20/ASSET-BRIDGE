@@ -56,7 +56,7 @@ Open http://localhost:5173 → **Try the live demo**.
 
 ## Demo script (≈3 min)
 
-1. **Try the live demo** → Verify → *Fill demo identity* → *Verify with all regulators* — Canara Bank shows a partial match ("R. Iyer").
+1. **Try the live demo** → Verify → *Fill demo identity* → *Verify with all regulators* — Canara Bank shows a partial match ("R. Raghavan").
 2. Aggregate → *Approve & fetch from 5 regulators* — watch alerts stream in live (toasts + sidebar badge).
 3. Dashboard — ₹1.27 Cr mapped, ~₹81 L at risk. Alerts → *Update nominee* → quick-pick Meenakshi → resolved live.
 4. Reunite → *Send death registration* → case ID appears, heirs notified.

@@ -9,7 +9,7 @@ function nameMatch(given, registered) {
   const a = norm(given);
   const b = norm(registered);
   if (a === b) return 'exact';
-  // "R. Iyer" vs "Raghavan Iyer": same surname, initials consistent
+  // "R. Raghavan" vs "Raghavan": same name, initial consistent
   const [ap, bp] = [a.split(' '), b.split(' ')];
   if (ap.at(-1) === bp.at(-1) && ap[0][0] === bp[0][0]) return 'partial';
   return 'mismatch';
