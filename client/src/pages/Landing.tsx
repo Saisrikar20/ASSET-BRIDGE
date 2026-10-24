@@ -343,14 +343,15 @@ export default function Landing() {
       <section id="live" className="scroll-mt-20 overflow-hidden border-y border-slate-200/70 bg-surface py-24">
         <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <Reveal>
-            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3.5 py-1.5 text-xs font-bold tracking-[0.18em] text-emerald-600 ring-1 ring-emerald-500/30">
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 motion-safe:animate-ping" />
-                <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+            {/* Prominent "live" marker: solid, glowing, pulsing. */}
+            <span className="inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#10b981] to-[#14b8a6] px-5 py-2 text-sm font-bold tracking-[0.2em] text-white shadow-[0_0_0_4px_rgba(16,185,129,.18),0_10px_30px_-6px_rgba(16,185,129,.7)]">
+              <span className="relative flex size-2.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-80 motion-safe:animate-ping" />
+                <span className="relative inline-flex size-2.5 rounded-full bg-white" />
               </span>
               LIVE DEMO DATA
             </span>
-            <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-bold tracking-tight text-ink sm:text-5xl">{sc ? `${sc.persona.name.split(' ')[0]}'s twin, at a glance.` : 'A twin, at a glance.'}</h2>
+            <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-bold tracking-tight text-ink sm:text-5xl">Demo data, at a glance.</h2>
             <p className="mx-auto mt-4 max-w-2xl text-slate-600">
               {sc ? (
                 <>
