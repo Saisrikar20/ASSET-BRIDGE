@@ -1,0 +1,8 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "api", "runtimeExecutable": "npm", "runtimeArgs": ["--prefix", "server", "run", "dev"], "port": 4000 },
+    { "name": "ai", "runtimeExecutable": "ai-service/.venv/bin/uvicorn", "runtimeArgs": ["--app-dir", "ai-service", "main:app", "--port", "8001"], "port": 8001 },
+    { "name": "web", "runtimeExecutable": "npm", "runtimeArgs": ["--prefix", "client", "run", "dev"], "port": 5173 }
+  ]
+}

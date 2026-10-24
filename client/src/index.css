@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-500: #14b8a6;
+  --color-brand-600: #0d9488;
+  --color-brand-700: #0f766e;
+  --color-brand-800: #115e59;
+  --color-brand-900: #134e4a;
+  --color-ink: #0b1f2a;
+}
+
+body {
+  @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+.prose-answer p { margin: 0.4rem 0; }
+.prose-answer ol, .prose-answer ul { margin: 0.4rem 0 0.4rem 1.2rem; }
+.prose-answer ol { list-style: decimal; }
+.prose-answer ul { list-style: disc; }
+.prose-answer li { margin: 0.2rem 0; }
