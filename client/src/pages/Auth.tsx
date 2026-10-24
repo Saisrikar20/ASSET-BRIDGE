@@ -35,7 +35,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
   return (
     <div className="grid min-h-screen place-items-center bg-gradient-to-br from-brand-50 via-white to-slate-50 px-4">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-8 flex justify-center"><Logo size="lg" /></Link>
+        <div className="mb-8 flex justify-center"><Logo size="lg" /></div>
         <Card className="p-7">
           <h1 className="text-xl font-bold text-ink">{mode === 'login' ? 'Welcome back' : 'Create your financial twin'}</h1>
           <p className="mt-1 text-sm text-slate-600">{mode === 'login' ? 'Sign in to see your holdings and alerts.' : 'Takes two minutes. Your data stays under your consent.'}</p>

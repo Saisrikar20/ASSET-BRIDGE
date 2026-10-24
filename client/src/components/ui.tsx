@@ -1,22 +1,33 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
 import { GlowingEffect } from './aceternity/glowing-effect';
+import { Link, useLocation } from 'react-router-dom';
 import LogoMark from './LogoMark';
 import { REG_STYLE } from '../lib/format';
 
 export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 
 /** Mark + serif wordmark; `tagline` adds "Recovering family legacy" (shown on the large size). */
-export function Logo({ light = false, size = 'md', tagline = size === 'lg' }: { light?: boolean; size?: 'md' | 'lg'; tagline?: boolean }) {
+export function Logo({ light = false, size = 'md', tagline = size === 'lg', onClick }: { light?: boolean; size?: 'md' | 'lg'; tagline?: boolean; onClick?: () => void }) {
   const lg = size === 'lg';
+  const { pathname } = useLocation();
   return (
-    <div className="flex items-center gap-2">
+    // Always leads home; on the home page it scrolls back to the top instead.
+    <Link
+      to="/"
+      aria-label="Asset Bridge home"
+      onClick={() => {
+        if (pathname === '/') window.scrollTo({ top: 0, behavior: 'smooth' });
+        onClick?.();
+      }}
+      className="flex shrink-0 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+    >
       <LogoMark onDark={light} className={cx('shrink-0', lg ? 'h-12 w-[65px]' : 'h-8 w-[43px]')} />
       <div className="leading-none">
         <div className={cx('font-display font-bold whitespace-nowrap', lg ? 'text-[1.9rem] tracking-[0.06em]' : 'text-[1.12rem] tracking-[0.04em]', light ? 'text-white' : 'text-[#1f2d4d] dark:text-ink')}>ASSET BRIDGE</div>
         {tagline && <div className={cx('mt-1 font-medium whitespace-nowrap', lg ? 'text-[10.5px] tracking-[0.28em]' : 'text-[8px] tracking-[0.2em]', light ? 'text-[#cbd5e1]' : 'text-[#1f2d4d]/80 dark:text-slate-500')}>RECOVERING FAMILY LEGACY</div>}
       </div>
-    </div>
+    </Link>
   );
 }
 
