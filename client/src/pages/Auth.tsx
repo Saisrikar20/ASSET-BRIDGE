@@ -1,12 +1,13 @@
 import { useState, type FormEvent } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Button, Card, ErrorNote, Field, Input, Logo } from '../components/ui';
 import { api, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { useSplash } from '../lib/splash';
 
 export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
   const { user, setSession } = useAuth();
-  const nav = useNavigate();
+  const open = useSplash();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<'form' | 'demo' | null>(null);
@@ -17,9 +18,11 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
     setErr(null);
     setBusy(kind);
     try {
-      const r = await api<{ token: string; user: User }>(path, { body });
-      setSession(r.token, r.user);
-      nav(!r.user.avatar ? `/app/avatar?next=${r.user.identity ? '/app' : '/app/verify'}` : r.user.identity ? '/app' : '/app/verify');
+      await open(async () => {
+        const r = await api<{ token: string; user: User }>(path, { body });
+        setSession(r.token, r.user);
+        return !r.user.avatar ? `/app/avatar?next=${r.user.identity ? '/app' : '/app/verify'}` : r.user.identity ? '/app' : '/app/verify';
+      });
     } catch (e) {
       setErr((e as Error).message);
     } finally {
