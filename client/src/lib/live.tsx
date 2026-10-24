@@ -1,6 +1,6 @@
 // Real-time channel: nominee-gap alerts and case updates over WebSocket.
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { API_BASE, tokenStore } from './api';
+import { API_BASE, LOCAL_API, tokenStore } from './api';
 import { useAuth } from './auth';
 
 export interface LiveEvent { type: string; data: any; at: string }
@@ -15,6 +15,16 @@ export function LiveProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
+    if (LOCAL_API) {
+      // The in-browser API "pushes" with window events instead of a socket.
+      const onEvent = (e: Event) => {
+        const d = (e as CustomEvent).detail;
+        if (d.userId === user.id) listeners.current.forEach((fn) => fn({ type: d.type, data: d.data, at: d.at }));
+      };
+      window.addEventListener('ab-live', onEvent);
+      setConnected(true);
+      return () => window.removeEventListener('ab-live', onEvent);
+    }
     let ws: WebSocket | null = null;
     let retry: ReturnType<typeof setTimeout>;
     let closed = false;

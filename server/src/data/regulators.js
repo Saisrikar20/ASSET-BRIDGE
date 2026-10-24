@@ -2,8 +2,6 @@
 // In production each of these is an Account Aggregator FIP fetch or a
 // regulator API; here they are deterministic mocks keyed on PAN so any
 // identity produces a stable, realistic set of records.
-import crypto from 'node:crypto';
-
 export const REGULATORS = {
   RBI: { name: 'Reserve Bank of India', covers: 'Bank deposits', fiType: 'DEPOSIT' },
   EPFO: { name: "Employees' Provident Fund Organisation", covers: 'Provident fund & pension', fiType: 'EPF' },
@@ -48,8 +46,18 @@ const INSURERS = ['HDFC Life', 'ICICI Prudential Life', 'Max Life', 'SBI Life', 
 const AMCS = ['SBI Mutual Fund', 'HDFC Mutual Fund', 'Nippon India MF', 'ICICI Prudential MF', 'Axis MF'];
 const RELATIONS = ['Spouse', 'Son', 'Daughter', 'Mother', 'Father', 'Brother'];
 
+// FNV-1a: a tiny string hash that runs the same in Node and the browser.
+function hashSeed(seed) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0 || 1;
+}
+
 function rng(seed) {
-  let h = crypto.createHash('sha256').update(seed).digest().readUInt32LE(0);
+  let h = hashSeed(seed);
   return () => {
     h ^= h << 13; h ^= h >>> 17; h ^= h << 5;
     return ((h >>> 0) % 100000) / 100000;

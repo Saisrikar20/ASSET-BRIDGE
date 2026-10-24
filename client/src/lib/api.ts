@@ -72,12 +72,26 @@ export class ApiError extends Error {
  */
 export const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
+/**
+ * With no API to talk to (a static deploy without VITE_API_URL), run the API
+ * in the browser instead — same routes and engines, data kept in this browser.
+ * VITE_LOCAL_API=1 forces it on, =0 forces it off.
+ */
+export const LOCAL_API = import.meta.env.VITE_LOCAL_API ? import.meta.env.VITE_LOCAL_API === '1' : import.meta.env.PROD && !API_BASE;
+
 export async function api<T>(path: string, opts: { method?: string; body?: unknown; heirPan?: string } = {}): Promise<T> {
   const headers: Record<string, string> = {};
   const token = tokenStore.get();
   if (token) headers.Authorization = `Bearer ${token}`;
   if (opts.body !== undefined) headers['content-type'] = 'application/json';
   if (opts.heirPan) headers['x-heir-pan'] = opts.heirPan;
+  if (LOCAL_API) {
+    const { localFetch } = await import('../local/server.js');
+    const lower = Object.fromEntries(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
+    const r = await localFetch(opts.method || (opts.body !== undefined ? 'POST' : 'GET'), path, lower, opts.body);
+    if (r.status >= 400) throw new ApiError(r.body?.error || `Request failed (${r.status})`, r.status);
+    return r.body as T;
+  }
   let res: Response;
   try {
     res = await fetch(`${API_BASE}/api${path}`, {

@@ -10,7 +10,8 @@ import { forecast, analyze, DEFAULT_SETTINGS } from '../lib/forecast.js';
 import { runLifePlan, defaultLifePlan, bucketOf, familyFromHeirs, ageOf } from '../lib/lifesim.js';
 import { showcase } from '../lib/showcase.js';
 
-const AI_URL = process.env.AI_URL || 'http://127.0.0.1:8001';
+// `process` is absent when these routes run inside the browser demo.
+const AI_URL = (typeof process !== 'undefined' && process.env.AI_URL) || 'http://127.0.0.1:8001';
 const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 
 const api = Router();

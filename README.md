@@ -71,10 +71,12 @@ Open http://localhost:5173 → **Try the live demo**.
 
 ## Deploy
 
-The client is a static site; the API needs a long-running process (WebSockets, JSON store), so they're hosted separately.
+**Zero-config demo (Vercel or Netlify):** import the repo with root directory `client` (Vercel: *Import single project*; Netlify reads `netlify.toml`). With no `VITE_API_URL` set, the production build runs the API **inside the browser** — the same `server/src/routes/api.js` routes and engines, with Express, the JSON store, auth and WebSocket pushes swapped for browser stand-ins in `client/src/local/` by a small Vite plugin, and the AI guide's retrieval ported to JavaScript. Data lives in each visitor's browser (`localStorage`). On Vercel keep *Include files outside the root directory* enabled — the build reads `server/` and `ai-service/knowledge/`.
+
+**With a real backend:**
 
 1. **API + AI guide on Render** — *New → Blueprint*, pick this repo. `render.yaml` creates `asset-bridge-api` and `asset-bridge-ai` (free plan). Free services sleep when idle, so the first demo click can take up to a minute; the home page says so while it waits. Data lives in the container and resets on redeploy.
-2. **Client on Vercel** — *Import single project* with root directory `client` (not "Services"). Add the environment variable `VITE_API_URL` = your API URL, e.g. `https://asset-bridge-api.onrender.com`, then redeploy. `client/vercel.json` makes deep links like `/app/plan` load the app.
+2. **Point the client at it** — set `VITE_API_URL` (e.g. `https://asset-bridge-api.onrender.com`) in Vercel/Netlify and redeploy; the client then uses the server and live WebSocket alerts. `VITE_LOCAL_API=1|0` forces the in-browser API on or off.
 
 ## Production path
 
