@@ -56,7 +56,7 @@ export function ThemeToggle({ onDark = false, className }: { onDark?: boolean; c
       )}
     >
       {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-      {dark ? 'Light' : 'Dark'}
+      <span className={onDark ? undefined : 'hidden sm:inline'}>{dark ? 'Light' : 'Dark'}</span>
     </button>
   );
 }

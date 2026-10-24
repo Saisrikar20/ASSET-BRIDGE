@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Bell, BookOpen, CheckCircle2, CircleAlert, Compass, FileCheck2, FileLock2, HeartHandshake, Hourglass, KeyRound, Layers, LineChart, Radio, ReceiptIndianRupee, ShieldCheck, Sprout, Wallet,
+  ArrowRight, Bell, BookOpen, CheckCircle2, CircleAlert, Compass, FileCheck2, FileLock2, HeartHandshake, KeyRound, Layers, LineChart, ReceiptIndianRupee, ShieldCheck, Sprout,
 } from 'lucide-react';
 import { Button, Logo, RegChip, cx } from '../components/ui';
 import { GlowingEffect } from '../components/aceternity/glowing-effect';
@@ -10,10 +10,12 @@ import DetentDial from '../components/kokonutui/detent-dial';
 import LampHero from '../components/landing/LampHero';
 import Reveal from '../components/landing/Reveal';
 import Coverflow, { type FlowCard } from '../components/landing/Coverflow';
-import StackedPanels from '../components/landing/StackedPanels';
+import LiveShowcase, { type ShowcaseTab } from '../components/landing/LiveShowcase';
+import BuiltWith from '../components/landing/BuiltWith';
 import { api, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { ThemeToggle } from '../lib/theme';
+import { useSplash } from '../lib/splash';
 import { inrShort, REG_STYLE } from '../lib/format';
 
 interface Showcase {
@@ -34,6 +36,80 @@ const KIND_LABEL: Record<string, string> = {
   nominee_missing: 'No nominee', nominee_deceased: 'Nominee has died', nominee_minor: 'Minor nominee, no guardian', unclaimed: 'Unclaimed', inoperative: 'Inoperative', name_mismatch: 'Name mismatch', kyc_stale: 'KYC over 10 years old',
 };
 
+// Fixed colours so cards read the same in light and dark mode.
+const REG_GRADIENT: Record<string, string> = {
+  RBI: 'from-[#4f46e5] to-[#1e1b4b]', EPFO: 'from-[#d97706] to-[#451a03]', IRDAI: 'from-[#e11d48] to-[#4c0519]', SEBI: 'from-[#0284c7] to-[#082f49]',
+  LIC: 'from-[#059669] to-[#022c22]', PFRDA: 'from-[#7c3aed] to-[#2e1065]', DOP: 'from-[#ea580c] to-[#431407]',
+};
+const GAP_INFO: Record<string, { severity: 'High' | 'Medium' | 'Low'; why: string }> = {
+  nominee_missing: { severity: 'High', why: 'Heirs would need a legal-heir certificate to claim.' },
+  nominee_deceased: { severity: 'High', why: "The nomination can't be used — register a new one." },
+  unclaimed: { severity: 'High', why: 'Idle 10+ years: moved to regulator funds, slower to reclaim.' },
+  nominee_minor: { severity: 'Medium', why: "Appoint a guardian so the claim isn't delayed." },
+  inoperative: { severity: 'Medium', why: 'No activity for years — re-KYC before it turns unclaimed.' },
+  name_mismatch: { severity: 'Medium', why: "Names that don't match PAN get claims rejected." },
+  kyc_stale: { severity: 'Low', why: 'Decade-old KYC keeps accounts at risk of freezing.' },
+};
+const SEVERITY_GRADIENT = { High: 'from-[#e11d48] to-[#4c0519]', Medium: 'from-[#d97706] to-[#451a03]', Low: 'from-[#475569] to-[#0f172a]' };
+
+function DataCard({ gradient, kicker, title, value, foot, children }: { gradient: string; kicker: string; title: string; value: string; foot?: string; children?: ReactNode }) {
+  return (
+    <div className={cx('flex h-72 flex-col rounded-[1.4rem] bg-gradient-to-br p-5 text-left text-white', gradient)}>
+      <div className="text-[11px] font-bold tracking-[0.2em] text-white/70">{kicker}</div>
+      <div className="mt-1 text-lg font-semibold leading-snug">{title}</div>
+      <div className="mt-auto text-4xl font-extrabold tracking-tight">{value}</div>
+      {foot && <div className="mt-1 text-sm text-white/75">{foot}</div>}
+      {children}
+    </div>
+  );
+}
+
+function showcaseTabs(sc: Showcase): ShowcaseTab[] {
+  const covers = Object.fromEntries(sc.regulators.map((r) => [r.code, r.covers]));
+  return [
+    {
+      id: 'holdings',
+      label: 'Holdings',
+      cards: sc.summary.byRegulator.filter((r) => r.count).map((r) => ({
+        key: r.regulator,
+        node: (
+          <DataCard gradient={REG_GRADIENT[r.regulator] ?? 'from-[#0d9488] to-[#042f2e]'} kicker={r.regulator} title={covers[r.regulator] ?? ''} value={inrShort(r.value)} foot={`${r.count} holding${r.count === 1 ? '' : 's'}`}>
+            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/20"><div className="h-full rounded-full bg-white" style={{ width: `${(r.value / sc.summary.total) * 100}%` }} /></div>
+            <div className="mt-1.5 text-[11px] text-white/65">{Math.round((r.value / sc.summary.total) * 100)}% of the twin</div>
+          </DataCard>
+        ),
+      })),
+    },
+    {
+      id: 'gaps',
+      label: 'Gaps',
+      cards: Object.entries(sc.alerts.byKind).sort((a, b) => b[1] - a[1]).map(([kind, n]) => {
+        const info = GAP_INFO[kind] ?? { severity: 'Low' as const, why: '' };
+        return {
+          key: kind,
+          node: (
+            <DataCard gradient={SEVERITY_GRADIENT[info.severity]} kicker={`${info.severity.toUpperCase()} PRIORITY`} title={KIND_LABEL[kind] ?? kind} value={String(n)} foot={n === 1 ? 'holding affected' : 'holdings affected'}>
+              <p className="mt-3 text-sm leading-snug text-white/80">{info.why}</p>
+            </DataCard>
+          ),
+        };
+      }),
+    },
+    {
+      id: 'plan',
+      label: 'Plan & legacy',
+      cards: [
+        { key: 'chance', node: <DataCard gradient="from-[#0d9488] to-[#042f2e]" kicker="LIFE PLAN" title="Chance of success" value={`${Math.round(sc.life.successRate * 100)}%`} foot={`${sc.life.runs} simulated markets`} /> },
+        { key: 'retire', node: <DataCard gradient="from-[#2563eb] to-[#172554]" kicker="RETIREMENT" title={`Median net worth at ${sc.life.retireAge}`} value={inrShort(sc.life.retireMedian)} foot={`${sc.life.milestones} milestones on the way`} /> },
+        { key: 'legacy', node: <DataCard gradient="from-[#0891b2] to-[#083344]" kicker="LEGACY" title="Family receives today" value={inrShort(sc.life.legacyToday)} foot="investments + insurance payouts" /> },
+        { key: 'nominees', node: <DataCard gradient="from-[#059669] to-[#022c22]" kicker="NOMINEES" title="Reaches heirs via a nominee" value={`${Math.round(sc.nominees.coverage * 100)}%`} foot={`${sc.nominees.missing} holdings have none`} /> },
+        { key: 'idle', node: <DataCard gradient="from-[#be123c] to-[#4c0519]" kicker="IDLE MONEY" title="Earning little or nothing" value={inrShort(sc.idle)} foot="inoperative and unclaimed" /> },
+        { key: 'transfer', node: <DataCard gradient="from-[#7c3aed] to-[#2e1065]" kicker="TRANSFER" title={`Checklist for ${sc.transfer.state}`} value={`${sc.transfer.steps} steps`} foot={`${sc.transfer.forms} documents named`} /> },
+      ],
+    },
+  ];
+}
+
 const CAPABILITIES: FlowCard[] = [
   { title: 'Live nominee alerts', tagline: 'Gaps surface the moment holdings are mapped, pushed over WebSockets.', points: ['Missing, deceased or minor nominees', 'Idle and unclaimed accounts', 'Name mismatches that block claims'], example: 'Fix a nominee in one click and the alert resolves live.', icon: <Bell className="h-5 w-5" />, gradient: 'bg-gradient-to-br from-rose-500 to-[#9f1239]' },
   { title: 'Consent-based mapping', tagline: 'Modelled on India’s Account Aggregator: approve, fetch, revoke.', points: ['Pick which regulators to share', 'Purpose, duration and data life shown', 'Revoking deletes mapped data'], example: 'RBI · EPFO · IRDAI · SEBI · LIC · PFRDA · India Post', icon: <FileLock2 className="h-5 w-5" />, gradient: 'bg-gradient-to-br from-indigo-500 to-[#3730a3]' },
@@ -47,7 +123,7 @@ const CAPABILITIES: FlowCard[] = [
 
 export default function Landing() {
   const { user, setSession } = useAuth();
-  const nav = useNavigate();
+  const open = useSplash();
   const [busy, setBusy] = useState(false);
   const [slow, setSlow] = useState(false);
   const [demoErr, setDemoErr] = useState<string | null>(null);
@@ -61,9 +137,12 @@ export default function Landing() {
     // Free hosts sleep idle servers; the first request can take ~30–60 s.
     const t = setTimeout(() => setSlow(true), 3000);
     try {
-      const r = await api<{ token: string; user: User }>('/auth/demo', { body: {} });
-      setSession(r.token, r.user);
-      nav('/app');
+      // Show the logo while the demo account is being set up.
+      await open(async () => {
+        const r = await api<{ token: string; user: User }>('/auth/demo', { body: {} });
+        setSession(r.token, r.user);
+        return '/app';
+      });
     } catch (e) {
       setDemoErr((e as Error).message);
     } finally {
@@ -88,11 +167,12 @@ export default function Landing() {
             <a href="#how" className="hover:text-ink">How it works</a>
             <a href="#features" className="hover:text-ink">Capabilities</a>
             <a href="#live" className="hover:text-ink">Live demo</a>
+            <a href="#built" className="hover:text-ink">Built with</a>
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
             <Link to="/heir" className="hidden px-2 text-sm font-semibold text-slate-600 hover:text-ink sm:block">I'm an heir</Link>
-            {user ? <Button onClick={() => nav('/app')}>Open my twin</Button> : <Button onClick={demo} loading={busy}>Open the demo <ArrowRight className="h-4 w-4" /></Button>}
+            {user ? <Button onClick={() => open(async () => '/app')}>Open my twin</Button> : <Button onClick={demo} loading={busy}>Open the demo <ArrowRight className="h-4 w-4" /></Button>}
           </div>
         </div>
       </header>
@@ -258,79 +338,53 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ---------- Live panels ---------- */}
-      <section id="live" className="scroll-mt-20 border-y border-slate-200/70 bg-surface py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      {/* ---------- Live demo data ---------- */}
+      <section id="live" className="scroll-mt-20 overflow-hidden border-y border-slate-200/70 bg-surface py-24">
+        <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <Reveal>
-            <Eyebrow>Live demo data</Eyebrow>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-ink sm:text-4xl">{sc ? `${sc.persona.name.split(' ')[0]}'s twin, at a glance.` : 'A twin, at a glance.'}</h2>
-            <p className="mt-3 max-w-2xl text-slate-600">These panels are read straight from the demo, not mocked. Open it and every number is one click deeper.</p>
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3.5 py-1.5 text-xs font-bold tracking-[0.18em] text-emerald-600 ring-1 ring-emerald-500/30">
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 motion-safe:animate-ping" />
+                <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+              </span>
+              LIVE DEMO DATA
+            </span>
+            <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-bold tracking-tight text-ink sm:text-5xl">{sc ? `${sc.persona.name.split(' ')[0]}'s twin, at a glance.` : 'A twin, at a glance.'}</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-slate-600">
+              {sc ? (
+                <>
+                  Every card is computed right now from the demo twin — <b className="font-semibold text-ink">{sc.holdings} holdings</b> across{' '}
+                  <b className="font-semibold text-ink">{sc.sources} sources</b>, worth <b className="font-semibold text-ink">{inrShort(sc.summary.total)}</b> — by the same engines the app uses. Nothing here is mocked.
+                </>
+              ) : (
+                'Every card is computed from the demo twin by the same engines the app uses.'
+              )}
+            </p>
           </Reveal>
-          {!sc && (
-            <div className="mt-12 rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-600">
+        </div>
+        {!sc && (
+          <div className="mx-auto mt-12 max-w-6xl px-4 sm:px-6">
+            <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-600">
               {scErr ? <>Live numbers come from the Asset Bridge API. {scErr}</> : 'Loading live numbers from the demo…'}
             </div>
-          )}
-          {sc && (
-            <Reveal delay={120} className="mt-12">
-              <StackedPanels
-                panels={[
-                  {
-                    label: 'Holdings mapped', value: String(sc.holdings), icon: <Wallet className="h-3.5 w-3.5" />,
-                    body: (
-                      <>
-                        <div className="text-4xl font-extrabold tracking-tight text-ink">{inrShort(sc.summary.total)}</div>
-                        <div className="text-sm text-slate-500">across {sc.sources} sources</div>
-                        <div className="mt-4 flex flex-wrap gap-1.5">{sc.regulators.map((r) => <RegChip key={r.code} code={r.code} />)}</div>
-                      </>
-                    ),
-                  },
-                  {
-                    label: 'Nominee gaps', value: String(sc.alerts.total), icon: <Radio className="h-3.5 w-3.5" />,
-                    body: (
-                      <ul className="space-y-2 text-sm">
-                        {Object.entries(sc.alerts.byKind).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k, v]) => (
-                          <li key={k} className="flex items-center gap-3">
-                            <span className="flex-1 text-slate-600">{KIND_LABEL[k] ?? k}</span>
-                            <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-rose-500" style={{ width: `${Math.min(100, (v / Math.max(...Object.values(sc.alerts.byKind))) * 100)}%` }} /></div>
-                            <span className="w-4 text-right font-semibold tabular-nums text-ink">{v}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ),
-                  },
-                  {
-                    label: 'Idle money', value: inrShort(sc.idle), icon: <Hourglass className="h-3.5 w-3.5" />,
-                    body: (
-                      <>
-                        <div className="text-4xl font-extrabold tracking-tight text-ink">{inrShort(sc.idle)}</div>
-                        <p className="mt-2 text-sm leading-relaxed text-slate-600">Inoperative and unclaimed accounts earn little or nothing. After 10 years, bank deposits move to the RBI's DEA Fund — still claimable, but slower.</p>
-                      </>
-                    ),
-                  },
-                  {
-                    label: 'Chance of success', value: `${Math.round(sc.life.successRate * 100)}%`, icon: <Compass className="h-3.5 w-3.5" />,
-                    body: (
-                      <div className="flex items-center gap-4">
-                        <DetentDial readOnly label="Success" min={0} max={100} step={2} size={130} value={Math.round(sc.life.successRate * 100)} formatValue={(v) => `${v}%`} />
-                        <p className="text-sm leading-relaxed text-slate-600">{sc.life.runs} simulated markets. Median {inrShort(sc.life.retireMedian)} at retirement ({sc.life.retireAge}).</p>
-                      </div>
-                    ),
-                  },
-                  {
-                    label: 'Family receives today', value: inrShort(sc.life.legacyToday), icon: <HeartHandshake className="h-3.5 w-3.5" />,
-                    body: (
-                      <>
-                        <div className="text-4xl font-extrabold tracking-tight text-ink">{inrShort(sc.life.legacyToday)}</div>
-                        <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-amber-200"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${sc.nominees.coverage * 100}%` }} /></div>
-                        <p className="mt-2 text-sm text-slate-600">{Math.round(sc.nominees.coverage * 100)}% reaches them through a nominee; {sc.nominees.missing} holdings have none.</p>
-                      </>
-                    ),
-                  },
-                ]}
-              />
-            </Reveal>
-          )}
+          </div>
+        )}
+        {sc && (
+          <Reveal delay={120} className="mt-10">
+            <LiveShowcase tabs={showcaseTabs(sc)} />
+            <div className="mt-10 flex justify-center">
+              <Button onClick={demo} loading={busy}>Open this twin <ArrowRight className="h-4 w-4" /></Button>
+            </div>
+          </Reveal>
+        )}
+      </section>
+
+      {/* ---------- Built with ---------- */}
+      <section id="built" className="scroll-mt-20 overflow-hidden py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal>
+            <BuiltWith />
+          </Reveal>
         </div>
       </section>
 
@@ -345,14 +399,6 @@ export default function Landing() {
               <button onClick={demo} disabled={busy} className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-teal-400 px-5 py-3 text-sm font-semibold text-[#04201d] transition hover:bg-teal-300">Try the live demo <ArrowRight className="h-4 w-4" /></button>
               <Link to="/signup" className="inline-flex items-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold ring-1 ring-white/20 transition hover:bg-white/15">Create my twin</Link>
               <Link to="/heir" className="inline-flex items-center rounded-xl px-5 py-3 text-sm font-semibold text-white/80 transition hover:text-white">I'm an heir →</Link>
-            </div>
-            <div className="relative mt-10 border-t border-white/10 pt-6">
-              <div className="text-xs font-semibold uppercase tracking-widest text-white/50">Built with</div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {['React 19', 'TypeScript', 'Tailwind v4', 'Motion', 'Node + Express', 'WebSockets', 'FastAPI', 'RAG', 'Monte Carlo', 'Kokonut UI', 'Aceternity UI'].map((t) => (
-                  <span key={t} className="rounded-md bg-white/10 px-2.5 py-1 font-mono text-xs text-white/85 ring-1 ring-white/10">{t}</span>
-                ))}
-              </div>
             </div>
           </div>
         </Reveal>
