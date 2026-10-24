@@ -9,3 +9,5 @@ Shares in a demat account are transmitted through the Depository Participant (vi
 Dividends unpaid or unclaimed for seven consecutive years, and the underlying shares, are transferred by companies to the Investor Education and Protection Fund (IEPF). Heirs can reclaim them by filing Form IEPF-5 online and sending the verified documents to the company's nodal officer.
 ## Nomination requirement
 SEBI requires investors to either nominate or explicitly opt out of nomination for demat accounts and mutual fund folios. Accounts without either choice can face restrictions; adding a nominee is free.
+## Sovereign Gold Bonds
+Sovereign Gold Bonds (SGBs) are issued by the RBI on behalf of the Government of India and pay 2.5% annual interest plus the gold price at redemption. On the holder's death, the nominee or legal heir applies to the issuing bank, post office or agent for transmission, with the death certificate and holding certificate. Bonds can be held to their 8-year maturity, or redeemed early on an interest payment date after the fifth year.

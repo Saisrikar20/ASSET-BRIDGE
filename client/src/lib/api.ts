@@ -1,4 +1,4 @@
-export type Regulator = 'RBI' | 'EPFO' | 'IRDAI' | 'SEBI' | 'LIC';
+export type Regulator = 'RBI' | 'EPFO' | 'IRDAI' | 'SEBI' | 'LIC' | 'PFRDA' | 'DOP';
 
 export interface Identity { name: string; pan: string; dob: string; aadhaarLast4: string; mobile: string; state: string }
 export interface Check { ref: string; institution: string; name: 'exact' | 'partial' | 'mismatch'; registeredName: string; dob: 'exact' | 'mismatch' }
@@ -11,7 +11,7 @@ export interface User {
 export interface Nominee { name: string; relation: string; status: 'valid' | 'deceased' | 'minor'; guardian?: string | null }
 export interface Holding {
   id: string; regulator: Regulator; type: string; institution: string; ref: string; value: number;
-  status: 'active' | 'inoperative' | 'unclaimed'; lastActivity: string; nominee: Nominee | null; kycUpdated: string; registeredName: string;
+  status: 'active' | 'inoperative' | 'unclaimed'; sip?: number; lastActivity: string; nominee: Nominee | null; kycUpdated: string; registeredName: string;
 }
 export interface Summary { total: number; atRisk: number; count: number; byRegulator: { regulator: Regulator; count: number; value: number }[] }
 export interface Alert {
@@ -32,6 +32,25 @@ export interface Meta {
   heirDocs: Record<string, { doc: string; authority: string; days: string }>;
   demoIdentity: Identity;
   nationalStats: { label: string; value: number; regulator: Regulator }[];
+}
+export type AssetClass = 'equity' | 'debt' | 'pension' | 'gold' | 'cash';
+export interface InvestOption {
+  id: string; name: string; regulator: Regulator; class: AssetClass; rate: number | null; rateKind: string; risk: string;
+  lockIn: string; tax: string; min: string; maxMonthly?: number; mode: 'monthly' | 'lumpsum'; govt: boolean; bestFor: string;
+}
+export interface Scenario { label: string; equity: number; pension: number; gold: number; debtDelta: number; cash: number }
+export interface Catalog { options: InvestOption[]; classes: Record<AssetClass, { label: string }>; scenarios: Record<string, Scenario> }
+export interface PlanSettings { years: number; inflation: number; scenario: string; stepUp: number; reclaimIdle: boolean }
+export interface Plan { contributions: { optionId: string; monthly: number; lumpSum: number }[]; settings: PlanSettings }
+export interface ForecastPoint { year: number; byClass: Record<AssetClass, number>; total: number; real: number; contributed: number }
+export interface Forecast {
+  settings: PlanSettings; points: ForecastPoint[]; age: number | null;
+  summary: { start: number; end: number; endReal: number; contributed: number; growth: number; monthly: number };
+}
+export interface Analysis {
+  total: number; allocation: { class: AssetClass; label: string; value: number; share: number }[];
+  liquidity: { liquid: number; locked: number; idle: number }; idleCostPerYear: number; equityShare: number; age: number | null;
+  blended: number; protection: number; familyToday: number; insights: { tone: string; title: string; body: string }[];
 }
 export interface GuideAnswer { answer: string; engine: string; sources: { n: number; title: string; section: string; file: string }[] }
 

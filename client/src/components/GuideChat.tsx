@@ -63,7 +63,7 @@ export default function GuideChat({ state, caseId, compact }: { state?: string; 
         <Sparkles className="h-4 w-4 text-brand-700" />
         <div className="flex-1">
           <div className="text-sm font-semibold text-ink">AI succession guide</div>
-          <div className="text-xs text-slate-500">Grounded in {state ? `${state} rules &` : ''} RBI / EPFO / IRDAI / SEBI / LIC procedures</div>
+          <div className="text-xs text-slate-500">Grounded in {state ? `${state} rules &` : ''} RBI / EPFO / IRDAI / SEBI / LIC / NPS / India Post procedures</div>
         </div>
       </div>
       <div className="flex-1 space-y-3 overflow-y-auto p-4">

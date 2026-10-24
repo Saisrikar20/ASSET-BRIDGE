@@ -5,6 +5,8 @@ import { verifyIdentity, aggregate, refreshAlerts, summarize } from '../lib/engi
 import { push } from '../lib/live.js';
 import { REGULATORS, DEMO_IDENTITY } from '../data/regulators.js';
 import { STATES, STATE_HEIR_DOC, buildTasks } from '../data/succession.js';
+import { ASSET_CLASSES, OPTIONS, SCENARIOS } from '../data/options.js';
+import { forecast, analyze, DEFAULT_SETTINGS } from '../lib/forecast.js';
 
 const AI_URL = process.env.AI_URL || 'http://127.0.0.1:8001';
 const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -68,7 +70,7 @@ api.post('/demo/reset', requireAuth, (req, res) => {
   const id = req.user.id;
   for (const t of ['holdings', 'alerts', 'consents', 'heirs']) store.remove(t, (r) => r.userId === id);
   store.remove('cases', (c) => c.ownerId === id);
-  store.update('users', (u) => u.id === id, { identity: null, verification: null, deceased: null });
+  store.update('users', (u) => u.id === id, { identity: null, verification: null, deceased: null, plan: null });
   if (req.user.email === 'demo@assetbridge.in') seedDemoHeirs(id);
   res.json({ ok: true });
 });
@@ -172,6 +174,36 @@ api.post('/holdings/:id/reactivate', requireAuth, (req, res) => {
   if (!h) return bad(res, 'Holding not found', 404);
   resolveAlerts(req.user.id, h.id, ['inoperative', 'unclaimed', 'kyc_stale', 'name_mismatch']);
   res.json({ holding: h });
+});
+
+// ---------- forecast, analysis & investment options ----------
+const planOf = (user) => user.plan || { contributions: [], settings: DEFAULT_SETTINGS };
+
+api.get('/options', (_req, res) => res.json({ options: OPTIONS, classes: ASSET_CLASSES, scenarios: SCENARIOS }));
+
+api.get('/plan', requireAuth, (req, res) => res.json({ plan: planOf(req.user) }));
+
+api.put('/plan', requireAuth, (req, res) => {
+  const { contributions, settings } = req.body || {};
+  const clean = (contributions || [])
+    .filter((c) => OPTIONS.some((o) => o.id === c.optionId))
+    .map((c) => ({ optionId: c.optionId, monthly: Math.max(0, Number(c.monthly) || 0), lumpSum: Math.max(0, Number(c.lumpSum) || 0) }));
+  const plan = { contributions: clean, settings: { ...DEFAULT_SETTINGS, ...planOf(req.user).settings, ...(settings || {}) } };
+  store.update('users', (u) => u.id === req.user.id, { plan });
+  res.json({ plan });
+});
+
+api.post('/forecast', requireAuth, (req, res) => {
+  const holdings = store.all('holdings', (h) => h.userId === req.user.id);
+  const plan = req.body?.plan || planOf(req.user);
+  const settings = { ...plan.settings, ...(req.body?.settings || {}) };
+  const age = req.user.identity?.dob ? Math.floor((Date.now() - new Date(req.user.identity.dob)) / (365.25 * 864e5)) : null;
+  res.json({ ...forecast(holdings, plan, settings), age });
+});
+
+api.get('/analysis', requireAuth, (req, res) => {
+  const holdings = store.all('holdings', (h) => h.userId === req.user.id);
+  res.json(analyze(holdings, req.user.identity, planOf(req.user).settings));
 });
 
 // ---------- heirs ----------

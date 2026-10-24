@@ -14,6 +14,8 @@ import Reunite from './pages/Reunite';
 import Cases from './pages/Cases';
 import CaseView from './pages/CaseView';
 import Guide from './pages/Guide';
+import ForecastPage from './pages/Forecast';
+import Invest from './pages/Invest';
 import HeirPortal from './pages/HeirPortal';
 
 function Protected() {
@@ -40,6 +42,8 @@ export default function App() {
         <Route path="verify" element={<Verify />} />
         <Route path="aggregate" element={<Aggregate />} />
         <Route path="alerts" element={<Alerts />} />
+        <Route path="forecast" element={<ForecastPage />} />
+        <Route path="invest" element={<Invest />} />
         <Route path="heirs" element={<Heirs />} />
         <Route path="reunite" element={<Reunite />} />
         <Route path="cases" element={<Cases />} />

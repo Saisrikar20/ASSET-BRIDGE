@@ -26,7 +26,9 @@ const common = (state) => [
 ];
 
 const BY_REGULATOR = {
-  RBI: (h, nominated) => [
+  RBI: (h, nominated) => h.type.includes('Gold Bond') ? [
+    { title: 'Transmit Sovereign Gold Bond', detail: `Submit a transmission request to the issuing bank / post office for ${h.ref}. Heirs can hold the bond to maturity or redeem early on an interest date after year 5.`, docs: ['SGB transmission request form', 'Death certificate', 'Holding certificate', 'Claimant KYC', ...(nominated ? [] : ['Legal heir / succession certificate', 'Indemnity'])], authority: h.institution.split(' · via ')[1] || 'Issuing bank' },
+  ] : [
     nominated
       ? { title: `Submit nominee claim at ${h.institution}`, detail: 'Nominee claim with death certificate and KYC. Banks follow RBI timelines for settling deceased-depositor claims.', docs: ['Bank claim form (nominee)', 'Death certificate', 'Nominee KYC', 'Passbook / FD receipt'], authority: h.institution }
       : { title: `Submit legal-heir claim at ${h.institution}`, detail: 'No nominee on record: claim as legal heirs. Banks usually ask for an indemnity and, above their threshold, a succession certificate.', docs: ['Bank claim form (legal heirs)', 'Death certificate', 'Legal heir certificate', 'Letter of indemnity', 'KYC of all heirs'], authority: h.institution },
@@ -43,6 +45,12 @@ const BY_REGULATOR = {
   ],
   LIC: (h, nominated) => [
     { title: 'Submit LIC death / maturity claim', detail: `Visit the servicing branch for ${h.ref}. ${nominated ? '' : 'Nominee is missing or deceased, so legal heirs claim with title proof.'}`, docs: ['Claim Form A (claimant’s statement)', 'Death certificate', 'Original policy bond', 'NEFT mandate', 'Claimant KYC', ...(nominated ? [] : ['Legal heir certificate'])], authority: 'LIC servicing branch' },
+  ],
+  PFRDA: (h, nominated) => [
+    { title: 'Claim NPS death withdrawal', detail: `The full corpus for ${h.ref} is paid to the ${nominated ? 'nominee' : 'legal heirs'} — on death there is no compulsory annuity purchase. Initiate through the Point of Presence or the CRA.`, docs: ['NPS withdrawal form (death of subscriber)', 'Death certificate', 'PRAN card / details', 'Claimant KYC & bank proof', ...(nominated ? [] : ['Legal heir certificate', 'Indemnity'])], authority: h.institution.split(' · ')[1] || 'Central Recordkeeping Agency' },
+  ],
+  DOP: (h, nominated) => [
+    { title: `Close ${h.type.includes('Provident') ? 'PPF account' : 'certificate'} at the post office`, detail: `${nominated ? 'Nominee claims' : 'Legal heirs claim'} at ${h.institution.split(' · ')[1] || 'the account office'}. Small amounts may be paid to heirs without a succession certificate under India Post's limits.`, docs: ['Post office death claim form', 'Death certificate', 'Passbook / certificate', 'Claimant KYC', ...(nominated ? [] : ['Legal heir certificate', 'Indemnity & affidavit'])], authority: 'India Post' },
   ],
   SEBI: (h, nominated) =>
     h.type.toLowerCase().includes('demat')

@@ -47,7 +47,7 @@ export default function Dashboard() {
     <>
       <PageHeader
         title={`Namaste, ${user?.identity?.name.split(' ')[0] || user?.name.split(' ')[0]}`}
-        subtitle="Your financial twin — every holding across five regulators, and how ready your family is to claim it."
+        subtitle="Your financial twin — every holding across every regulator, and how ready your family is to claim it."
         action={<Button variant="ghost" size="sm" onClick={reset}><RotateCcw className="h-4 w-4" /> Reset demo</Button>}
       />
 

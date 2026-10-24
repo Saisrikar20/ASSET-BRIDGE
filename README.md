@@ -2,7 +2,7 @@
 
 **A financial twin that maps a person's holdings across every regulator while they're alive — and reunites their family with everything left behind.**
 
-₹94,000+ crore of Indian families' money sits unclaimed across banks, EPF, insurance and mutual funds, split across five regulators (RBI, EPFO, IRDAI, SEBI, LIC) that never share data. When someone dies, nothing connects their death to their money. Asset Bridge replaces a multi-month chase across five bureaucracies with one automated process.
+₹94,000+ crore of Indian families' money sits unclaimed across banks, EPF, insurance and mutual funds, split across five regulators (RBI, EPFO, IRDAI, SEBI, LIC). Asset Bridge also maps NPS (PFRDA) and India Post small savings that never share data. When someone dies, nothing connects their death to their money. Asset Bridge replaces a multi-month chase across five bureaucracies with one automated process.
 
 | Step | What it does | Where |
 |---|---|---|
@@ -11,6 +11,8 @@
 | 03 Alert | Real-time (WebSocket) nominee-gap alerts: missing / deceased / minor nominee, inoperative & unclaimed accounts, name mismatch, stale KYC | `/app/alerts` |
 | 04 Reunite | A Civil Registration System death event matched by PAN opens an estate case and notifies every heir | `/app/reunite`, `/heir` |
 | 05 Transfer | State-specific, per-holding succession checklist (forms, documents, authority) + AI guide | `/app/cases/:id` |
+| Forecast | Month-by-month projection of the whole twin by asset class (conservative / base / optimistic, inflation, SIP step-up, reclaim idle money) + portfolio analysis: allocation, liquidity, idle-money cost, blended return | `/app/forecast` |
+| Invest | 19 Indian investment options (PPF, VPF, NPS, SCSS, SSY, NSC, KVP, POMIS, RBI bonds, G-Secs, FDs, index/flexi/ELSS/hybrid/debt funds, gold ETF, SGB, REITs) — add any to a saved plan that feeds the forecast | `/app/invest` |
 
 ## Architecture
 
@@ -22,6 +24,7 @@ ai-service/  Python + FastAPI, RAG over knowledge/*.md  :8001  (Gemini / OpenAI 
 
 - **Regulator data is simulated** (`server/src/data/regulators.js`). The demo PAN `ABCPI1234K` returns a hand-built portfolio that triggers every alert type; any other valid PAN gets a deterministic synthetic portfolio.
 - **Persistence** is a JSON file (`server/data/db.json`) behind a tiny store interface (`server/src/lib/store.js`) — the seam for Supabase (Postgres + Auth) and MongoDB.
+- **Forecast engine**: `server/src/lib/forecast.js`; option catalog and return assumptions in `server/src/data/options.js` (small-savings rates change quarterly — update them there).
 - **Succession rules**: structured checklists in `server/src/data/succession.js`; long-form guidance for the AI in `ai-service/knowledge/`.
 
 ## Run it
@@ -50,6 +53,8 @@ Open http://localhost:5173 → **Try the live demo**.
 4. Reunite → *Send death registration* → case ID appears, heirs notified.
 5. Open the case → Tamil Nadu checklist (Legal Heir Certificate from Tahsildar, Form 20 / 10D / 5(IF), LIC Claim Form A, MF transmission…). Ask the AI guide a question.
 6. Open `/heir` in a private window with the case ID and heir PAN `ABCPI5678M` (Meenakshi) or `BCDPI4321Q` (Divya) — the heir sees the same case and can tick off steps.
+
+7. Forecast & analysis — switch scenarios, drag the horizon, toggle *In today's rupees*; hover the chart. Investment options → add a SIP and watch the projection change.
 
 *Reset demo* on the dashboard puts everything back.
 

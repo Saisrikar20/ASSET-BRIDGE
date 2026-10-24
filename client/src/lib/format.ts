@@ -15,4 +15,16 @@ export const REG_STYLE: Record<string, { dot: string; bg: string; text: string; 
   IRDAI: { dot: 'bg-rose-500', bg: 'bg-rose-50', text: 'text-rose-700', bar: 'bg-rose-500' },
   SEBI: { dot: 'bg-sky-500', bg: 'bg-sky-50', text: 'text-sky-700', bar: 'bg-sky-500' },
   LIC: { dot: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', bar: 'bg-emerald-500' },
+  PFRDA: { dot: 'bg-violet-500', bg: 'bg-violet-50', text: 'text-violet-700', bar: 'bg-violet-500' },
+  DOP: { dot: 'bg-orange-500', bg: 'bg-orange-50', text: 'text-orange-700', bar: 'bg-orange-500' },
 };
+
+// Chart series colours by asset class — fixed order, validated for CVD separation.
+export const CLASS_COLOR: Record<string, string> = {
+  equity: '#2a78d6',
+  debt: '#eb6834',
+  pension: '#1baf7a',
+  gold: '#eda100',
+  cash: '#e87ba4',
+};
+export const CLASS_ORDER = ['equity', 'debt', 'pension', 'gold', 'cash'] as const;

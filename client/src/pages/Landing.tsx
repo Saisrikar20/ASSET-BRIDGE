@@ -74,7 +74,7 @@ export default function Landing() {
               <Link to="/signup"><Button variant="secondary" className="px-5 py-3 text-base">Create my twin</Button></Link>
             </div>
             <div className="mt-6 flex flex-wrap gap-2">
-              {['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC'].map((r) => <RegChip key={r} code={r} />)}
+              {['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC', 'PFRDA', 'DOP'].map((r) => <RegChip key={r} code={r} />)}
             </div>
           </div>
 

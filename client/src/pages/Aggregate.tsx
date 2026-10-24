@@ -6,7 +6,7 @@ import { useAuth } from '../lib/auth';
 import { date, inr } from '../lib/format';
 import { Badge, Button, Card, Empty, ErrorNote, Input, PageHeader, RegChip, Select, cx } from '../components/ui';
 
-const ALL: Regulator[] = ['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC'];
+const ALL: Regulator[] = ['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC', 'PFRDA', 'DOP'];
 
 export default function Aggregate() {
   const { user, meta } = useAuth();

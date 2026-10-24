@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Bell, BookOpen, FileCheck2, HeartHandshake, LayoutDashboard, Layers, LogOut, Menu, ShieldCheck, Users, X } from 'lucide-react';
+import { Bell, BookOpen, Sprout, TrendingUp, FileCheck2, HeartHandshake, LayoutDashboard, Layers, LogOut, Menu, ShieldCheck, Users, X } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useLive, useLiveStatus } from '../lib/live';
 import { api, type Alert } from '../lib/api';
@@ -11,6 +11,8 @@ const NAV = [
   { to: '/app/verify', label: 'Verify', step: '01', icon: ShieldCheck },
   { to: '/app/aggregate', label: 'Aggregate', step: '02', icon: Layers },
   { to: '/app/alerts', label: 'Alerts', step: '03', icon: Bell },
+  { to: '/app/forecast', label: 'Forecast & analysis', icon: TrendingUp },
+  { to: '/app/invest', label: 'Investment options', icon: Sprout },
   { to: '/app/heirs', label: 'Heirs', icon: Users },
   { to: '/app/reunite', label: 'Reunite', step: '04', icon: HeartHandshake },
   { to: '/app/cases', label: 'Transfer', step: '05', icon: FileCheck2 },
