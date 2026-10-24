@@ -8,6 +8,7 @@ import { STATES, STATE_HEIR_DOC, buildTasks } from '../data/succession.js';
 import { ASSET_CLASSES, OPTIONS, SCENARIOS } from '../data/options.js';
 import { forecast, analyze, DEFAULT_SETTINGS } from '../lib/forecast.js';
 import { runLifePlan, defaultLifePlan, bucketOf, familyFromHeirs, ageOf } from '../lib/lifesim.js';
+import { showcase } from '../lib/showcase.js';
 
 const AI_URL = process.env.AI_URL || 'http://127.0.0.1:8001';
 const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -31,6 +32,9 @@ api.get('/meta', (_req, res) => {
     ],
   });
 });
+
+// Public: live numbers for the home page, computed from the demo twin.
+api.get('/showcase', (_req, res) => res.json(showcase()));
 
 // ---------- auth ----------
 api.post('/auth/signup', (req, res) => {

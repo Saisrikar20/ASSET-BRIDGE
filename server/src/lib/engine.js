@@ -37,7 +37,7 @@ export function verifyIdentity(identity) {
 
 const yearsSince = (d) => (Date.now() - new Date(d).getTime()) / (365.25 * 24 * 3600 * 1000);
 
-function alertsFor(h, identity) {
+export function alertsFor(h, identity) {
   const out = [];
   const a = (severity, kind, title, detail) => out.push({ severity, kind, title, detail });
   if (!h.nominee) {

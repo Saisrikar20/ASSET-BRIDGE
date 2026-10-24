@@ -122,3 +122,7 @@ body {
 .prose-answer ol { list-style: decimal; }
 .prose-answer ul { list-style: disc; }
 .prose-answer li { margin: 0.2rem 0; }
+
+html {
+  scroll-behavior: smooth;
+}
