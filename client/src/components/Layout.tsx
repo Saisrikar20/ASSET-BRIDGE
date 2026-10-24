@@ -52,7 +52,7 @@ export default function Layout() {
   const sidebar = (
     <nav className="flex h-full flex-col gap-1 p-4">
       <div className="mb-6 px-2 pt-1">
-        <Logo light />
+        <Logo light tagline />
       </div>
       {NAV.map(({ to, label, step, icon: Icon, end }) => (
         <NavLink

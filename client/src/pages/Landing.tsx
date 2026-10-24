@@ -343,7 +343,7 @@ export default function Landing() {
 
       <footer className="border-t border-slate-200/70 py-8">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 text-xs text-slate-500 sm:px-6">
-          <Logo />
+          <Logo tagline />
           <span className="ml-auto max-w-xl">Prototype — regulator data is simulated. Consent model follows India's RBI-regulated Account Aggregator framework. General information, not legal or investment advice.</span>
         </div>
       </footer>
