@@ -12,6 +12,7 @@ import Reveal from '../components/landing/Reveal';
 import Coverflow, { type FlowCard } from '../components/landing/Coverflow';
 import LiveShowcase, { type ShowcaseTab } from '../components/landing/LiveShowcase';
 import BuiltWith from '../components/landing/BuiltWith';
+import TwoMinutes from '../components/landing/TwoMinutes';
 import { api, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { ThemeToggle } from '../lib/theme';
@@ -388,20 +389,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ---------- Closing CTA ---------- */}
-      <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
-        <Reveal>
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-800 to-night p-8 text-white sm:p-12">
-            <div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-teal-400/20 blur-3xl" />
-            <h2 className="relative max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">See your family's twin in two minutes.</h2>
-            <p className="relative mt-3 max-w-xl text-white/75">No real accounts needed — the demo walks through verify, alerts, a death event and the full transfer checklist.</p>
-            <div className="relative mt-8 flex flex-wrap gap-3">
-              <button onClick={demo} disabled={busy} className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-teal-400 px-5 py-3 text-sm font-semibold text-[#04201d] transition hover:bg-teal-300">Try the live demo <ArrowRight className="h-4 w-4" /></button>
-              <Link to="/signup" className="inline-flex items-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold ring-1 ring-white/20 transition hover:bg-white/15">Create my twin</Link>
-              <Link to="/heir" className="inline-flex items-center rounded-xl px-5 py-3 text-sm font-semibold text-white/80 transition hover:text-white">I'm an heir →</Link>
-            </div>
-          </div>
-        </Reveal>
+      {/* ---------- Closing CTA: two minutes, three steps ---------- */}
+      <section id="start" className="scroll-mt-20 border-t border-slate-200/70 bg-surface py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal>
+            <TwoMinutes />
+          </Reveal>
+        </div>
       </section>
 
       <footer className="border-t border-slate-200/70 py-8">

@@ -2,26 +2,24 @@
 // front end on an inner ring and the engine on an outer one, both slowly
 // orbiting, with signals running down the spokes into the hub.
 import { useState, type ComponentType } from 'react';
-import { Atom, BookOpen, Component, Dices, FileCode2, Lamp, Radio, Server, Sparkles, Wind, Zap } from 'lucide-react';
+import { Atom, BookOpen, Dices, FileCode2, Radio, Server, Sparkles, Wind, Zap } from 'lucide-react';
 import LogoMark from '../LogoMark';
 import { cx } from '../ui';
 
 interface Node { name: string; role: string; icon: ComponentType<{ className?: string }> }
 
 const INNER: Node[] = [
-  { name: 'React 19', role: 'Every screen, the router and app state.', icon: Atom },
-  { name: 'TypeScript', role: 'Typed end to end — the API contract lives in lib/api.ts.', icon: FileCode2 },
-  { name: 'Tailwind v4', role: 'All styling, and the token-remapped dark mode.', icon: Wind },
-  { name: 'Motion', role: 'The dials, avatar morphs, lamp and scroll reveals.', icon: Sparkles },
+  { name: 'React 19', role: 'Builds every screen you click through.', icon: Atom },
+  { name: 'TypeScript', role: 'Catches mistakes before the app runs.', icon: FileCode2 },
+  { name: 'Tailwind v4', role: 'Styles the app, in light and dark.', icon: Wind },
+  { name: 'Motion', role: 'Smooth animation: dials, reveals, the lamp.', icon: Sparkles },
 ];
 const OUTER: Node[] = [
-  { name: 'Node + Express', role: 'The REST API: verify, consent, alerts, cases, life plan.', icon: Server },
-  { name: 'WebSockets', role: 'Nominee-gap alerts pushed to every open tab, live.', icon: Radio },
-  { name: 'FastAPI', role: 'The AI succession guide service.', icon: Zap },
-  { name: 'RAG guide', role: 'BM25 over state succession rules — every answer cited.', icon: BookOpen },
-  { name: 'Monte Carlo', role: '1,000 market paths, Indian income tax and legacy.', icon: Dices },
-  { name: 'Kokonut UI', role: 'The detent dials and the avatar picker.', icon: Component },
-  { name: 'Aceternity UI', role: 'The lamp hero and the glowing cards.', icon: Lamp },
+  { name: 'Node + Express', role: 'The server that stores and serves your twin.', icon: Server },
+  { name: 'WebSockets', role: 'Sends new alerts to you the moment they appear.', icon: Radio },
+  { name: 'FastAPI', role: 'Runs the AI guide that answers your questions.', icon: Zap },
+  { name: 'RAG guide', role: 'Answers from real legal rules, with sources.', icon: BookOpen },
+  { name: 'Monte Carlo', role: 'Tests your plan against 1,000 possible markets.', icon: Dices },
 ];
 
 const R_IN = 27; // ring radii, % of the square
@@ -51,15 +49,37 @@ export default function BuiltWith() {
           <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,.18)]" />
           {total} building blocks, one twin
         </div>
-        <div className="mt-6 min-h-[4.5rem] rounded-2xl bg-slate-100/70 p-4 text-sm" aria-live="polite">
-          {hover ? (
-            <>
-              <div className="font-semibold text-ink">{hover.name}</div>
-              <div className="mt-0.5 text-slate-600">{hover.role}</div>
-            </>
-          ) : (
-            <div className="text-slate-500">Hover a node to see what it does in Asset Bridge.</div>
-          )}
+        <div className="mt-8 grid gap-6 sm:grid-cols-2">
+          {[
+            ['Front end', INNER],
+            ['Engine', OUTER],
+          ].map(([label, nodes]) => (
+            <div key={label as string}>
+              <div className="mb-2 text-[11px] font-bold tracking-[0.2em] text-slate-500">{(label as string).toUpperCase()}</div>
+              <ul className="space-y-1">
+                {(nodes as Node[]).map((n) => {
+                  const Icon = n.icon;
+                  const lit = hover?.name === n.name;
+                  return (
+                    <li
+                      key={n.name}
+                      onMouseEnter={() => setHover(n)}
+                      onMouseLeave={() => setHover(null)}
+                      className={cx('flex gap-3 rounded-xl px-2.5 py-2 transition-colors', lit ? 'bg-brand-50' : 'hover:bg-slate-100')}
+                    >
+                      <span className={cx('mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg ring-1', lit ? 'bg-surface text-brand-700 ring-brand-500' : 'bg-surface text-slate-600 ring-slate-200')}>
+                        <Icon className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="min-w-0 text-sm leading-snug">
+                        <span className={cx('block font-semibold', lit ? 'text-brand-700' : 'text-ink')}>{n.name}</span>
+                        <span className="text-slate-600">{n.role}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -68,7 +88,6 @@ export default function BuiltWith() {
         <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" aria-hidden="true">
           <circle cx="50" cy="50" r={R_OUT} fill="none" className="stroke-slate-200" strokeWidth="0.25" />
           <circle cx="50" cy="50" r={R_IN} fill="none" className="stroke-slate-200" strokeWidth="0.25" strokeDasharray="0.8 1.2" />
-          <circle cx="50" cy="50" r="15" fill="none" className="stroke-brand-500/30" strokeWidth="0.25" />
         </svg>
 
         {/* drifting specks */}
