@@ -80,7 +80,7 @@ export default function ForecastChart({ points, labels, real, inflation, age }: 
           </span>
         ))}
         <span className="inline-flex items-center gap-1.5">
-          <svg width="18" height="4"><line x1="0" y1="2" x2="18" y2="2" stroke="#0b1f2a" strokeWidth="2" strokeDasharray="4 3" /></svg>
+          <svg width="18" height="4"><line x1="0" y1="2" x2="18" y2="2" stroke="var(--chart-ink)" strokeWidth="2" strokeDasharray="4 3" /></svg>
           Amount invested
         </span>
       </div>
@@ -88,7 +88,7 @@ export default function ForecastChart({ points, labels, real, inflation, age }: 
         <svg width={w} height={H} role="img" aria-label="Projected wealth by asset class">
           {ticks.map((t) => (
             <g key={t}>
-              <line x1={PAD.left} x2={w - PAD.right} y1={y(t)} y2={y(t)} stroke="#e2e8f0" strokeWidth={1} />
+              <line x1={PAD.left} x2={w - PAD.right} y1={y(t)} y2={y(t)} stroke="var(--chart-grid)" strokeWidth={1} />
               <text x={PAD.left - 8} y={y(t)} dy="0.32em" textAnchor="end" className="fill-slate-500 text-[11px]">{inrShort(t).replace('.00', '')}</text>
             </g>
           ))}
@@ -100,20 +100,20 @@ export default function ForecastChart({ points, labels, real, inflation, age }: 
             ) : null,
           )}
           {stacks.map(({ k, lower, upper }) => (
-            <path key={k} d={area(lower, upper)} fill={CLASS_COLOR[k]} fillOpacity={0.85} stroke="#ffffff" strokeWidth={2} strokeLinejoin="round" />
+            <path key={k} d={area(lower, upper)} fill={CLASS_COLOR[k]} fillOpacity={0.85} stroke="var(--chart-surface)" strokeWidth={2} strokeLinejoin="round" />
           ))}
-          <path d={line(rows.map((r) => r.contributed))} fill="none" stroke="#0b1f2a" strokeWidth={2} strokeDasharray="5 4" />
+          <path d={line(rows.map((r) => r.contributed))} fill="none" stroke="var(--chart-ink)" strokeWidth={2} strokeDasharray="5 4" />
           {hv && hover != null && (
             <g pointerEvents="none">
-              <line x1={x(hover)} x2={x(hover)} y1={PAD.top} y2={PAD.top + ih} stroke="#0b1f2a" strokeOpacity={0.35} strokeWidth={1} />
-              <circle cx={x(hover)} cy={y(hv.total)} r={4} fill="#0b1f2a" stroke="#fff" strokeWidth={2} />
+              <line x1={x(hover)} x2={x(hover)} y1={PAD.top} y2={PAD.top + ih} stroke="var(--chart-ink)" strokeOpacity={0.35} strokeWidth={1} />
+              <circle cx={x(hover)} cy={y(hv.total)} r={4} fill="var(--chart-ink)" stroke="var(--chart-surface)" strokeWidth={2} />
             </g>
           )}
           <rect x={PAD.left} y={PAD.top} width={iw} height={ih} fill="transparent" onMouseMove={onMove} onMouseLeave={() => setHover(null)} />
         </svg>
         {hv && hover != null && (
           <div
-            className="pointer-events-none absolute top-2 z-10 w-56 rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-lg"
+            className="pointer-events-none absolute top-2 z-10 w-56 rounded-lg border border-slate-200 bg-surface p-3 text-xs shadow-lg"
             style={{ left: Math.min(Math.max(0, x(hover) + 12), w - 232) }}
           >
             <div className="mb-1.5 font-semibold text-ink">

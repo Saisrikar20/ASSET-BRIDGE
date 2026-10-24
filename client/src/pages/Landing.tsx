@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button, Logo, RegChip } from '../components/ui';
 import { api, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { ThemeToggle } from '../lib/theme';
 
 const PILLARS = [
   { n: '01', icon: ShieldCheck, title: 'Verify', body: "Cross-check identity and holdings against every regulator's records." },
@@ -37,10 +38,11 @@ export default function Landing() {
   };
 
   return (
-    <div className="bg-white">
+    <div className="bg-surface">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <Logo />
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link to="/heir" className="hidden px-3 text-sm font-semibold text-slate-600 hover:text-ink sm:block">I'm an heir</Link>
           {user ? (
             <Button onClick={() => nav('/app')}>Open my twin</Button>
@@ -79,18 +81,18 @@ export default function Landing() {
           </div>
 
           <div className="relative">
-            <div className="rounded-3xl bg-gradient-to-br from-brand-800 to-ink p-6 text-white shadow-2xl">
-              <div className="text-xs font-semibold uppercase tracking-widest text-brand-100/70">Unclaimed today · ₹ crore</div>
+            <div className="rounded-3xl bg-gradient-to-br from-brand-800 to-night p-6 text-white shadow-2xl">
+              <div className="text-xs font-semibold uppercase tracking-widest text-[#ccfbf1]/70">Unclaimed today · ₹ crore</div>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 {STATS.map((s) => (
                   <div key={s.l} className="rounded-2xl bg-white/10 p-4">
                     <div className="text-2xl font-extrabold">{s.v}</div>
-                    <div className="mt-1 text-xs text-brand-100/80">{s.l}</div>
-                    <div className="mt-2 text-[10px] font-bold tracking-wider text-brand-100/60">{s.r}</div>
+                    <div className="mt-1 text-xs text-[#ccfbf1]/80">{s.l}</div>
+                    <div className="mt-2 text-[10px] font-bold tracking-wider text-[#ccfbf1]/60">{s.r}</div>
                   </div>
                 ))}
               </div>
-              <p className="mt-5 text-sm text-brand-100/80">
+              <p className="mt-5 text-sm text-[#ccfbf1]/80">
                 Five regulators that were never required to share data. When someone dies, nothing connects their death to their money.
               </p>
             </div>
@@ -106,7 +108,7 @@ export default function Landing() {
           </p>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {PILLARS.map(({ n, icon: Icon, title, body }) => (
-              <div key={n} className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div key={n} className="rounded-2xl border border-slate-200 bg-surface p-5">
                 <div className="flex items-center justify-between">
                   <div className="rounded-lg bg-brand-50 p-2 text-brand-700"><Icon className="h-5 w-5" /></div>
                   <span className="text-xs font-bold text-slate-300">{n}</span>

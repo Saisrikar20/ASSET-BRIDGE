@@ -12,6 +12,7 @@
 | 04 Reunite | A Civil Registration System death event matched by PAN opens an estate case and notifies every heir | `/app/reunite`, `/heir` |
 | 05 Transfer | State-specific, per-holding succession checklist (forms, documents, authority) + AI guide | `/app/cases/:id` |
 | Life plan | ProjectionLab-style planner: income, expenses and milestones (education, wedding, car every N years…) on top of mapped holdings. 1,000-path Monte Carlo → chance of success, fan chart, financial-independence age, "levers" (retire later, spend less…), year-by-year table | `/app/plan` |
+| Life at a glance | Lifespan dial (inspired by Kokonut UI's Time Zone Planner): one ring per family member coloured by life phase (school, college, working, retired), milestones on the rim, and a window you drag round to inspect any year or span — each person's age and phase, net worth, income and spending. *Find best retirement age* searches for the earliest age with an 85%+ chance of success | `/app/plan` → Timeline |
 | Cash flow & tax | Sankey of each year's money (income → tax, expenses, milestones, contributions, surplus / withdrawals) with Indian income tax under the new or old regime (FY 2025-26 slabs) and a regime comparison | `/app/plan` → Cash flow |
 | Legacy | What the family would inherit at any age (investments + life cover), how much flows through a valid nominee vs needs a legal-heir certificate, and each heir's share | `/app/plan` → Legacy |
 | Progress | Net-worth snapshots charted against a saved baseline projection — ahead / behind plan | `/app/plan` → Progress |
@@ -29,6 +30,8 @@ ai-service/  Python + FastAPI, RAG over knowledge/*.md  :8001  (Gemini / OpenAI 
 - **Regulator data is simulated** (`server/src/data/regulators.js`). The demo PAN `ABCPI1234K` returns a hand-built portfolio that triggers every alert type; any other valid PAN gets a deterministic synthetic portfolio.
 - **Persistence** is a JSON file (`server/data/db.json`) behind a tiny store interface (`server/src/lib/store.js`) — the seam for Supabase (Postgres + Auth) and MongoDB.
 - **Life simulator**: `server/src/lib/lifesim.js` (seeded Monte Carlo, drawdown order cash → debt → gold → equity → EPF/PPF after retirement → NPS from 60) and `server/src/lib/tax.js` (Indian income tax).
+- **UI components**: the Detent Dial (every percentage input, and the chance-of-success gauge) and Avatar Picker are vendored from [Kokonut UI](https://kokonutui.com) (MIT) in `client/src/components/kokonutui/`, with small local changes noted in each file header.
+- **Glow & theme**: stat cards use Aceternity UI's [Glowing Effect](https://ui.aceternity.com/components/glowing-effect) (`client/src/components/aceternity/`). Dark mode is a `.dark` class on `<html>` (sidebar / header toggle, remembered per browser, defaults to the OS setting); `client/src/index.css` remaps the colour tokens rather than adding `dark:` variants everywhere, and charts read `--chart-*` / `--series-*` variables.
 - **Forecast engine**: `server/src/lib/forecast.js`; option catalog and return assumptions in `server/src/data/options.js` (small-savings rates change quarterly — update them there).
 - **Succession rules**: structured checklists in `server/src/data/succession.js`; long-form guidance for the AI in `ai-service/knowledge/`.
 

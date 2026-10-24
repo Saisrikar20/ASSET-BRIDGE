@@ -7,6 +7,7 @@ export interface User {
   id: string; email: string; name: string; identity: Identity | null;
   verification: { at: string; results: VerifyResult[] } | null;
   deceased: { dateOfDeath: string; registrationNo: string } | null;
+  avatar?: { displayName: string; variant: number; seed: string } | null;
 }
 export interface Nominee { name: string; relation: string; status: 'valid' | 'deceased' | 'minor'; guardian?: string | null }
 export interface Holding {
@@ -85,7 +86,8 @@ export interface LifeProfile { retireAge: number; lifeExpectancy: number; regime
 export interface IncomeItem { id: string; name: string; kind: 'salary' | 'pension' | 'rental' | 'other'; amount: number; growth: number; startAge: number; endAge: number }
 export interface ExpenseItem { id: string; name: string; kind: 'essential' | 'lifestyle'; amount: number; startAge: number; endAge: number; growthExtra?: number }
 export interface Milestone { id: string; name: string; kind: string; age: number; cost: number; every?: number; until?: number }
-export interface LifePlan { profile: LifeProfile; income: IncomeItem[]; expenses: ExpenseItem[]; milestones: Milestone[] }
+export interface FamilyMember { id: string; name: string; relation: string; age: number }
+export interface LifePlan { profile: LifeProfile; income: IncomeItem[]; expenses: ExpenseItem[]; milestones: Milestone[]; family: FamilyMember[] }
 export interface Flow { name: string; value: number; kind?: string }
 export interface LifeRow {
   age: number; year: number; price: number;

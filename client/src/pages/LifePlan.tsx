@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Camera, Compass, Flag, HeartHandshake, Plus, Target, Trash2, TrendingUp } from 'lucide-react';
-import { api, type ExpenseItem, type IncomeItem, type LifePlan as Plan, type LifeResult, type Milestone, type Progress } from '../lib/api';
+import { api, type ExpenseItem, type FamilyMember, type IncomeItem, type LifePlan as Plan, type LifeResult, type Milestone, type Progress } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date, inr, inrShort } from '../lib/format';
-import { Badge, Button, Card, Input, PageHeader, Select, cx } from '../components/ui';
+import { Badge, Button, Card, GlowCard, Input, PageHeader, Select, cx } from '../components/ui';
 import { FanChart, LegacyChart, ProgressChart, Sankey, progressGap } from '../components/LifeCharts';
+import DetentDial from '../components/kokonutui/detent-dial';
+import LifeTimeline from '../components/LifeTimeline';
 
 const TABS = [
+  { id: 'timeline', label: 'Timeline' },
   { id: 'plan', label: 'Plan' },
   { id: 'chance', label: 'Chance of success' },
   { id: 'cash', label: 'Cash flow & tax' },
@@ -18,12 +21,22 @@ type Tab = (typeof TABS)[number]['id'];
 
 const MILESTONE_KINDS = [['education', 'Education'], ['wedding', 'Wedding'], ['home', 'Home'], ['car', 'Vehicle'], ['travel', 'Travel'], ['health', 'Health'], ['custom', 'Other']];
 const uid = () => Math.random().toString(36).slice(2, 10);
+const RELATIONS = ['Spouse', 'Son', 'Daughter', 'Mother', 'Father', 'Brother', 'Sister', 'Other'];
+
+/** The plan with a new retirement age; salaries that ended at retirement move with it. */
+const withRetire = (p: Plan, age: number): Plan => ({
+  ...p,
+  profile: { ...p.profile, retireAge: age },
+  income: p.income.map((i) => (i.kind === 'salary' && i.endAge === p.profile.retireAge ? { ...i, endAge: age } : i)),
+});
 
 export default function LifePlan() {
   const { user } = useAuth();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [res, setRes] = useState<LifeResult | null>(null);
-  const [tab, setTab] = useState<Tab>('chance');
+  const [tab, setTab] = useState<Tab>('timeline');
+  const [span, setSpan] = useState(1);
+  const [best, setBest] = useState<{ age: number; rate: number } | null | 'searching' | undefined>(undefined);
   const [age, setAge] = useState<number | null>(null);
   const [real, setReal] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -46,7 +59,7 @@ export default function LifePlan() {
     clearTimeout(leverTimer.current);
     leverTimer.current = setTimeout(async () => {
       const variants: [string, Plan][] = [
-        [`Retire at ${p.profile.retireAge + 2} instead of ${p.profile.retireAge}`, { ...p, profile: { ...p.profile, retireAge: p.profile.retireAge + 2 }, income: p.income.map((i) => (i.kind === 'salary' && i.endAge === p.profile.retireAge ? { ...i, endAge: i.endAge + 2 } : i)) }],
+        [`Retire at ${p.profile.retireAge + 2} instead of ${p.profile.retireAge}`, withRetire(p, p.profile.retireAge + 2)],
         ['Spend 10% less on lifestyle', { ...p, expenses: p.expenses.map((e) => (e.kind === 'lifestyle' ? { ...e, amount: e.amount * 0.9 } : e)) }],
         ['Invest surplus 80% in equity', { ...p, profile: { ...p.profile, surplusEquity: 80 } }],
       ];
@@ -61,6 +74,7 @@ export default function LifePlan() {
 
   const update = (p: Plan) => {
     setPlan(p);
+    setBest(undefined);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       api('/life', { method: 'PUT', body: p });
@@ -80,7 +94,21 @@ export default function LifePlan() {
   if (!plan || !res) return <PageHeader title="Life plan" subtitle="Running 1,000 simulations…" />;
 
   const row = res.rows.find((r) => r.age === age) || res.rows[0];
-  const retireBand = res.bands.find((b) => b.age === plan.profile.retireAge);
+
+  // Earliest retirement age whose plan reaches an 85% chance of success.
+  const findBest = async () => {
+    setBest('searching');
+    const P = plan.profile;
+    const ages: number[] = [];
+    for (let a = Math.max(res.age + 1, P.retireAge - 6); a <= Math.min(P.lifeExpectancy - 5, P.retireAge + 10); a++) ages.push(a);
+    const rates = await Promise.all(ages.map((a) => api<LifeResult>('/life/simulate', { body: { plan: withRetire(plan, a), runs: 400 } }).then((r) => r.successRate)));
+    const i = rates.findIndex((r) => r >= 0.85);
+    setBest(i >= 0 ? { age: ages[i], rate: rates[i] } : null);
+  };
+  const people = [
+    { name: user.avatar?.displayName || user.identity.name, relation: 'You', age: res.age, you: true, retireAge: plan.profile.retireAge },
+    ...plan.family.map((f) => ({ ...f, retireAge: 60 })),
+  ];
   const pct = Math.round(res.successRate * 100);
   const tone = pct >= 85 ? 'text-emerald-600' : pct >= 65 ? 'text-amber-600' : 'text-rose-600';
 
@@ -93,22 +121,45 @@ export default function LifePlan() {
       />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-5">
+        <GlowCard>
           <div className="flex items-center gap-2 text-sm font-medium text-slate-600"><Target className="h-4 w-4" />Chance of success</div>
-          <div className={cx('mt-1 text-3xl font-extrabold', tone)}>{pct}%</div>
-          <div className="text-xs text-slate-500">{res.medianFailAge ? `failing paths run short around age ${res.medianFailAge}` : `money lasts to ${plan.profile.lifeExpectancy} in every path`}</div>
-        </Card>
-        <Stat icon={<Flag className="h-4 w-4" />} label={`At retirement (${plan.profile.retireAge})`} value={retireBand ? inrShort(retireBand.p50 / (real ? res.rows.find((r) => r.age === plan.profile.retireAge)?.price || 1 : 1)) : '—'} sub="median net worth" />
-        <Stat icon={<Compass className="h-4 w-4" />} label="Financial independence" value={res.fi ? `Age ${res.fi.age}` : 'Not reached'} sub={res.fi ? `needs ${inrShort(res.fi.number)} at ${plan.profile.swr}% withdrawal` : `at a ${plan.profile.swr}% withdrawal rate`} />
-        <Stat icon={<HeartHandshake className="h-4 w-4" />} label="Family receives today" value={inrShort(res.rows[0].legacy)} sub="investments + insurance payouts" />
+          <DetentDial className="mx-auto my-1" readOnly label={pct >= 85 ? 'On track' : pct >= 65 ? 'Borderline' : 'At risk'} min={0} max={100} step={2} size={150} value={pct} formatValue={(v) => `${v}%`} />
+          <div className={cx('text-center text-xs', tone)}>{res.medianFailAge ? `failing paths run short around age ${res.medianFailAge}` : `money lasts to ${plan.profile.lifeExpectancy} in every path`}</div>
+          <div className="mt-4 space-y-3 border-t border-slate-100 pt-4 text-xs">
+            <Fact k="Paths that last" v={`${Math.round(res.successRate * res.runs).toLocaleString('en-IN')} of ${res.runs.toLocaleString('en-IN')}`} />
+            <Fact k={`Median left at ${plan.profile.lifeExpectancy}`} v={inrShort(res.bands.at(-1)!.p50 / (real ? res.rows.at(-1)!.price : 1))} />
+            <Fact k={`Poor markets at ${plan.profile.lifeExpectancy}`} v={inrShort(res.bands.at(-1)!.p10 / (real ? res.rows.at(-1)!.price : 1))} />
+          </div>
+        </GlowCard>
+        <RetirementCard res={res} plan={plan} real={real} />
+        <FiCard res={res} plan={plan} />
+        <FamilyCard res={res} />
       </div>
 
-      <div className="mb-5 flex gap-1 overflow-x-auto rounded-xl bg-white p-1 ring-1 ring-slate-200">
+      <div className="mb-5 flex gap-1 overflow-x-auto rounded-xl bg-surface p-1 ring-1 ring-slate-200">
         {TABS.map((t) => (
-          <button key={t.id} onClick={() => setTab(t.id)} className={cx('cursor-pointer whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition', tab === t.id ? 'bg-ink text-white' : 'text-slate-600 hover:bg-slate-100')}>{t.label}</button>
+          <button key={t.id} onClick={() => setTab(t.id)} className={cx('cursor-pointer whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition', tab === t.id ? 'bg-ink text-surface' : 'text-slate-600 hover:bg-slate-100')}>{t.label}</button>
         ))}
         {busy && <span className="ml-auto self-center pr-3 text-xs text-slate-400">simulating…</span>}
       </div>
+
+      {tab === 'timeline' && (
+        <LifeTimeline
+          age0={res.age}
+          lifeExpectancy={plan.profile.lifeExpectancy}
+          people={people}
+          milestones={plan.milestones}
+          rows={res.rows}
+          real={real}
+          start={row.age}
+          span={span}
+          onChange={(a, sp) => { setAge(a); setSpan(sp); }}
+          onFindBest={findBest}
+          best={best}
+          onApplyBest={() => { if (best && best !== 'searching') { update(withRetire(plan, best.age)); setAge(best.age); } }}
+          onOpenYear={(a) => { setAge(a); setTab('cash'); }}
+        />
+      )}
 
       {tab === 'plan' && <PlanEditor plan={plan} age0={res.age} onChange={update} />}
 
@@ -211,13 +262,103 @@ export default function LifePlan() {
   );
 }
 
-function Stat({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub: string }) {
+function Stat({ icon, label, value, sub, children }: { icon: React.ReactNode; label: string; value: string; sub: string; children?: React.ReactNode }) {
   return (
-    <Card className="p-5">
+    <GlowCard className="flex flex-col">
       <div className="flex items-center gap-2 text-sm font-medium text-slate-600">{icon}{label}</div>
       <div className="mt-1 text-2xl font-bold tracking-tight text-ink">{value}</div>
       <div className="text-xs text-slate-500">{sub}</div>
-    </Card>
+      {children && <div className="mt-4 flex flex-1 flex-col gap-3 border-t border-slate-100 pt-4 text-xs">{children}</div>}
+    </GlowCard>
+  );
+}
+
+const Fact = ({ k, v }: { k: string; v: string }) => (
+  <div className="flex items-baseline justify-between gap-2"><span className="text-slate-500">{k}</span><span className="text-right font-semibold text-ink">{v}</span></div>
+);
+
+function RetirementCard({ res, plan, real }: { res: LifeResult; plan: Plan; real: boolean }) {
+  const P = plan.profile;
+  const band = res.bands.find((b) => b.age === P.retireAge);
+  const row = res.rows.find((r) => r.age === P.retireAge);
+  const k = real && row ? row.price : 1;
+  if (!band || !row) return <Stat icon={<Flag className="h-4 w-4" />} label={`At retirement (${P.retireAge})`} value="—" sub="retirement age is outside the plan" />;
+  const lo = band.p10 / k;
+  const hi = band.p90 / k;
+  const mid = band.p50 / k;
+  const yearsOfSpending = row.expenseTotal ? band.p50 / row.expenseTotal : 0;
+  return (
+    <Stat icon={<Flag className="h-4 w-4" />} label={`At retirement (${P.retireAge})`} value={inrShort(mid)} sub={`median net worth${real ? ", today's ₹" : ''}`}>
+      <div>
+        <div className="mb-1.5 flex justify-between text-[11px] text-slate-500"><span>Poor markets</span><span>Great markets</span></div>
+        <div className="relative h-2 rounded-full bg-gradient-to-r from-rose-200 via-amber-200 to-emerald-200">
+          <span className="absolute top-1/2 h-3.5 w-1 -translate-y-1/2 rounded-full bg-ink" style={{ left: `calc(${((mid - lo) / Math.max(1, hi - lo)) * 100}% - 2px)` }} title="Median" />
+        </div>
+        <div className="mt-1 flex justify-between font-semibold text-ink"><span>{inrShort(lo)}</span><span>{inrShort(hi)}</span></div>
+      </div>
+      <Fact k="Years to go" v={`${Math.max(0, P.retireAge - res.age)} years`} />
+      <Fact k="Covers" v={`≈ ${Math.round(yearsOfSpending)} years of spending`} />
+      <Fact k="Retirement lasts" v={`${Math.max(0, P.lifeExpectancy - P.retireAge)} years (to ${P.lifeExpectancy})`} />
+      <p className="mt-auto leading-relaxed text-slate-500">The range is the 10th–90th percentile of 1,000 market paths; the mark is the median.</p>
+    </Stat>
+  );
+}
+
+function FiCard({ res, plan }: { res: LifeResult; plan: Plan }) {
+  const P = plan.profile;
+  const today = res.rows[0];
+  const needToday = today.expenseTotal / (P.swr / 100);
+  const progress = needToday ? Math.min(1, today.netWorth / needToday) : 0;
+  const gap = res.fi ? res.fi.age - P.retireAge : null;
+  return (
+    <Stat
+      icon={<Compass className="h-4 w-4" />}
+      label="Financial independence"
+      value={res.fi ? `Age ${res.fi.age}` : 'Not reached'}
+      sub={res.fi ? `needs ${inrShort(res.fi.number)} at ${P.swr}% withdrawal` : `at a ${P.swr}% withdrawal rate`}
+    >
+      <div>
+        <div className="mb-1.5 flex justify-between text-[11px] text-slate-500"><span>Progress today</span><span className="font-semibold text-ink">{Math.round(progress * 100)}%</span></div>
+        <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-600" style={{ width: `${progress * 100}%` }} /></div>
+        <p className="mt-1.5 text-slate-500">You have {inrShort(today.netWorth)} of the {inrShort(needToday)} you'd need today to live off investments.</p>
+      </div>
+      <Fact k="Rule of thumb" v={`${Math.round(100 / P.swr)}× yearly spending`} />
+      <p className="mt-auto leading-relaxed text-slate-500">
+        {gap == null
+          ? 'Spending grows faster than the portfolio in this plan — the levers on the Chance tab show what closes the gap.'
+          : gap > 0
+            ? `That's ${gap} years after you plan to retire at ${P.retireAge}; those years are funded by drawing down savings.`
+            : `That's before your planned retirement at ${P.retireAge} — from then on, working becomes optional.`}
+      </p>
+    </Stat>
+  );
+}
+
+function FamilyCard({ res }: { res: LifeResult }) {
+  const r = res.rows[0];
+  const nom = res.legacy.nominatedShare;
+  const inv = r.netWorth;
+  const ins = r.cover;
+  const total = Math.max(1, inv + ins);
+  return (
+    <Stat icon={<HeartHandshake className="h-4 w-4" />} label="Family receives today" value={inrShort(r.legacy)} sub="investments + insurance payouts">
+      <div>
+        <div className="flex h-2 gap-0.5 overflow-hidden rounded-full">
+          <div className="h-full bg-brand-600" style={{ width: `${(inv / total) * 100}%` }} />
+          <div className="h-full bg-sky-500" style={{ width: `${(ins / total) * 100}%` }} />
+        </div>
+        <div className="mt-1.5 flex justify-between">
+          <span className="flex items-center gap-1.5 text-slate-500"><span className="h-2 w-2 rounded-sm bg-brand-600" />Investments <b className="text-ink">{inrShort(inv)}</b></span>
+          <span className="flex items-center gap-1.5 text-slate-500"><span className="h-2 w-2 rounded-sm bg-sky-500" />Cover <b className="text-ink">{inrShort(ins)}</b></span>
+        </div>
+      </div>
+      <Fact k="Via a nominee" v={`${Math.round(nom * 100)}% · ${inrShort(inv * nom)}`} />
+      <Fact k="Needs heir certificate" v={inrShort(inv * (1 - nom))} />
+      <Fact k="Shared between" v={res.legacy.heirs.length ? `${res.legacy.heirs.length} heirs` : 'no heirs yet'} />
+      <p className="mt-auto leading-relaxed text-slate-500">
+        {nom < 1 ? <>Every rupee without a valid nominee waits on paperwork. <Link to="/app/alerts" className="font-semibold text-brand-700">Fix nominee gaps →</Link></> : 'Every investment has a valid nominee.'}
+      </p>
+    </Stat>
   );
 }
 
@@ -251,19 +392,31 @@ function PlanEditor({ plan, age0, onChange }: { plan: Plan; age0: number; onChan
     <div className="space-y-6">
       <Card className="p-5">
         <h2 className="mb-4 font-semibold text-ink">You</h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
           <F label="Current age"><Input disabled value={age0} /></F>
           <F label="Retire at"><Input type="number" value={P.retireAge} onChange={(e) => setP('retireAge', num(e))} /></F>
           <F label="Plan until age"><Input type="number" value={P.lifeExpectancy} onChange={(e) => setP('lifeExpectancy', num(e))} /></F>
           <F label="Tax regime"><Select value={P.regime} onChange={(e) => setP('regime', e.target.value)}><option value="new">New</option><option value="old">Old</option></Select></F>
-          <F label="Surplus → equity %"><Input type="number" min={0} max={100} value={P.surplusEquity} onChange={(e) => setP('surplusEquity', num(e))} /></F>
-          <F label="Safe withdrawal %"><Input type="number" step={0.25} value={P.swr} onChange={(e) => setP('swr', num(e))} /></F>
           <F label="Life cover until age"><Input type="number" value={P.coverUntil} onChange={(e) => setP('coverUntil', num(e))} /></F>
+        </div>
+        <div className="mt-5 flex flex-wrap justify-center gap-10 sm:justify-start">
+          <DetentDial label="Surplus → equity" min={0} max={100} step={5} defaultValue={60} size={150} value={P.surplusEquity} onValueChange={(v) => setP('surplusEquity', v)} formatValue={(v) => `${v}%`} />
+          <DetentDial label="Safe withdrawal" min={2} max={6} step={0.25} defaultValue={3.5} size={150} value={P.swr} onValueChange={(v) => setP('swr', v)} formatValue={(v) => `${v.toFixed(2)}%`} />
         </div>
         <p className="mt-3 text-xs text-slate-500">
           Ongoing SIPs, EPF and PPF contributions come from your mapped holdings and <Link to="/app/invest" className="font-semibold text-brand-700">investment plan</Link>; they run until retirement. Scenario, inflation and SIP step-up are shared with <Link to="/app/forecast" className="font-semibold text-brand-700">Forecast</Link>.
         </p>
       </Card>
+
+      <ListCard title="Family" hint="one ring each on the Timeline dial (up to 4)" onAdd={() => plan.family.length < 4 && onChange({ ...plan, family: [...plan.family, { id: uid(), name: 'Family member', relation: 'Son', age: 10 } as FamilyMember] })}>
+        {plan.family.map((x) => (
+          <Line key={x.id} onRemove={() => onChange({ ...plan, family: plan.family.filter((f) => f.id !== x.id) })}>
+            <Input className="min-w-40 flex-[2]" value={x.name} onChange={(e) => onChange({ ...plan, family: plan.family.map((f) => (f.id === x.id ? { ...f, name: e.target.value } : f)) })} aria-label="Name" />
+            <Select className="w-32" value={x.relation} onChange={(e) => onChange({ ...plan, family: plan.family.map((f) => (f.id === x.id ? { ...f, relation: e.target.value } : f)) })} aria-label="Relation">{RELATIONS.map((r) => <option key={r}>{r}</option>)}</Select>
+            <Small label="age today" value={x.age} onChange={(v) => onChange({ ...plan, family: plan.family.map((f) => (f.id === x.id ? { ...f, age: v } : f)) })} />
+          </Line>
+        ))}
+      </ListCard>
 
       <ListCard title="Income" hint="₹ a year, today" onAdd={() => setList('income', [...plan.income, { id: uid(), name: 'New income', kind: 'other', amount: 100000, growth: 5, startAge: age0, endAge: P.retireAge } as IncomeItem])}>
         {plan.income.map((x) => (
@@ -271,7 +424,7 @@ function PlanEditor({ plan, age0, onChange }: { plan: Plan; age0: number; onChan
             <Input className="min-w-40 flex-[2]" value={x.name} onChange={(e) => patch('income', x.id, { name: e.target.value })} aria-label="Income name" />
             <Select className="w-28" value={x.kind} onChange={(e) => patch('income', x.id, { kind: e.target.value as IncomeItem['kind'] })} aria-label="Type"><option value="salary">Salary</option><option value="rental">Rental</option><option value="pension">Pension</option><option value="other">Other</option></Select>
             <Money value={x.amount} onChange={(v) => patch('income', x.id, { amount: v })} />
-            <Small label="growth %" value={x.growth} onChange={(v) => patch('income', x.id, { growth: v })} />
+            <DetentDial label="growth / yr" min={0} max={15} step={0.5} defaultValue={5} size={100} value={x.growth} onValueChange={(v) => patch('income', x.id, { growth: v })} formatValue={(v) => `${v}%`} />
             <Small label="from" value={x.startAge} onChange={(v) => patch('income', x.id, { startAge: v })} />
             <Small label="to" value={x.endAge} onChange={(v) => patch('income', x.id, { endAge: v })} />
           </Line>
@@ -345,11 +498,11 @@ function LegacyTab({ res, row, real, onPick }: { res: LifeResult; row: LifeResul
         <LegacyChart rows={res.rows} real={real} selected={row.age} onPick={onPick} />
       </Card>
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="bg-gradient-to-br from-brand-800 to-ink p-5 text-white">
-          <div className="text-sm text-brand-100">If something happened at age {row.age}</div>
+        <Card className="bg-gradient-to-br from-brand-800 to-night p-5 text-white">
+          <div className="text-sm text-[#ccfbf1]">If something happened at age {row.age}</div>
           <div className="mt-1 text-3xl font-extrabold">{inrShort(row.legacy / k)}</div>
-          <div className="mt-1 text-sm text-brand-100/80">{inrShort(row.netWorth / k)} investments + {inrShort(row.cover / k)} insurance</div>
-          <p className="mt-3 text-xs text-brand-100/70">India has no inheritance tax — Estate Duty was abolished in 1985. Heirs pay tax only on future income from what they inherit.</p>
+          <div className="mt-1 text-sm text-[#ccfbf1]/80">{inrShort(row.netWorth / k)} investments + {inrShort(row.cover / k)} insurance</div>
+          <p className="mt-3 text-xs text-[#ccfbf1]/70">India has no inheritance tax — Estate Duty was abolished in 1985. Heirs pay tax only on future income from what they inherit.</p>
         </Card>
         <Card className="p-5">
           <h2 className="mb-3 font-semibold text-ink">How it reaches them</h2>

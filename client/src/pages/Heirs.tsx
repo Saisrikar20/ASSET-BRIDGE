@@ -2,9 +2,10 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Trash2, UserPlus, Users } from 'lucide-react';
 import { api, type Heir } from '../lib/api';
 import { Button, Card, Empty, ErrorNote, Field, Input, PageHeader, Select } from '../components/ui';
+import DetentDial from '../components/kokonutui/detent-dial';
 
 const RELATIONS = ['Spouse', 'Son', 'Daughter', 'Mother', 'Father', 'Brother', 'Sister', 'Other'];
-const blank = { name: '', relation: 'Spouse', pan: '', mobile: '', email: '', share: '' };
+const blank = { name: '', relation: 'Spouse', pan: '', mobile: '', email: '', share: 50 };
 
 export default function Heirs() {
   const [heirs, setHeirs] = useState<Heir[]>([]);
@@ -71,9 +72,11 @@ export default function Heirs() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Mobile"><Input value={f.mobile} onChange={(e) => setF({ ...f, mobile: e.target.value })} /></Field>
-              <Field label="Intended share %"><Input type="number" min={0} max={100} value={f.share} onChange={(e) => setF({ ...f, share: e.target.value })} /></Field>
+              <Field label="Email"><Input type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>
             </div>
-            <Field label="Email"><Input type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>
+            <div className="flex flex-col items-center pt-2">
+              <DetentDial label="Intended share" min={0} max={100} step={5} defaultValue={50} size={150} value={f.share} onValueChange={(v) => setF({ ...f, share: v })} formatValue={(v) => `${v}%`} />
+            </div>
             <ErrorNote msg={err} />
             <Button className="w-full" loading={busy}>Add heir</Button>
           </form>

@@ -19,7 +19,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
     try {
       const r = await api<{ token: string; user: User }>(path, { body });
       setSession(r.token, r.user);
-      nav(r.user.identity ? '/app' : '/app/verify');
+      nav(!r.user.avatar ? `/app/avatar?next=${r.user.identity ? '/app' : '/app/verify'}` : r.user.identity ? '/app' : '/app/verify');
     } catch (e) {
       setErr((e as Error).message);
     } finally {

@@ -17,6 +17,7 @@ import Guide from './pages/Guide';
 import ForecastPage from './pages/Forecast';
 import Invest from './pages/Invest';
 import LifePlan from './pages/LifePlan';
+import AvatarPage from './pages/Avatar';
 import HeirPortal from './pages/HeirPortal';
 
 function Protected() {
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="forecast" element={<ForecastPage />} />
         <Route path="invest" element={<Invest />} />
         <Route path="plan" element={<LifePlan />} />
+        <Route path="avatar" element={<AvatarPage />} />
         <Route path="heirs" element={<Heirs />} />
         <Route path="reunite" element={<Reunite />} />
         <Route path="cases" element={<Cases />} />

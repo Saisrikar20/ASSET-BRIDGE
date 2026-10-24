@@ -21,10 +21,10 @@ export const REG_STYLE: Record<string, { dot: string; bg: string; text: string; 
 
 // Chart series colours by asset class — fixed order, validated for CVD separation.
 export const CLASS_COLOR: Record<string, string> = {
-  equity: '#2a78d6',
-  debt: '#eb6834',
-  pension: '#1baf7a',
-  gold: '#eda100',
-  cash: '#e87ba4',
+  equity: 'var(--series-1)',
+  debt: 'var(--series-2)',
+  pension: 'var(--series-3)',
+  gold: 'var(--series-4)',
+  cash: 'var(--series-5)',
 };
 export const CLASS_ORDER = ['equity', 'debt', 'pension', 'gold', 'cash'] as const;

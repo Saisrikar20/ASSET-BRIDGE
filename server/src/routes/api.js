@@ -7,7 +7,7 @@ import { REGULATORS, DEMO_IDENTITY } from '../data/regulators.js';
 import { STATES, STATE_HEIR_DOC, buildTasks } from '../data/succession.js';
 import { ASSET_CLASSES, OPTIONS, SCENARIOS } from '../data/options.js';
 import { forecast, analyze, DEFAULT_SETTINGS } from '../lib/forecast.js';
-import { runLifePlan, defaultLifePlan, bucketOf } from '../lib/lifesim.js';
+import { runLifePlan, defaultLifePlan, bucketOf, familyFromHeirs, ageOf } from '../lib/lifesim.js';
 
 const AI_URL = process.env.AI_URL || 'http://127.0.0.1:8001';
 const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -66,6 +66,13 @@ function seedDemoHeirs(userId) {
 }
 
 api.get('/me', requireAuth, (req, res) => res.json({ user: publicUser(req.user) }));
+
+api.put('/me/avatar', requireAuth, (req, res) => {
+  const { displayName, variant, seed } = req.body || {};
+  if (typeof displayName !== 'string' || displayName.trim().length < 2 || !Number.isInteger(variant) || typeof seed !== 'string') return bad(res, 'Pick an avatar first');
+  const user = store.update('users', (u) => u.id === req.user.id, { avatar: { displayName: displayName.trim().slice(0, 32), variant, seed: seed.slice(0, 64) } });
+  res.json({ user: publicUser(user) });
+});
 
 api.post('/demo/reset', requireAuth, (req, res) => {
   const id = req.user.id;
@@ -209,7 +216,12 @@ api.get('/analysis', requireAuth, (req, res) => {
 
 // ---------- life plan (income, expenses, milestones) + Monte Carlo ----------
 const isDemo = (u) => u.email === 'demo@assetbridge.in';
-const lifePlanOf = (u) => u.lifePlan || defaultLifePlan(u.identity, isDemo(u));
+const lifePlanOf = (u) => {
+  const plan = u.lifePlan || defaultLifePlan(u.identity, isDemo(u));
+  if (plan.family) return plan;
+  const family = isDemo(u) ? defaultLifePlan(u.identity, true).family : familyFromHeirs(store.all('heirs', (h) => h.userId === u.id), ageOf(u.identity?.dob));
+  return { ...plan, family };
+};
 
 function lifeRun(user, plan, runs) {
   return runLifePlan({
@@ -226,7 +238,7 @@ function lifeRun(user, plan, runs) {
 api.get('/life', requireAuth, (req, res) => res.json({ plan: lifePlanOf(req.user) }));
 
 api.put('/life', requireAuth, (req, res) => {
-  const { profile, income, expenses, milestones } = req.body || {};
+  const { profile, income, expenses, milestones, family } = req.body || {};
   if (!profile || !Array.isArray(income) || !Array.isArray(expenses) || !Array.isArray(milestones)) return bad(res, 'Invalid plan');
   const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
   const plan = {
@@ -237,6 +249,7 @@ api.put('/life', requireAuth, (req, res) => {
     income: income.map((x) => ({ id: x.id, name: String(x.name || 'Income'), kind: ['salary', 'pension', 'rental', 'other'].includes(x.kind) ? x.kind : 'other', amount: num(x.amount), growth: num(x.growth, 5), startAge: num(x.startAge), endAge: num(x.endAge, 60) })),
     expenses: expenses.map((x) => ({ id: x.id, name: String(x.name || 'Expense'), kind: x.kind === 'lifestyle' ? 'lifestyle' : 'essential', amount: num(x.amount), startAge: num(x.startAge), endAge: num(x.endAge, 85), growthExtra: num(x.growthExtra) })),
     milestones: milestones.map((x) => ({ id: x.id, name: String(x.name || 'Milestone'), kind: x.kind || 'custom', age: num(x.age), cost: num(x.cost), every: num(x.every) || undefined, until: x.every ? num(x.until, 75) : undefined })),
+    family: (Array.isArray(family) ? family : []).slice(0, 4).map((x) => ({ id: x.id, name: String(x.name || 'Family member').slice(0, 40), relation: String(x.relation || 'Other'), age: Math.max(0, Math.min(110, num(x.age))) })),
   };
   store.update('users', (u) => u.id === req.user.id, { lifePlan: plan });
   res.json({ plan });

@@ -5,7 +5,7 @@ import { api, type Alert, type Heir, type Holding, type Summary } from '../lib/a
 import { useAuth } from '../lib/auth';
 import { useLive } from '../lib/live';
 import { inrShort, REG_STYLE } from '../lib/format';
-import { Badge, Button, Card, PageHeader, RegChip, cx } from '../components/ui';
+import { Badge, Button, Card, GlowCard, PageHeader, RegChip, cx } from '../components/ui';
 
 export default function Dashboard() {
   const { user, meta, refresh } = useAuth();
@@ -134,11 +134,11 @@ export default function Dashboard() {
 function Stat({ icon, label, value, sub, tone = 'teal' }: { icon: React.ReactNode; label: string; value: string; sub: string; tone?: 'teal' | 'red' | 'amber' }) {
   const t = { teal: 'bg-brand-50 text-brand-700', red: 'bg-rose-50 text-rose-600', amber: 'bg-amber-50 text-amber-600' }[tone];
   return (
-    <Card className="p-5">
+    <GlowCard>
       <div className={cx('mb-3 inline-flex rounded-lg p-2', t)}>{icon}</div>
       <div className="text-2xl font-bold tracking-tight text-ink">{value}</div>
       <div className="mt-0.5 text-sm font-medium text-slate-700">{label}</div>
       <div className="text-xs text-slate-500">{sub}</div>
-    </Card>
+    </GlowCard>
   );
 }

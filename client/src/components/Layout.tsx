@@ -5,6 +5,8 @@ import { useAuth } from '../lib/auth';
 import { useLive, useLiveStatus } from '../lib/live';
 import { api, type Alert } from '../lib/api';
 import { Logo, cx } from './ui';
+import { AvatarFace } from './kokonutui/avatar-picker';
+import { ThemeToggle } from '../lib/theme';
 
 const NAV = [
   { to: '/app', label: 'Financial twin', icon: LayoutDashboard, end: true },
@@ -59,51 +61,62 @@ export default function Layout() {
           end={end}
           onClick={() => setOpen(false)}
           className={({ isActive }) =>
-            cx('flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition', isActive ? 'bg-white/15 text-white' : 'text-brand-100/80 hover:bg-white/10 hover:text-white')
+            cx('flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition', isActive ? 'bg-white/15 text-white' : 'text-[#ccfbf1]/80 hover:bg-white/10 hover:text-white')
           }
         >
           <Icon className="h-4 w-4 shrink-0" />
           <span className="flex-1">{label}</span>
           {label === 'Alerts' && openAlerts > 0 && <span className="rounded-full bg-rose-500 px-1.5 text-[11px] font-bold text-white">{openAlerts}</span>}
-          {step && <span className="text-[10px] font-bold text-brand-100/50">{step}</span>}
+          {step && <span className="text-[10px] font-bold text-[#ccfbf1]/50">{step}</span>}
         </NavLink>
       ))}
-      <div className="mt-auto rounded-xl bg-white/10 p-3 text-xs text-brand-100">
-        <div className="font-semibold text-white">{user?.name}</div>
-        <div className="truncate">{user?.email}</div>
+      <div className="mt-auto rounded-xl bg-white/10 p-3 text-xs text-[#ccfbf1]">
+        <NavLink to="/app/avatar" onClick={() => setOpen(false)} className="group flex items-center gap-2.5" title="Change avatar">
+          <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white/15 ring-2 ring-white/20 transition group-hover:ring-white/50">
+            {user?.avatar ? <AvatarFace seed={user.avatar.seed} className="h-full w-full" /> : <span className="text-sm font-bold text-white">{user?.name.split(' ').map((p) => p[0]).slice(0, 2).join('')}</span>}
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate font-semibold text-white">{user?.avatar?.displayName || user?.name}</span>
+            <span className="block truncate">{user?.avatar ? user.email : 'Pick your avatar →'}</span>
+          </span>
+        </NavLink>
         <div className="mt-2 flex items-center gap-1.5">
           <span className={cx('h-2 w-2 rounded-full', connected ? 'bg-emerald-400' : 'bg-slate-400')} />
           {connected ? 'Live alerts connected' : 'Connecting…'}
         </div>
-        <button onClick={() => { logout(); nav('/'); }} className="mt-3 flex cursor-pointer items-center gap-1.5 font-semibold text-white/90 hover:text-white">
-          <LogOut className="h-3.5 w-3.5" /> Sign out
-        </button>
+        <div className="mt-3 flex items-center justify-between">
+          <button onClick={() => { logout(); nav('/'); }} className="flex cursor-pointer items-center gap-1.5 font-semibold text-white/90 hover:text-white">
+            <LogOut className="h-3.5 w-3.5" /> Sign out
+          </button>
+          <ThemeToggle onDark />
+        </div>
       </div>
     </nav>
   );
 
   return (
     <div className="min-h-screen lg:pl-64">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-gradient-to-b from-brand-900 to-ink lg:block">{sidebar}</aside>
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-gradient-to-b from-brand-900 to-night lg:block">{sidebar}</aside>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-64 bg-gradient-to-b from-brand-900 to-ink">
+          <aside className="absolute inset-y-0 left-0 w-64 bg-gradient-to-b from-brand-900 to-night">
             <button className="absolute right-3 top-4 text-white" onClick={() => setOpen(false)} aria-label="Close menu"><X /></button>
             {sidebar}
           </aside>
         </div>
       )}
-      <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
+      <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-surface/90 px-4 py-3 backdrop-blur lg:hidden">
         <button onClick={() => setOpen(true)} aria-label="Open menu"><Menu /></button>
         <Logo />
+        <ThemeToggle className="ml-auto" />
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
         <Outlet />
       </main>
       <div className="fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2">
         {toasts.map((t) => (
-          <div key={t.id} className={cx('rounded-xl border bg-white p-3 shadow-lg', t.severity === 'high' ? 'border-rose-200' : 'border-brand-100')}>
+          <div key={t.id} className={cx('rounded-xl border bg-surface p-3 shadow-lg', t.severity === 'high' ? 'border-rose-200' : 'border-brand-100')}>
             <div className="flex items-center gap-2 text-sm font-semibold text-ink">
               <span className={cx('h-2 w-2 rounded-full', t.severity === 'high' ? 'bg-rose-500' : 'bg-brand-600')} />
               {t.title}

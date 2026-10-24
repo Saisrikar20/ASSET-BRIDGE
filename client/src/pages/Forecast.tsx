@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { HeartHandshake, Lightbulb, Sprout, Table2, TrendingUp } from 'lucide-react';
 import { api, type Analysis, type Catalog, type Forecast, type Plan, type PlanSettings } from '../lib/api';
 import { CLASS_COLOR, CLASS_ORDER, inr, inrShort } from '../lib/format';
-import { Button, Card, Empty, Input, PageHeader, cx } from '../components/ui';
+import { Button, Card, Empty, GlowCard, PageHeader, cx } from '../components/ui';
 import ForecastChart from '../components/ForecastChart';
+import DetentDial from '../components/kokonutui/detent-dial';
 
 const TONE: Record<string, string> = { red: 'border-rose-200 bg-rose-50', amber: 'border-amber-200 bg-amber-50', green: 'border-emerald-200 bg-emerald-50', slate: 'border-slate-200 bg-slate-50' };
 
@@ -58,12 +59,12 @@ export default function ForecastPage() {
       />
 
       {s && (
-        <Card className="mb-6 grid gap-5 p-5 md:grid-cols-[auto_1fr_auto_auto_auto]">
+        <Card className="mb-6 grid items-center gap-5 p-5 md:grid-cols-[auto_1fr_auto_auto]">
           <div>
             <div className="mb-1.5 text-xs font-medium text-slate-500">Scenario</div>
             <div className="inline-flex rounded-lg bg-slate-100 p-1">
               {Object.entries(catalog?.scenarios || {}).map(([k, v]) => (
-                <button key={k} onClick={() => set('scenario', k)} className={cx('cursor-pointer rounded-md px-3 py-1.5 text-sm font-semibold transition', s.scenario === k ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-ink')}>{v.label}</button>
+                <button key={k} onClick={() => set('scenario', k)} className={cx('cursor-pointer rounded-md px-3 py-1.5 text-sm font-semibold transition', s.scenario === k ? 'bg-surface text-ink shadow-sm' : 'text-slate-500 hover:text-ink')}>{v.label}</button>
               ))}
             </div>
           </div>
@@ -71,14 +72,10 @@ export default function ForecastPage() {
             <div className="mb-1.5 flex justify-between text-xs font-medium text-slate-500"><span>Horizon</span><span className="font-semibold text-ink">{s.years} years{fc?.age != null && ` · to age ${fc.age + s.years}`}</span></div>
             <input type="range" min={1} max={30} value={s.years} onChange={(e) => set('years', Number(e.target.value))} className="w-full accent-brand-700" aria-label="Horizon in years" />
           </div>
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-medium text-slate-500">Inflation %</span>
-            <Input type="number" step={0.5} min={0} max={15} className="w-24" value={s.inflation} onChange={(e) => set('inflation', Number(e.target.value))} />
-          </label>
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-medium text-slate-500">SIP step-up / yr %</span>
-            <Input type="number" step={1} min={0} max={25} className="w-24" value={s.stepUp} onChange={(e) => set('stepUp', Number(e.target.value))} />
-          </label>
+          <div className="flex justify-center gap-6">
+            <DetentDial label="Inflation" min={0} max={12} step={0.5} defaultValue={5.5} size={136} value={s.inflation} onValueChange={(v) => set('inflation', v)} formatValue={(v) => `${v.toFixed(1)}%`} />
+            <DetentDial label="SIP step-up / yr" min={0} max={20} step={1} defaultValue={5} size={136} value={s.stepUp} onValueChange={(v) => set('stepUp', v)} formatValue={(v) => `${v}%`} />
+          </div>
           <div className="flex flex-col justify-end gap-2 text-sm">
             <label className="flex cursor-pointer items-center gap-2"><input type="checkbox" className="accent-brand-700" checked={s.reclaimIdle} onChange={(e) => set('reclaimIdle', e.target.checked)} />Reclaim idle money</label>
             <label className="flex cursor-pointer items-center gap-2"><input type="checkbox" className="accent-brand-700" checked={real} onChange={(e) => setReal(e.target.checked)} />In today's rupees</label>
@@ -167,10 +164,10 @@ export default function ForecastPage() {
           </div>
 
           <div className="space-y-6">
-            <Card className="bg-gradient-to-br from-brand-800 to-ink p-5 text-white">
-              <div className="flex items-center gap-2 text-sm font-semibold text-brand-100"><HeartHandshake className="h-4 w-4" /> If something happened today</div>
+            <Card className="bg-gradient-to-br from-brand-800 to-night p-5 text-white">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#ccfbf1]"><HeartHandshake className="h-4 w-4" /> If something happened today</div>
               <div className="mt-2 text-3xl font-extrabold">{inrShort(an.familyToday)}</div>
-              <p className="mt-1 text-sm text-brand-100/80">would reach your family: {inrShort(an.total)} in investments + {inrShort(an.protection)} in insurance payouts — provided every nominee is in place.</p>
+              <p className="mt-1 text-sm text-[#ccfbf1]/80">would reach your family: {inrShort(an.total)} in investments + {inrShort(an.protection)} in insurance payouts — provided every nominee is in place.</p>
             </Card>
             <Card className="p-5">
               <h2 className="mb-3 flex items-center gap-2 font-semibold text-ink"><Lightbulb className="h-4 w-4 text-brand-700" /> Analysis</h2>
@@ -193,10 +190,10 @@ export default function ForecastPage() {
 
 function Tile({ label, value, sub, strong }: { label: string; value: string; sub: string; strong?: boolean }) {
   return (
-    <Card className={cx('p-5', strong && 'border-brand-500 ring-1 ring-brand-500')}>
+    <GlowCard className={cx(strong && 'ring-2 ring-brand-500')}>
       <div className="text-sm font-medium text-slate-600">{label}</div>
       <div className={cx('mt-1 text-2xl font-bold tracking-tight', strong ? 'text-brand-700' : 'text-ink')}>{value}</div>
       <div className="mt-0.5 text-xs text-slate-500">{sub}</div>
-    </Card>
+    </GlowCard>
   );
 }

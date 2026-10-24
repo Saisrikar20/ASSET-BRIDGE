@@ -29,6 +29,14 @@ const optionBucket = (o) => OPTION_BUCKET[o.id] || (o.class === 'pension' ? 'pen
 
 export const ageOf = (dob) => (dob ? Math.floor((Date.now() - new Date(dob)) / (365.25 * 864e5)) : 35);
 
+// ---------- family (rings on the life-at-a-glance dial) ----------
+const GUESS_AGE = { Spouse: -2, Son: -28, Daughter: -28, Mother: 28, Father: 28, Brother: 0, Sister: 0 };
+
+/** Family members for the plan: registered heirs with an estimated age the user can correct. */
+export function familyFromHeirs(heirs, age0) {
+  return heirs.slice(0, 4).map((h) => ({ id: h.id, name: h.name, relation: h.relation, age: Math.max(0, age0 + (GUESS_AGE[h.relation] ?? 0)) }));
+}
+
 // ---------- default plans ----------
 let n = 0;
 const id = () => `l${Date.now().toString(36)}${(n++).toString(36)}`;
@@ -54,6 +62,11 @@ export function defaultLifePlan(identity, isDemo) {
         { id: id(), name: "Divya's wedding", kind: 'wedding', age: age + 10, cost: 2000000 },
         { id: id(), name: 'New car', kind: 'car', age: age + 3, cost: 1200000, every: 8, until: 72 },
         { id: id(), name: 'Home renovation', kind: 'home', age: 55, cost: 1500000 },
+      ],
+      family: [
+        { id: id(), name: 'Meenakshi Iyer', relation: 'Spouse', age: age - 2 },
+        { id: id(), name: 'Divya Iyer', relation: 'Daughter', age: 18 },
+        { id: id(), name: 'Arjun Iyer', relation: 'Son', age: 14 },
       ],
     };
   }

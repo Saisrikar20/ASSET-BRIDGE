@@ -60,7 +60,7 @@ export default function Alerts() {
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {(['open', 'resolved'] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={cx('cursor-pointer rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition', tab === t ? 'bg-ink text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200')}>
+          <button key={t} onClick={() => setTab(t)} className={cx('cursor-pointer rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition', tab === t ? 'bg-ink text-surface' : 'bg-surface text-slate-600 ring-1 ring-slate-200')}>
             {t} ({alerts.filter((a) => (t === 'open' ? !a.resolved : a.resolved)).length})
           </button>
         ))}
@@ -131,7 +131,7 @@ function NomineeForm({ holding, heirs, minor, onDone }: { holding: Holding; heir
         <div className="mb-3 flex flex-wrap gap-2">
           <span className="text-xs text-slate-500">Quick pick:</span>
           {heirs.map((h) => (
-            <button key={h.id} onClick={() => setF({ ...f, name: h.name, relation: h.relation })} className="cursor-pointer rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-brand-700 ring-1 ring-brand-100 hover:bg-brand-50">{h.name}</button>
+            <button key={h.id} onClick={() => setF({ ...f, name: h.name, relation: h.relation })} className="cursor-pointer rounded-full bg-surface px-2.5 py-0.5 text-xs font-medium text-brand-700 ring-1 ring-brand-100 hover:bg-brand-50">{h.name}</button>
           ))}
         </div>
       )}

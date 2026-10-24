@@ -3,9 +3,9 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { LifeResult, LifeRow, Milestone, Progress } from '../lib/api';
 import { date, inr, inrShort } from '../lib/format';
 
-const INK = '#0b1f2a';
-const GRID = '#e2e8f0';
-const BLUE = '#2a78d6';
+const INK = 'var(--chart-ink)';
+const GRID = 'var(--chart-grid)';
+const BLUE = 'var(--series-1)';
 
 function useWidth(min = 320) {
   const ref = useRef<HTMLDivElement>(null);
@@ -30,7 +30,7 @@ const short = (v: number) => inrShort(v).replace('.00', '');
 
 function Tooltip({ x, w, children }: { x: number; w: number; children: ReactNode }) {
   return (
-    <div className="pointer-events-none absolute top-2 z-10 w-56 rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-lg" style={{ left: Math.min(Math.max(0, x + 12), w - 232) }}>
+    <div className="pointer-events-none absolute top-2 z-10 w-56 rounded-lg border border-slate-200 bg-surface p-3 text-xs shadow-lg" style={{ left: Math.min(Math.max(0, x + 12), w - 232) }}>
       {children}
     </div>
   );
@@ -83,7 +83,7 @@ export function FanChart({ result, milestones, retireAge, real, onPick }: { resu
           {bands.map((b, i) => (i % step === 0 || i === n - 1 ? <text key={b.age} x={x(i)} y={H - 12} textAnchor="middle" className="fill-slate-500 text-[11px]">{b.age}</text> : null))}
           {ri > 0 && (
             <g>
-              <rect x={x(ri)} y={P.t} width={x(n - 1) - x(ri)} height={ih} fill="#f1f5f9" />
+              <rect x={x(ri)} y={P.t} width={x(n - 1) - x(ri)} height={ih} fill="var(--chart-muted)" />
               <text x={x(ri) + 6} y={P.t + 12} className="fill-slate-500 text-[11px] font-semibold">Retired</text>
             </g>
           )}
@@ -92,12 +92,12 @@ export function FanChart({ result, milestones, retireAge, real, onPick }: { resu
           <path d={line(bands.map((b) => b.p50))} fill="none" stroke={BLUE} strokeWidth={2} />
           <line x1={P.l} x2={w - P.r} y1={y(0)} y2={y(0)} stroke={INK} strokeOpacity={0.4} />
           {bands.map((b, i) =>
-            msAt(b.age).length ? <rect key={`m${b.age}`} x={x(i) - 4} y={y(0) - 4} width={8} height={8} transform={`rotate(45 ${x(i)} ${y(0)})`} fill="#eda100" stroke="#fff" strokeWidth={1.5} /> : null,
+            msAt(b.age).length ? <rect key={`m${b.age}`} x={x(i) - 4} y={y(0) - 4} width={8} height={8} transform={`rotate(45 ${x(i)} ${y(0)})`} fill="var(--series-4)" stroke="var(--chart-surface)" strokeWidth={1.5} /> : null,
           )}
           {hv && hover != null && (
             <g pointerEvents="none">
               <line x1={x(hover)} x2={x(hover)} y1={P.t} y2={P.t + ih} stroke={INK} strokeOpacity={0.35} />
-              <circle cx={x(hover)} cy={y(hv.p50)} r={4} fill={BLUE} stroke="#fff" strokeWidth={2} />
+              <circle cx={x(hover)} cy={y(hv.p50)} r={4} fill={BLUE} stroke="var(--chart-surface)" strokeWidth={2} />
             </g>
           )}
           <rect
@@ -123,7 +123,7 @@ export function FanChart({ result, milestones, retireAge, real, onPick }: { resu
 }
 
 // ---------------- Cash-flow Sankey ----------------
-const FLOW_COLOR = { income: '#0d9488', withdraw: '#64748b', unfunded: '#e34948', tax: '#94a3b8', expense: '#eb6834', milestone: '#eda100', contribution: '#2a78d6', surplus: '#1baf7a' };
+const FLOW_COLOR = { income: 'var(--series-teal)', withdraw: 'var(--series-slate)', unfunded: 'var(--series-red)', tax: 'var(--series-neutral)', expense: 'var(--series-2)', milestone: 'var(--series-4)', contribution: 'var(--series-1)', surplus: 'var(--series-3)' };
 type Node = { name: string; value: number; color: string };
 
 export function Sankey({ row }: { row: LifeRow }) {
@@ -228,7 +228,7 @@ export function LegacyChart({ rows, real, selected, onPick }: { rows: LifeRow[];
   return (
     <div>
       <div className="mb-3 flex flex-wrap gap-x-4 text-xs text-slate-600">
-        <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4" style={{ background: '#1baf7a' }} />Estate incl. insurance payouts</span>
+        <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4" style={{ background: 'var(--series-3)' }} />Estate incl. insurance payouts</span>
         <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4" style={{ background: BLUE }} />Investments only</span>
       </div>
       <div ref={ref} className="relative">
@@ -240,10 +240,10 @@ export function LegacyChart({ rows, real, selected, onPick }: { rows: LifeRow[];
             </g>
           ))}
           {rows.map((r, i) => (i % step === 0 || i === n - 1 ? <text key={r.age} x={x(i)} y={H - 10} textAnchor="middle" className="fill-slate-500 text-[11px]">{r.age}</text> : null))}
-          <path d={path((r) => r.legacy)} fill="none" stroke="#1baf7a" strokeWidth={2} />
+          <path d={path((r) => r.legacy)} fill="none" stroke="var(--series-3)" strokeWidth={2} />
           <path d={path((r) => r.netWorth)} fill="none" stroke={BLUE} strokeWidth={2} />
           {si >= 0 && <line x1={x(si)} x2={x(si)} y1={P.t} y2={P.t + ih} stroke={INK} strokeWidth={1.5} strokeDasharray="4 3" />}
-          {si >= 0 && <circle cx={x(si)} cy={y(rows[si].legacy / d(rows[si]))} r={5} fill="#1baf7a" stroke="#fff" strokeWidth={2} />}
+          {si >= 0 && <circle cx={x(si)} cy={y(rows[si].legacy / d(rows[si]))} r={5} fill="var(--series-3)" stroke="var(--chart-surface)" strokeWidth={2} />}
           <rect x={P.l} y={P.t} width={iw} height={ih} fill="transparent" className="cursor-pointer"
             onMouseMove={(e) => { const b = e.currentTarget.getBoundingClientRect(); setHover(Math.max(0, Math.min(n - 1, Math.round(((e.clientX - b.left) / b.width) * (n - 1))))); }}
             onMouseLeave={() => setHover(null)} onClick={() => hover != null && onPick(rows[hover].age)} />
@@ -253,7 +253,7 @@ export function LegacyChart({ rows, real, selected, onPick }: { rows: LifeRow[];
             <div className="mb-1 font-semibold text-ink">If at age {hv.age}</div>
             <Row k="Investments" v={short(hv.netWorth / d(hv))} swatch={BLUE} />
             <Row k="Insurance payouts" v={short(hv.cover / d(hv))} />
-            <Row k="Family receives" v={short(hv.legacy / d(hv))} swatch="#1baf7a" strong />
+            <Row k="Family receives" v={short(hv.legacy / d(hv))} swatch="var(--series-3)" strong />
           </Tooltip>
         )}
       </div>
@@ -305,7 +305,7 @@ export function ProgressChart({ progress }: { progress: Progress }) {
           {months.map((t) => <text key={t} x={x(t)} y={H - 10} textAnchor="middle" className="fill-slate-500 text-[11px]">{new Date(t).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' })}</text>)}
           {baseLine.length > 1 && <path d={`M${baseLine.map((p) => `${x(p.t)},${y(p.v)}`).join('L')}`} fill="none" stroke={INK} strokeWidth={2} strokeDasharray="5 4" />}
           <path d={`M${pts.map((p) => `${x(p.t)},${y(p.v)}`).join('L')}`} fill="none" stroke={BLUE} strokeWidth={2} />
-          {pts.map((p, i) => <circle key={p.s.id} cx={x(p.t)} cy={y(p.v)} r={hover === i ? 6 : 4} fill={BLUE} stroke="#fff" strokeWidth={2} />)}
+          {pts.map((p, i) => <circle key={p.s.id} cx={x(p.t)} cy={y(p.v)} r={hover === i ? 6 : 4} fill={BLUE} stroke="var(--chart-surface)" strokeWidth={2} />)}
           {pts.map((p, i) => <rect key={`h${p.s.id}`} x={x(p.t) - 12} y={P.t} width={24} height={ih} fill="transparent" onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} />)}
         </svg>
         {hv && hover != null && (

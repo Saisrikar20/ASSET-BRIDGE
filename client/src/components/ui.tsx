@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
+import { GlowingEffect } from './aceternity/glowing-effect';
 import { REG_STYLE } from '../lib/format';
 
 export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
@@ -13,7 +14,7 @@ export function Logo({ light = false, size = 'md' }: { light?: boolean; size?: '
         <path d="M5 21h22M8 21v-4M24 21v-4M5 17c4-7 18-7 22 0M12 21v-6.5M16 21v-7.5M20 21v-6.5" stroke={light ? '#0f766e' : '#fff'} strokeWidth="2" fill="none" strokeLinecap="round" />
       </svg>
       <span className={cx('font-extrabold tracking-tight', size === 'lg' ? 'text-2xl' : 'text-lg', light ? 'text-white' : 'text-ink')}>
-        Asset<span className={light ? 'text-brand-100' : 'text-brand-700'}>Bridge</span>
+        Asset<span className={light ? 'text-[#ccfbf1]' : 'text-brand-700'}>Bridge</span>
       </span>
     </div>
   );
@@ -23,7 +24,7 @@ type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' 
 export function Button({ variant = 'primary', loading, size = 'md', className, children, disabled, ...rest }: BtnProps) {
   const styles = {
     primary: 'bg-brand-700 text-white hover:bg-brand-800 shadow-sm',
-    secondary: 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50',
+    secondary: 'bg-surface text-slate-700 border border-slate-200 hover:bg-slate-50',
     ghost: 'text-slate-600 hover:bg-slate-100',
     danger: 'bg-rose-600 text-white hover:bg-rose-700',
   }[variant];
@@ -39,8 +40,18 @@ export function Button({ variant = 'primary', loading, size = 'md', className, c
   );
 }
 
+/** A card wrapped in a border that glows toward the pointer (Aceternity Glowing Effect). */
+export function GlowCard({ className, children }: { className?: string; children: ReactNode }) {
+  return (
+    <div className="relative h-full rounded-[1.25rem] border border-slate-200 p-1.5">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
+      <div className={cx('relative h-full rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-slate-200/70', className)}>{children}</div>
+    </div>
+  );
+}
+
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cx('rounded-2xl border border-slate-200 bg-white shadow-sm', className)}>{children}</div>;
+  return <div className={cx('rounded-2xl border border-slate-200 bg-surface shadow-sm', className)}>{children}</div>;
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
@@ -53,7 +64,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
   );
 }
 
-const inputCls = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-100';
+const inputCls = 'w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-100';
 export const Input = (p: InputHTMLAttributes<HTMLInputElement>) => <input {...p} className={cx(inputCls, p.className)} />;
 export const Select = (p: SelectHTMLAttributes<HTMLSelectElement>) => <select {...p} className={cx(inputCls, p.className)} />;
 
