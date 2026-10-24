@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const DATA_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
-const empty = () => ({ users: [], heirs: [], consents: [], holdings: [], alerts: [], cases: [] });
+const empty = () => ({ users: [], heirs: [], consents: [], holdings: [], alerts: [], cases: [], snapshots: [] });
 
 let db = load();
 

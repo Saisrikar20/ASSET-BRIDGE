@@ -79,3 +79,27 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
   if (!res.ok) throw new ApiError(data.error || `Request failed (${res.status})`, res.status);
   return data as T;
 }
+
+// ---------- life plan ----------
+export interface LifeProfile { retireAge: number; lifeExpectancy: number; regime: 'new' | 'old'; swr: number; surplusEquity: number; coverUntil: number; otherDeductions: number }
+export interface IncomeItem { id: string; name: string; kind: 'salary' | 'pension' | 'rental' | 'other'; amount: number; growth: number; startAge: number; endAge: number }
+export interface ExpenseItem { id: string; name: string; kind: 'essential' | 'lifestyle'; amount: number; startAge: number; endAge: number; growthExtra?: number }
+export interface Milestone { id: string; name: string; kind: string; age: number; cost: number; every?: number; until?: number }
+export interface LifePlan { profile: LifeProfile; income: IncomeItem[]; expenses: ExpenseItem[]; milestones: Milestone[] }
+export interface Flow { name: string; value: number; kind?: string }
+export interface LifeRow {
+  age: number; year: number; price: number;
+  income: Flow[]; grossIncome: number; tax: number; taxAlt: number; taxable: number; deductions: number; effectiveRate: number;
+  expenses: Flow[]; expenseTotal: number; milestones: Flow[]; milestoneTotal: number; contributions: Flow[]; contribTotal: number;
+  surplus: number; withdrawals: number; drawn: Record<string, number>; shortfall: number;
+  buckets: Record<string, number>; netWorth: number; real: number; legacy: number; cover: number;
+}
+export interface LifeResult {
+  age: number; runs: number; successRate: number; medianFailAge: number | null; deterministicFailAge: number | null;
+  bands: { age: number; p10: number; p25: number; p50: number; p75: number; p90: number }[];
+  rows: LifeRow[]; fi: { age: number; number: number } | null;
+  legacy: { nominatedShare: number; heirs: { name: string; relation: string; share: number }[] };
+  buckets: Record<string, string>;
+}
+export interface Snapshot { id: string; date: string; netWorth: number; demo?: boolean }
+export interface Progress { snapshots: Snapshot[]; baseline: { createdAt: string; points: { date: string; value: number }[]; demo?: boolean } | null; current: number }

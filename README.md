@@ -11,6 +11,10 @@
 | 03 Alert | Real-time (WebSocket) nominee-gap alerts: missing / deceased / minor nominee, inoperative & unclaimed accounts, name mismatch, stale KYC | `/app/alerts` |
 | 04 Reunite | A Civil Registration System death event matched by PAN opens an estate case and notifies every heir | `/app/reunite`, `/heir` |
 | 05 Transfer | State-specific, per-holding succession checklist (forms, documents, authority) + AI guide | `/app/cases/:id` |
+| Life plan | ProjectionLab-style planner: income, expenses and milestones (education, wedding, car every N years…) on top of mapped holdings. 1,000-path Monte Carlo → chance of success, fan chart, financial-independence age, "levers" (retire later, spend less…), year-by-year table | `/app/plan` |
+| Cash flow & tax | Sankey of each year's money (income → tax, expenses, milestones, contributions, surplus / withdrawals) with Indian income tax under the new or old regime (FY 2025-26 slabs) and a regime comparison | `/app/plan` → Cash flow |
+| Legacy | What the family would inherit at any age (investments + life cover), how much flows through a valid nominee vs needs a legal-heir certificate, and each heir's share | `/app/plan` → Legacy |
+| Progress | Net-worth snapshots charted against a saved baseline projection — ahead / behind plan | `/app/plan` → Progress |
 | Forecast | Month-by-month projection of the whole twin by asset class (conservative / base / optimistic, inflation, SIP step-up, reclaim idle money) + portfolio analysis: allocation, liquidity, idle-money cost, blended return | `/app/forecast` |
 | Invest | 19 Indian investment options (PPF, VPF, NPS, SCSS, SSY, NSC, KVP, POMIS, RBI bonds, G-Secs, FDs, index/flexi/ELSS/hybrid/debt funds, gold ETF, SGB, REITs) — add any to a saved plan that feeds the forecast | `/app/invest` |
 
@@ -24,6 +28,7 @@ ai-service/  Python + FastAPI, RAG over knowledge/*.md  :8001  (Gemini / OpenAI 
 
 - **Regulator data is simulated** (`server/src/data/regulators.js`). The demo PAN `ABCPI1234K` returns a hand-built portfolio that triggers every alert type; any other valid PAN gets a deterministic synthetic portfolio.
 - **Persistence** is a JSON file (`server/data/db.json`) behind a tiny store interface (`server/src/lib/store.js`) — the seam for Supabase (Postgres + Auth) and MongoDB.
+- **Life simulator**: `server/src/lib/lifesim.js` (seeded Monte Carlo, drawdown order cash → debt → gold → equity → EPF/PPF after retirement → NPS from 60) and `server/src/lib/tax.js` (Indian income tax).
 - **Forecast engine**: `server/src/lib/forecast.js`; option catalog and return assumptions in `server/src/data/options.js` (small-savings rates change quarterly — update them there).
 - **Succession rules**: structured checklists in `server/src/data/succession.js`; long-form guidance for the AI in `ai-service/knowledge/`.
 
@@ -55,6 +60,8 @@ Open http://localhost:5173 → **Try the live demo**.
 6. Open `/heir` in a private window with the case ID and heir PAN `ABCPI5678M` (Meenakshi) or `BCDPI4321Q` (Divya) — the heir sees the same case and can tick off steps.
 
 7. Forecast & analysis — switch scenarios, drag the horizon, toggle *In today's rupees*; hover the chart. Investment options → add a SIP and watch the projection change.
+
+8. Life plan — 76% chance of success; *Levers* shows retiring at 59 lifts it to 96%. Click a year for its cash-flow Sankey and tax; Legacy shows what each heir would get; Progress compares a year of (demo) snapshots against the baseline.
 
 *Reset demo* on the dashboard puts everything back.
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { AssetClass, ForecastPoint } from '../lib/api';
 import { CLASS_COLOR, CLASS_ORDER, inr, inrShort } from '../lib/format';
 
@@ -18,9 +18,10 @@ export default function ForecastChart({ points, labels, real, inflation, age }: 
   const [w, setW] = useState(720);
   const [hover, setHover] = useState<number | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = wrap.current;
     if (!el) return;
+    setW(Math.max(320, el.getBoundingClientRect().width));
     const ro = new ResizeObserver(([e]) => setW(Math.max(320, e.contentRect.width)));
     ro.observe(el);
     return () => ro.disconnect();

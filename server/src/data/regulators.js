@@ -17,7 +17,7 @@ export const REGULATORS = {
 export const DEMO_IDENTITY = {
   name: 'Raghavan Iyer',
   pan: 'ABCPI1234K',
-  dob: '1958-03-14',
+  dob: '1984-03-14',
   aadhaarLast4: '4821',
   mobile: '9840012345',
   state: 'Tamil Nadu',

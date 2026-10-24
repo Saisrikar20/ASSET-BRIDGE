@@ -7,6 +7,7 @@ import { REGULATORS, DEMO_IDENTITY } from '../data/regulators.js';
 import { STATES, STATE_HEIR_DOC, buildTasks } from '../data/succession.js';
 import { ASSET_CLASSES, OPTIONS, SCENARIOS } from '../data/options.js';
 import { forecast, analyze, DEFAULT_SETTINGS } from '../lib/forecast.js';
+import { runLifePlan, defaultLifePlan, bucketOf } from '../lib/lifesim.js';
 
 const AI_URL = process.env.AI_URL || 'http://127.0.0.1:8001';
 const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -68,9 +69,9 @@ api.get('/me', requireAuth, (req, res) => res.json({ user: publicUser(req.user) 
 
 api.post('/demo/reset', requireAuth, (req, res) => {
   const id = req.user.id;
-  for (const t of ['holdings', 'alerts', 'consents', 'heirs']) store.remove(t, (r) => r.userId === id);
+  for (const t of ['holdings', 'alerts', 'consents', 'heirs', 'snapshots']) store.remove(t, (r) => r.userId === id);
   store.remove('cases', (c) => c.ownerId === id);
-  store.update('users', (u) => u.id === id, { identity: null, verification: null, deceased: null, plan: null });
+  store.update('users', (u) => u.id === id, { identity: null, verification: null, deceased: null, plan: null, lifePlan: null, baseline: null });
   if (req.user.email === 'demo@assetbridge.in') seedDemoHeirs(id);
   res.json({ ok: true });
 });
@@ -204,6 +205,88 @@ api.post('/forecast', requireAuth, (req, res) => {
 api.get('/analysis', requireAuth, (req, res) => {
   const holdings = store.all('holdings', (h) => h.userId === req.user.id);
   res.json(analyze(holdings, req.user.identity, planOf(req.user).settings));
+});
+
+// ---------- life plan (income, expenses, milestones) + Monte Carlo ----------
+const isDemo = (u) => u.email === 'demo@assetbridge.in';
+const lifePlanOf = (u) => u.lifePlan || defaultLifePlan(u.identity, isDemo(u));
+
+function lifeRun(user, plan, runs) {
+  return runLifePlan({
+    plan,
+    invPlan: planOf(user),
+    holdings: store.all('holdings', (h) => h.userId === user.id),
+    identity: user.identity,
+    heirs: store.all('heirs', (h) => h.userId === user.id),
+    settings: planOf(user).settings,
+    runs,
+  });
+}
+
+api.get('/life', requireAuth, (req, res) => res.json({ plan: lifePlanOf(req.user) }));
+
+api.put('/life', requireAuth, (req, res) => {
+  const { profile, income, expenses, milestones } = req.body || {};
+  if (!profile || !Array.isArray(income) || !Array.isArray(expenses) || !Array.isArray(milestones)) return bad(res, 'Invalid plan');
+  const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
+  const plan = {
+    profile: {
+      retireAge: num(profile.retireAge, 60), lifeExpectancy: Math.min(100, num(profile.lifeExpectancy, 85)), regime: profile.regime === 'old' ? 'old' : 'new',
+      swr: num(profile.swr, 3.5), surplusEquity: Math.min(100, Math.max(0, num(profile.surplusEquity, 60))), coverUntil: num(profile.coverUntil, 70), otherDeductions: num(profile.otherDeductions),
+    },
+    income: income.map((x) => ({ id: x.id, name: String(x.name || 'Income'), kind: ['salary', 'pension', 'rental', 'other'].includes(x.kind) ? x.kind : 'other', amount: num(x.amount), growth: num(x.growth, 5), startAge: num(x.startAge), endAge: num(x.endAge, 60) })),
+    expenses: expenses.map((x) => ({ id: x.id, name: String(x.name || 'Expense'), kind: x.kind === 'lifestyle' ? 'lifestyle' : 'essential', amount: num(x.amount), startAge: num(x.startAge), endAge: num(x.endAge, 85), growthExtra: num(x.growthExtra) })),
+    milestones: milestones.map((x) => ({ id: x.id, name: String(x.name || 'Milestone'), kind: x.kind || 'custom', age: num(x.age), cost: num(x.cost), every: num(x.every) || undefined, until: x.every ? num(x.until, 75) : undefined })),
+  };
+  store.update('users', (u) => u.id === req.user.id, { lifePlan: plan });
+  res.json({ plan });
+});
+
+api.post('/life/simulate', requireAuth, (req, res) => {
+  const plan = req.body?.plan || lifePlanOf(req.user);
+  res.json(lifeRun(req.user, plan, Math.min(2000, Number(req.body?.runs) || 1000)));
+});
+
+// ---------- progress tracking ----------
+const netWorthNow = (userId) => store.all('holdings', (h) => h.userId === userId && bucketOf(h)).reduce((s, h) => s + h.value, 0);
+
+function seedDemoHistory(user) {
+  // Demo only: a year of month-end snapshots and a baseline set 12 months ago, flagged as demo data.
+  const now = netWorthNow(user.id);
+  if (!now) return;
+  for (let m = 12; m >= 1; m--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - m, 28);
+    const wobble = 1 + Math.sin(m * 1.7) * 0.025;
+    store.insert('snapshots', { id: uid('s_'), userId: user.id, date: d.toISOString().slice(0, 10), netWorth: Math.round((now / Math.pow(1.009, m)) * wobble), demo: true });
+  }
+  const start = new Date();
+  start.setMonth(start.getMonth() - 12);
+  const v0 = now / Math.pow(1.009, 12);
+  const points = Array.from({ length: 11 }, (_, y) => ({ date: new Date(start.getFullYear() + y, start.getMonth(), 1).toISOString().slice(0, 10), value: Math.round(v0 * Math.pow(1.105, y)) }));
+  store.update('users', (u) => u.id === user.id, { baseline: { createdAt: start.toISOString(), points, demo: true } });
+}
+
+api.get('/progress', requireAuth, (req, res) => {
+  if (isDemo(req.user) && !store.find('snapshots', (s) => s.userId === req.user.id)) seedDemoHistory(req.user);
+  const user = store.find('users', (u) => u.id === req.user.id);
+  res.json({ snapshots: store.all('snapshots', (s) => s.userId === user.id).sort((a, b) => a.date.localeCompare(b.date)), baseline: user.baseline || null, current: netWorthNow(user.id) });
+});
+
+api.post('/progress/snapshot', requireAuth, (req, res) => {
+  const date = new Date().toISOString().slice(0, 10);
+  store.remove('snapshots', (s) => s.userId === req.user.id && s.date === date);
+  const snap = store.insert('snapshots', { id: uid('s_'), userId: req.user.id, date, netWorth: netWorthNow(req.user.id) });
+  res.json({ snapshot: snap });
+});
+
+api.post('/progress/baseline', requireAuth, (req, res) => {
+  const result = lifeRun(req.user, lifePlanOf(req.user), 1);
+  const now = new Date();
+  const points = result.rows.map((r) => ({ date: new Date(now.getFullYear() + r.year, now.getMonth(), now.getDate()).toISOString().slice(0, 10), value: r.netWorth }));
+  const baseline = { createdAt: now.toISOString(), points };
+  store.update('users', (u) => u.id === req.user.id, { baseline });
+  res.json({ baseline });
 });
 
 // ---------- heirs ----------
