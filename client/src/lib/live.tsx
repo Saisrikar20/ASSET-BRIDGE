@@ -1,6 +1,6 @@
 // Real-time channel: nominee-gap alerts and case updates over WebSocket.
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { tokenStore } from './api';
+import { API_BASE, tokenStore } from './api';
 import { useAuth } from './auth';
 
 export interface LiveEvent { type: string; data: any; at: string }
@@ -19,8 +19,8 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     let retry: ReturnType<typeof setTimeout>;
     let closed = false;
     const open = () => {
-      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-      ws = new WebSocket(`${proto}://${location.host}/ws?token=${tokenStore.get()}`);
+      const base = API_BASE ? API_BASE.replace(/^http/, 'ws') : `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
+      ws = new WebSocket(`${base}/ws?token=${tokenStore.get()}`);
       ws.onopen = () => setConnected(true);
       ws.onmessage = (m) => {
         const e = JSON.parse(m.data) as LiveEvent;

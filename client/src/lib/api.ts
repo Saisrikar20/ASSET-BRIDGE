@@ -65,17 +65,33 @@ export class ApiError extends Error {
   constructor(message: string, public status: number) { super(message); }
 }
 
+/**
+ * Where the Express server lives. Empty in development (Vite proxies /api and
+ * /ws); set VITE_API_URL to the hosted server when the client is deployed on
+ * its own, e.g. https://asset-bridge-api.onrender.com
+ */
+export const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+
 export async function api<T>(path: string, opts: { method?: string; body?: unknown; heirPan?: string } = {}): Promise<T> {
   const headers: Record<string, string> = {};
   const token = tokenStore.get();
   if (token) headers.Authorization = `Bearer ${token}`;
   if (opts.body !== undefined) headers['content-type'] = 'application/json';
   if (opts.heirPan) headers['x-heir-pan'] = opts.heirPan;
-  const res = await fetch(`/api${path}`, {
-    method: opts.method || (opts.body !== undefined ? 'POST' : 'GET'),
-    headers,
-    body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api${path}`, {
+      method: opts.method || (opts.body !== undefined ? 'POST' : 'GET'),
+      headers,
+      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+    });
+  } catch {
+    throw new ApiError("Can't reach the Asset Bridge server. If it was asleep it's starting up — try again in a few seconds.", 0);
+  }
+  // A static host answering for a missing backend returns its HTML 404 page, not JSON.
+  if (!(res.headers.get('content-type') || '').includes('application/json')) {
+    throw new ApiError(res.ok ? 'Unexpected response from the server.' : "The Asset Bridge server isn't connected to this site yet.", res.status || 0);
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError(data.error || `Request failed (${res.status})`, res.status);
   return data as T;

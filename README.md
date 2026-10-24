@@ -69,6 +69,13 @@ Open http://localhost:5173 → **Try the live demo**.
 
 *Reset demo* on the dashboard puts everything back.
 
+## Deploy
+
+The client is a static site; the API needs a long-running process (WebSockets, JSON store), so they're hosted separately.
+
+1. **API + AI guide on Render** — *New → Blueprint*, pick this repo. `render.yaml` creates `asset-bridge-api` and `asset-bridge-ai` (free plan). Free services sleep when idle, so the first demo click can take up to a minute; the home page says so while it waits. Data lives in the container and resets on redeploy.
+2. **Client on Vercel** — *Import single project* with root directory `client` (not "Services"). Add the environment variable `VITE_API_URL` = your API URL, e.g. `https://asset-bridge-api.onrender.com`, then redeploy. `client/vercel.json` makes deep links like `/app/plan` load the app.
+
 ## Production path
 
 - Real data via RBI Account Aggregator FIPs (consent artefact shape already mirrors ReBIT), then regulator APIs (EPFO, IRDAI, SEBI).

@@ -49,16 +49,26 @@ export default function Landing() {
   const { user, setSession } = useAuth();
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
+  const [slow, setSlow] = useState(false);
+  const [demoErr, setDemoErr] = useState<string | null>(null);
   const [sc, setSc] = useState<Showcase | null>(null);
-  useEffect(() => void api<Showcase>('/showcase').then(setSc).catch(() => {}), []);
+  const [scErr, setScErr] = useState<string | null>(null);
+  useEffect(() => void api<Showcase>('/showcase').then(setSc).catch((e) => setScErr((e as Error).message)), []);
 
   const demo = async () => {
     setBusy(true);
+    setDemoErr(null);
+    // Free hosts sleep idle servers; the first request can take ~30–60 s.
+    const t = setTimeout(() => setSlow(true), 3000);
     try {
       const r = await api<{ token: string; user: User }>('/auth/demo', { body: {} });
       setSession(r.token, r.user);
       nav('/app');
+    } catch (e) {
+      setDemoErr((e as Error).message);
     } finally {
+      clearTimeout(t);
+      setSlow(false);
       setBusy(false);
     }
   };
@@ -107,6 +117,8 @@ export default function Landing() {
               </button>
               <a href="#how" className="inline-flex items-center rounded-xl bg-white/5 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/10">See how it works</a>
             </div>
+            {busy && slow && <p className="mt-4 text-sm text-[#99f6e4]">Waking up the demo server — this can take up to a minute the first time…</p>}
+            {demoErr && <p role="alert" className="mt-4 max-w-xl rounded-lg bg-rose-500/15 px-3 py-2 text-sm text-[#fecdd3] ring-1 ring-rose-400/30">{demoErr}</p>}
           </motion.div>
         </LampHero>
       </section>
@@ -254,6 +266,11 @@ export default function Landing() {
             <h2 className="mt-4 text-3xl font-bold tracking-tight text-ink sm:text-4xl">{sc ? `${sc.persona.name.split(' ')[0]}'s twin, at a glance.` : 'A twin, at a glance.'}</h2>
             <p className="mt-3 max-w-2xl text-slate-600">These panels are read straight from the demo, not mocked. Open it and every number is one click deeper.</p>
           </Reveal>
+          {!sc && (
+            <div className="mt-12 rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-600">
+              {scErr ? <>Live numbers come from the Asset Bridge API. {scErr}</> : 'Loading live numbers from the demo…'}
+            </div>
+          )}
           {sc && (
             <Reveal delay={120} className="mt-12">
               <StackedPanels
