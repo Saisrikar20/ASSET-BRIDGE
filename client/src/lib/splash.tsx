@@ -1,13 +1,13 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LogoSplash from '../components/LogoSplash';
+import CircuitTransition, { CIRCUIT_MS } from '../components/CircuitTransition';
 
-/** Open the app behind a logo splash: runs `task` (which returns where to go), then fades in the destination. */
+/** Open the app through the circuit-board transition: runs `task` (which returns where to go) while the circuit plays, shows the destination underneath, then lifts the overlay. */
 type Go = (task: () => Promise<string>) => Promise<void>;
 const Ctx = createContext<Go>(async () => {});
 
-const MIN_MS = 1100; // long enough to register the brand, short enough not to annoy
-const FADE_MS = 550;
+const MIN_MS = CIRCUIT_MS; // the circuit finishes, then the destination renders underneath
+const FADE_MS = 600; // scale-and-blur out, plus a beat
 
 export function SplashProvider({ children }: { children: ReactNode }) {
   const nav = useNavigate();
@@ -29,7 +29,7 @@ export function SplashProvider({ children }: { children: ReactNode }) {
         await new Promise((r) => setTimeout(r, Math.max(0, MIN_MS - (performance.now() - started))));
         nav(to);
       } finally {
-        // Fade the splash out over whatever is now on screen (or the page it started on, on error).
+        // Lift the overlay off whatever is now on screen (or the page it started on, on error).
         setPhase('leaving');
         setTimeout(() => {
           setPhase('idle');
@@ -43,7 +43,7 @@ export function SplashProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={go}>
       {children}
-      {phase !== 'idle' && <LogoSplash leaving={phase === 'leaving'} />}
+      {phase !== 'idle' && <CircuitTransition leaving={phase === 'leaving'} />}
     </Ctx.Provider>
   );
 }

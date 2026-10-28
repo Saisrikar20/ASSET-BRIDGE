@@ -128,10 +128,6 @@ html {
   scroll-behavior: smooth;
 }
 
-@keyframes splash-in {
-  from { opacity: 0; transform: scale(0.92) translateY(8px); filter: blur(4px); }
-  to { opacity: 1; transform: none; filter: none; }
-}
 @keyframes marquee {
   to { transform: translateX(-50%); }
 }
@@ -145,7 +141,34 @@ html {
   0%, 100% { transform: translate(0, 0); opacity: .5; }
   50% { transform: translate(6px, -8px); opacity: 1; }
 }
-@keyframes splash-bar {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(200%); }
+
+/* Home → dashboard: circuit-board transition (ported from LedgerLens). */
+.cb {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background-color: var(--color-slate-50);
+  color: var(--color-ink);
+  background-image: radial-gradient(color-mix(in srgb, var(--color-ink) 16%, transparent) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  animation: cbIn 0.25s ease both;
 }
+.cb.out { animation: cbOut 0.45s ease forwards; pointer-events: none; }
+@keyframes cbIn { from { opacity: 0; } }
+@keyframes cbOut { to { opacity: 0; transform: scale(1.04); filter: blur(4px); } }
+.cb svg { width: min(820px, 94vw); height: auto; overflow: visible; }
+.cb .tr { fill: none; stroke: color-mix(in srgb, var(--color-ink) 28%, transparent); stroke-width: 2; stroke-linejoin: round; }
+.cb .pl { fill: none; stroke: var(--color-brand-500); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; filter: url(#cbGlow); }
+.cb .jn { fill: var(--color-brand-500); }
+.cb .nd rect { fill: var(--color-surface); stroke: color-mix(in srgb, var(--color-ink) 30%, transparent); stroke-width: 1.5; transition: stroke 0.3s, fill 0.3s; }
+.cb .nd .ic { color: color-mix(in srgb, var(--color-ink) 55%, transparent); transition: color 0.3s; }
+.cb .nd text { fill: var(--color-slate-500); font: 500 13px Inter, system-ui, sans-serif; text-anchor: middle; transition: fill 0.3s; }
+.cb .nd.on rect { stroke: var(--color-brand-500); fill: var(--color-brand-50); }
+.cb .nd.on .ic { color: var(--color-brand-600); }
+.cb .nd.on text { fill: var(--color-ink); }
+.cb .halo { fill: none !important; stroke: var(--color-brand-500) !important; stroke-width: 1; opacity: 0; transition: opacity 0.3s; filter: url(#cbGlow); }
+.cb .nd.on .halo { opacity: 1; }
+.cb-cap { position: absolute; bottom: 12vh; left: 0; right: 0; text-align: center; font: 500 14px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-slate-500); letter-spacing: 0.04em; }
+.cb-cap b { color: var(--color-brand-600); font-weight: 600; }
