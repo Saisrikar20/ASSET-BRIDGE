@@ -150,7 +150,7 @@ export default function TwoMinutes() {
                 <span
                   className={cx(
                     'relative z-10 grid size-11 place-items-center rounded-full text-sm font-bold ring-4 ring-surface transition-all duration-500',
-                    on ? 'scale-100 bg-brand-600 text-white shadow-[0_0_0_6px_rgba(20,184,166,.18)]' : 'scale-95 bg-surface text-slate-400',
+                    on ? 'scale-100 bg-brand-600 text-white shadow-[0_0_0_6px_rgba(214,69,17,.18)]' : 'scale-95 bg-surface text-slate-400',
                   )}
                 >
                   {i + 1}

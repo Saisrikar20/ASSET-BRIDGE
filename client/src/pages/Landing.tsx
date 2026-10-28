@@ -74,7 +74,7 @@ function showcaseTabs(sc: Showcase): ShowcaseTab[] {
       cards: sc.summary.byRegulator.filter((r) => r.count).map((r) => ({
         key: r.regulator,
         node: (
-          <DataCard gradient={REG_GRADIENT[r.regulator] ?? 'from-[#0d9488] to-[#042f2e]'} kicker={r.regulator} title={covers[r.regulator] ?? ''} value={inrShort(r.value)} foot={`${r.count} holding${r.count === 1 ? '' : 's'}`}>
+          <DataCard gradient={REG_GRADIENT[r.regulator] ?? 'from-[#0e2747] to-[#081629]'} kicker={r.regulator} title={covers[r.regulator] ?? ''} value={inrShort(r.value)} foot={`${r.count} holding${r.count === 1 ? '' : 's'}`}>
             <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/20"><div className="h-full rounded-full bg-white" style={{ width: `${(r.value / sc.summary.total) * 100}%` }} /></div>
             <div className="mt-1.5 text-[11px] text-white/65">{Math.round((r.value / sc.summary.total) * 100)}% of the twin</div>
           </DataCard>
@@ -100,7 +100,7 @@ function showcaseTabs(sc: Showcase): ShowcaseTab[] {
       id: 'plan',
       label: 'Plan & legacy',
       cards: [
-        { key: 'chance', node: <DataCard gradient="from-[#0d9488] to-[#042f2e]" kicker="LIFE PLAN" title="Chance of success" value={`${Math.round(sc.life.successRate * 100)}%`} foot={`${sc.life.runs} simulated markets`} /> },
+        { key: 'chance', node: <DataCard gradient="from-[#0e2747] to-[#081629]" kicker="LIFE PLAN" title="Chance of success" value={`${Math.round(sc.life.successRate * 100)}%`} foot={`${sc.life.runs} simulated markets`} /> },
         { key: 'retire', node: <DataCard gradient="from-[#2563eb] to-[#172554]" kicker="RETIREMENT" title={`Median net worth at ${sc.life.retireAge}`} value={inrShort(sc.life.retireMedian)} foot={`${sc.life.milestones} milestones on the way`} /> },
         { key: 'legacy', node: <DataCard gradient="from-[#0891b2] to-[#083344]" kicker="LEGACY" title="Family receives today" value={inrShort(sc.life.legacyToday)} foot="investments + insurance payouts" /> },
         { key: 'nominees', node: <DataCard gradient="from-[#059669] to-[#022c22]" kicker="NOMINEES" title="Reaches heirs via a nominee" value={`${Math.round(sc.nominees.coverage * 100)}%`} foot={`${sc.nominees.missing} holdings have none`} /> },
@@ -182,23 +182,23 @@ export default function Landing() {
       <section>
         <LampHero steps={steps}>
           <motion.div initial={{ opacity: 0.5, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.8, ease: 'easeInOut' }} className="flex flex-col items-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#99f6e4] ring-1 ring-white/15">
-              <span className="size-2 rounded-full bg-teal-300 shadow-[0_0_10px_2px_rgba(94,234,212,.7)]" />
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#f59a73] ring-1 ring-white/15">
+              <span className="size-2 rounded-full bg-[#f59a73] shadow-[0_0_10px_2px_rgba(214,69,17,.7)]" />
               ₹94,000+ crore of Indian families' money sits unclaimed
             </span>
             <h1 className="mt-6 max-w-5xl bg-gradient-to-br from-white to-slate-400 bg-clip-text pb-2 text-4xl font-extrabold leading-[1.05] tracking-tight text-transparent sm:text-6xl lg:text-7xl dark:from-[#ffffff] dark:to-[#94a3b8]">
-              Every rupee mapped, <span className="bg-gradient-to-r from-[#99f6e4] to-cyan-300 bg-clip-text text-transparent">and found</span> by your family.
+              Every rupee mapped, <span className="bg-gradient-to-r from-[#f59a73] to-white bg-clip-text text-transparent">and found</span> by your family.
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
               Asset Bridge is a financial twin across RBI, EPFO, IRDAI, SEBI, LIC, NPS and India Post. It fixes nominee gaps while you're alive, and hands your heirs everything — with the exact paperwork for your state — when it matters.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <button onClick={demo} disabled={busy} className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-teal-400 px-5 py-3 text-sm font-semibold text-[#04201d] shadow-[0_8px_30px_-6px_rgba(45,212,191,.6)] transition hover:bg-teal-300 disabled:opacity-60">
+              <button onClick={demo} disabled={busy} className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#d64511] px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_30px_-6px_rgba(214,69,17,.6)] transition hover:bg-[#f0652f] disabled:opacity-60">
                 Try the live demo <ArrowRight className="h-4 w-4" />
               </button>
-              <a href="#how" className="inline-flex items-center rounded-xl bg-white/5 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/10">See how it works</a>
+              <a href="#how" className="inline-flex items-center rounded-xl bg-white/5 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-[#f0652f]/10">See how it works</a>
             </div>
-            {busy && slow && <p className="mt-4 text-sm text-[#99f6e4]">Waking up the demo server — this can take up to a minute the first time…</p>}
+            {busy && slow && <p className="mt-4 text-sm text-[#f59a73]">Waking up the demo server — this can take up to a minute the first time…</p>}
             {demoErr && <p role="alert" className="mt-4 max-w-xl rounded-lg bg-rose-500/15 px-3 py-2 text-sm text-[#fecdd3] ring-1 ring-rose-400/30">{demoErr}</p>}
           </motion.div>
         </LampHero>
@@ -344,7 +344,7 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <Reveal>
             {/* Prominent "live" marker: solid, glowing, pulsing. */}
-            <span className="inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#10b981] to-[#14b8a6] px-5 py-2 text-sm font-bold tracking-[0.2em] text-white shadow-[0_0_0_4px_rgba(16,185,129,.18),0_10px_30px_-6px_rgba(16,185,129,.7)]">
+            <span className="inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#d64511] to-[#f0652f] px-5 py-2 text-sm font-bold tracking-[0.2em] text-white shadow-[0_0_0_4px_rgba(214,69,17,.18),0_10px_30px_-6px_rgba(214,69,17,.7)]">
               <span className="relative flex size-2.5">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-80 motion-safe:animate-ping" />
                 <span className="relative inline-flex size-2.5 rounded-full bg-white" />

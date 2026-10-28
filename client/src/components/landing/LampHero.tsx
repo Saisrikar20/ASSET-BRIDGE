@@ -35,8 +35,8 @@ export default function LampHero({ steps, children }: { steps: HeroStep[]; child
             onClick={() => setActive(i)}
             className={cx('relative flex cursor-pointer flex-col items-center self-start rounded-2xl px-4 py-4 text-center transition duration-500', lit === i ? 'bg-white/[0.04] opacity-100 ring-1 ring-white/10' : 'opacity-50 hover:opacity-80')}
           >
-            <span className={cx('absolute -top-px left-1/2 h-px -translate-x-1/2 bg-[#2dd4bf] shadow-[0_0_12px_2px_rgba(45,212,191,.6)] transition-all duration-500', lit === i ? 'w-2/3 opacity-100' : 'w-0 opacity-0')} />
-            <div className={cx('text-xs font-semibold tabular-nums transition-colors duration-500', lit === i ? 'text-[#5eead4]' : 'text-white/60')}>{s.kicker}</div>
+            <span className={cx('absolute -top-px left-1/2 h-px -translate-x-1/2 bg-[#f0652f] shadow-[0_0_12px_2px_rgba(240,101,47,.6)] transition-all duration-500', lit === i ? 'w-2/3 opacity-100' : 'w-0 opacity-0')} />
+            <div className={cx('text-xs font-semibold tabular-nums transition-colors duration-500', lit === i ? 'text-[#f0652f]' : 'text-white/60')}>{s.kicker}</div>
             <div className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">{s.title}</div>
             <p className="mx-auto mt-2 max-w-80 text-sm leading-relaxed text-white/70">{s.body}</p>
           </button>

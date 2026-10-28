@@ -165,9 +165,9 @@ export default function ForecastPage() {
 
           <div className="space-y-6">
             <Card className="bg-gradient-to-br from-brand-800 to-night p-5 text-white">
-              <div className="flex items-center gap-2 text-sm font-semibold text-[#ccfbf1]"><HeartHandshake className="h-4 w-4" /> If something happened today</div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#b9d3f5]"><HeartHandshake className="h-4 w-4" /> If something happened today</div>
               <div className="mt-2 text-3xl font-extrabold">{inrShort(an.familyToday)}</div>
-              <p className="mt-1 text-sm text-[#ccfbf1]/80">would reach your family: {inrShort(an.total)} in investments + {inrShort(an.protection)} in insurance payouts — provided every nominee is in place.</p>
+              <p className="mt-1 text-sm text-[#b9d3f5]/80">would reach your family: {inrShort(an.total)} in investments + {inrShort(an.protection)} in insurance payouts — provided every nominee is in place.</p>
             </Card>
             <Card className="p-5">
               <h2 className="mb-3 flex items-center gap-2 font-semibold text-ink"><Lightbulb className="h-4 w-4 text-brand-700" /> Analysis</h2>

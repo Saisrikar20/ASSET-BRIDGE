@@ -61,16 +61,16 @@ export default function Layout() {
           end={end}
           onClick={() => setOpen(false)}
           className={({ isActive }) =>
-            cx('flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition', isActive ? 'bg-white/15 text-white' : 'text-[#ccfbf1]/80 hover:bg-white/10 hover:text-white')
+            cx('flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition', isActive ? 'bg-white/15 text-white' : 'text-[#b9d3f5]/80 hover:bg-white/10 hover:text-white')
           }
         >
           <Icon className="h-4 w-4 shrink-0" />
           <span className="flex-1">{label}</span>
           {label === 'Alerts' && openAlerts > 0 && <span className="rounded-full bg-rose-500 px-1.5 text-[11px] font-bold text-white">{openAlerts}</span>}
-          {step && <span className="text-[10px] font-bold text-[#ccfbf1]/50">{step}</span>}
+          {step && <span className="text-[10px] font-bold text-[#b9d3f5]/50">{step}</span>}
         </NavLink>
       ))}
-      <div className="mt-auto rounded-xl bg-white/10 p-3 text-xs text-[#ccfbf1]">
+      <div className="mt-auto rounded-xl bg-white/10 p-3 text-xs text-[#b9d3f5]">
         <NavLink to="/app/avatar" onClick={() => setOpen(false)} className="group flex items-center gap-2.5" title="Change avatar">
           <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white/15 ring-2 ring-white/20 transition group-hover:ring-white/50">
             {user?.avatar ? <AvatarFace seed={user.avatar.seed} className="h-full w-full" /> : <span className="text-sm font-bold text-white">{user?.name.split(' ').map((p) => p[0]).slice(0, 2).join('')}</span>}

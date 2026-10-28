@@ -6,9 +6,9 @@
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
 
-const BG = '#050b10';
-const LIGHT = '#2dd4bf';
-const BEAM = '#14b8a6';
+const BG = '#081629';
+const LIGHT = '#f0652f';
+const BEAM = '#d64511';
 const grow = { delay: 0.3, duration: 0.8, ease: 'easeInOut' } as const;
 
 /** The lamp itself. Its bar sits `barTop` from the top of the parent. */

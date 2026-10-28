@@ -154,9 +154,9 @@ export default function Invest() {
           </Card>
           {fc && (
             <Card className="bg-gradient-to-br from-brand-800 to-night p-5 text-white">
-              <div className="text-sm text-[#ccfbf1]/80">Whole twin in {fc.settings.years} years</div>
+              <div className="text-sm text-[#b9d3f5]/80">Whole twin in {fc.settings.years} years</div>
               <div className="mt-1 text-3xl font-extrabold">{inrShort(fc.summary.end)}</div>
-              <div className="text-sm text-[#ccfbf1]/80">≈ {inrShort(fc.summary.endReal)} in today's rupees</div>
+              <div className="text-sm text-[#b9d3f5]/80">≈ {inrShort(fc.summary.endReal)} in today's rupees</div>
               <Link to="/app/forecast" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-white hover:underline"><TrendingUp className="h-4 w-4" /> Open full forecast</Link>
             </Card>
           )}

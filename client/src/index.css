@@ -6,33 +6,47 @@
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Cormorant Garamond', 'Cormorant', Georgia, serif;
-  --color-brand-50: #f0fdfa;
-  --color-brand-100: #ccfbf1;
-  --color-brand-500: #14b8a6;
-  --color-brand-600: #0d9488;
-  --color-brand-700: #0f766e;
-  --color-brand-800: #115e59;
-  --color-brand-900: #134e4a;
-  --color-ink: #0b1f2a;
-  /* Card / panel background, and a fixed deep navy for gradients that stay dark in both themes. */
+  /* LedgerLens colours: warm greys, a burnt-orange accent (500/600) and navy
+     (800/900) for the dark panels and gradients. */
+  --color-brand-50: #fdeee7;
+  --color-brand-100: #fbd9c9;
+  --color-brand-500: #d64511;
+  --color-brand-600: #d64511;
+  --color-brand-700: #b23a0e;
+  --color-brand-800: #0e2747;
+  --color-brand-900: #081629;
+  --color-ink: #17181a;
+  /* Warm grey neutrals. */
+  --color-slate-50: #efeeec;
+  --color-slate-100: #f3f2f0;
+  --color-slate-200: #ebeae7;
+  --color-slate-300: #d9d7d3;
+  --color-slate-400: #a3a6ac;
+  --color-slate-500: #6b6f76;
+  --color-slate-600: #55595f;
+  --color-slate-700: #3c3f44;
+  --color-slate-800: #2a2c30;
+  --color-slate-900: #17181a;
+  --color-slate-950: #0f1012;
+  /* Card / panel background, and a fixed navy for gradients that stay dark in both themes. */
   --color-surface: #ffffff;
-  --color-night: #0b1f2a;
+  --color-night: #0e2747;
 }
 
 /* Chart roles: series slots follow the validated categorical palette (light steps). */
 :root {
-  --chart-grid: #e2e8f0;
-  --chart-ink: #0b1f2a;
+  --chart-grid: #ebeae7;
+  --chart-ink: #17181a;
   --chart-surface: #ffffff;
-  --chart-muted: #f1f5f9;
+  --chart-muted: #f3f2f0;
   --series-1: #2a78d6;
   --series-2: #eb6834;
   --series-3: #1baf7a;
   --series-4: #eda100;
   --series-5: #e87ba4;
-  --series-teal: #0d9488;
-  --series-slate: #64748b;
-  --series-neutral: #94a3b8;
+  --series-teal: #0e2747;
+  --series-slate: #6b6f76;
+  --series-neutral: #a3a6ac;
   --series-red: #e34948;
   color-scheme: light;
 }
@@ -42,75 +56,78 @@
    their -700/-800 text steps lighten. Chart series use the palette's dark steps. */
 .dark {
   color-scheme: dark;
-  --color-ink: #e8eef5;
-  --color-surface: #111a2a;
-  --color-slate-50: #0b1220;
-  --color-slate-100: #172234;
-  --color-slate-200: #24324a;
-  --color-slate-300: #34465f;
-  --color-slate-400: #66788f;
-  --color-slate-500: #94a3b8;
-  --color-slate-600: #b4c0cf;
-  --color-slate-700: #cbd5e1;
-  --color-slate-800: #e2e8f0;
-  --color-slate-900: #f1f5f9;
-  --color-slate-950: #f8fafc;
-  --color-brand-50: #0c2a28;
-  --color-brand-100: #134e4a;
-  --color-brand-700: #0d9488;
-  --color-brand-800: #0f766e;
-  --color-rose-50: color-mix(in oklab, var(--color-rose-500) 14%, #111a2a);
-  --color-rose-100: color-mix(in oklab, var(--color-rose-500) 22%, #111a2a);
-  --color-rose-200: color-mix(in oklab, var(--color-rose-500) 34%, #111a2a);
+  --color-ink: #ecebe8;
+  --color-surface: #18191c;
+  --color-slate-50: #0f1012;
+  --color-slate-100: #1e2023;
+  --color-slate-200: #2a2c30;
+  --color-slate-300: #3a3c41;
+  --color-slate-400: #6b6f76;
+  --color-slate-500: #8f939a;
+  --color-slate-600: #b0b3b8;
+  --color-slate-700: #c9c8c4;
+  --color-slate-800: #dddcd8;
+  --color-slate-900: #ecebe8;
+  --color-slate-950: #f5f4f2;
+  --color-brand-50: #3a2117;
+  --color-brand-100: #4a2a1c;
+  --color-brand-500: #f0652f;
+  --color-brand-600: #e0561f;
+  --color-brand-700: #f6a27f;
+  --color-brand-800: #0e2747;
+  --color-brand-900: #081629;
+  --color-rose-50: color-mix(in oklab, var(--color-rose-500) 14%, #18191c);
+  --color-rose-100: color-mix(in oklab, var(--color-rose-500) 22%, #18191c);
+  --color-rose-200: color-mix(in oklab, var(--color-rose-500) 34%, #18191c);
   --color-rose-700: color-mix(in oklab, var(--color-rose-500) 62%, white);
   --color-rose-800: color-mix(in oklab, var(--color-rose-500) 48%, white);
-  --color-emerald-50: color-mix(in oklab, var(--color-emerald-500) 14%, #111a2a);
-  --color-emerald-100: color-mix(in oklab, var(--color-emerald-500) 22%, #111a2a);
-  --color-emerald-200: color-mix(in oklab, var(--color-emerald-500) 34%, #111a2a);
+  --color-emerald-50: color-mix(in oklab, var(--color-emerald-500) 14%, #18191c);
+  --color-emerald-100: color-mix(in oklab, var(--color-emerald-500) 22%, #18191c);
+  --color-emerald-200: color-mix(in oklab, var(--color-emerald-500) 34%, #18191c);
   --color-emerald-700: color-mix(in oklab, var(--color-emerald-500) 62%, white);
   --color-emerald-800: color-mix(in oklab, var(--color-emerald-500) 48%, white);
-  --color-amber-50: color-mix(in oklab, var(--color-amber-500) 14%, #111a2a);
-  --color-amber-100: color-mix(in oklab, var(--color-amber-500) 22%, #111a2a);
-  --color-amber-200: color-mix(in oklab, var(--color-amber-500) 34%, #111a2a);
+  --color-amber-50: color-mix(in oklab, var(--color-amber-500) 14%, #18191c);
+  --color-amber-100: color-mix(in oklab, var(--color-amber-500) 22%, #18191c);
+  --color-amber-200: color-mix(in oklab, var(--color-amber-500) 34%, #18191c);
   --color-amber-700: color-mix(in oklab, var(--color-amber-500) 62%, white);
   --color-amber-800: color-mix(in oklab, var(--color-amber-500) 48%, white);
-  --color-sky-50: color-mix(in oklab, var(--color-sky-500) 14%, #111a2a);
-  --color-sky-100: color-mix(in oklab, var(--color-sky-500) 22%, #111a2a);
-  --color-sky-200: color-mix(in oklab, var(--color-sky-500) 34%, #111a2a);
+  --color-sky-50: color-mix(in oklab, var(--color-sky-500) 14%, #18191c);
+  --color-sky-100: color-mix(in oklab, var(--color-sky-500) 22%, #18191c);
+  --color-sky-200: color-mix(in oklab, var(--color-sky-500) 34%, #18191c);
   --color-sky-700: color-mix(in oklab, var(--color-sky-500) 62%, white);
   --color-sky-800: color-mix(in oklab, var(--color-sky-500) 48%, white);
-  --color-indigo-50: color-mix(in oklab, var(--color-indigo-500) 14%, #111a2a);
-  --color-indigo-100: color-mix(in oklab, var(--color-indigo-500) 22%, #111a2a);
-  --color-indigo-200: color-mix(in oklab, var(--color-indigo-500) 34%, #111a2a);
+  --color-indigo-50: color-mix(in oklab, var(--color-indigo-500) 14%, #18191c);
+  --color-indigo-100: color-mix(in oklab, var(--color-indigo-500) 22%, #18191c);
+  --color-indigo-200: color-mix(in oklab, var(--color-indigo-500) 34%, #18191c);
   --color-indigo-700: color-mix(in oklab, var(--color-indigo-500) 62%, white);
   --color-indigo-800: color-mix(in oklab, var(--color-indigo-500) 48%, white);
-  --color-violet-50: color-mix(in oklab, var(--color-violet-500) 14%, #111a2a);
-  --color-violet-100: color-mix(in oklab, var(--color-violet-500) 22%, #111a2a);
-  --color-violet-200: color-mix(in oklab, var(--color-violet-500) 34%, #111a2a);
+  --color-violet-50: color-mix(in oklab, var(--color-violet-500) 14%, #18191c);
+  --color-violet-100: color-mix(in oklab, var(--color-violet-500) 22%, #18191c);
+  --color-violet-200: color-mix(in oklab, var(--color-violet-500) 34%, #18191c);
   --color-violet-700: color-mix(in oklab, var(--color-violet-500) 62%, white);
   --color-violet-800: color-mix(in oklab, var(--color-violet-500) 48%, white);
-  --color-orange-50: color-mix(in oklab, var(--color-orange-500) 14%, #111a2a);
-  --color-orange-100: color-mix(in oklab, var(--color-orange-500) 22%, #111a2a);
-  --color-orange-200: color-mix(in oklab, var(--color-orange-500) 34%, #111a2a);
+  --color-orange-50: color-mix(in oklab, var(--color-orange-500) 14%, #18191c);
+  --color-orange-100: color-mix(in oklab, var(--color-orange-500) 22%, #18191c);
+  --color-orange-200: color-mix(in oklab, var(--color-orange-500) 34%, #18191c);
   --color-orange-700: color-mix(in oklab, var(--color-orange-500) 62%, white);
   --color-orange-800: color-mix(in oklab, var(--color-orange-500) 48%, white);
-  --color-teal-50: color-mix(in oklab, var(--color-teal-500) 14%, #111a2a);
-  --color-teal-100: color-mix(in oklab, var(--color-teal-500) 22%, #111a2a);
-  --color-teal-200: color-mix(in oklab, var(--color-teal-500) 34%, #111a2a);
+  --color-teal-50: color-mix(in oklab, var(--color-teal-500) 14%, #18191c);
+  --color-teal-100: color-mix(in oklab, var(--color-teal-500) 22%, #18191c);
+  --color-teal-200: color-mix(in oklab, var(--color-teal-500) 34%, #18191c);
   --color-teal-700: color-mix(in oklab, var(--color-teal-500) 62%, white);
   --color-teal-800: color-mix(in oklab, var(--color-teal-500) 48%, white);
-  --chart-grid: #24324a;
-  --chart-ink: #e8eef5;
-  --chart-surface: #111a2a;
-  --chart-muted: #172234;
+  --chart-grid: #2a2c30;
+  --chart-ink: #ecebe8;
+  --chart-surface: #18191c;
+  --chart-muted: #1e2023;
   --series-1: #3987e5;
   --series-2: #d95926;
   --series-3: #199e70;
   --series-4: #c98500;
   --series-5: #d55181;
-  --series-teal: #14b8a6;
-  --series-slate: #94a3b8;
-  --series-neutral: #66788f;
+  --series-teal: #b9d3f5;
+  --series-slate: #8f939a;
+  --series-neutral: #6b6f76;
   --series-red: #e66767;
 }
 
@@ -167,6 +184,8 @@ html {
 .cb .nd text { fill: var(--color-slate-500); font: 500 13px Inter, system-ui, sans-serif; text-anchor: middle; transition: fill 0.3s; }
 .cb .nd.on rect { stroke: var(--color-brand-500); fill: var(--color-brand-50); }
 .cb .nd.on .ic { color: var(--color-brand-600); }
+.cb .lotus { fill: color-mix(in srgb, var(--color-ink) 55%, transparent); transition: fill 0.3s; }
+.cb .nd.on .lotus { fill: var(--color-brand-500); }
 .cb .nd.on text { fill: var(--color-ink); }
 .cb .halo { fill: none !important; stroke: var(--color-brand-500) !important; stroke-width: 1; opacity: 0; transition: opacity 0.3s; filter: url(#cbGlow); }
 .cb .nd.on .halo { opacity: 1; }

@@ -499,10 +499,10 @@ function LegacyTab({ res, row, real, onPick }: { res: LifeResult; row: LifeResul
       </Card>
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="bg-gradient-to-br from-brand-800 to-night p-5 text-white">
-          <div className="text-sm text-[#ccfbf1]">If something happened at age {row.age}</div>
+          <div className="text-sm text-[#b9d3f5]">If something happened at age {row.age}</div>
           <div className="mt-1 text-3xl font-extrabold">{inrShort(row.legacy / k)}</div>
-          <div className="mt-1 text-sm text-[#ccfbf1]/80">{inrShort(row.netWorth / k)} investments + {inrShort(row.cover / k)} insurance</div>
-          <p className="mt-3 text-xs text-[#ccfbf1]/70">India has no inheritance tax — Estate Duty was abolished in 1985. Heirs pay tax only on future income from what they inherit.</p>
+          <div className="mt-1 text-sm text-[#b9d3f5]/80">{inrShort(row.netWorth / k)} investments + {inrShort(row.cover / k)} insurance</div>
+          <p className="mt-3 text-xs text-[#b9d3f5]/70">India has no inheritance tax — Estate Duty was abolished in 1985. Heirs pay tax only on future income from what they inherit.</p>
         </Card>
         <Card className="p-5">
           <h2 className="mb-3 font-semibold text-ink">How it reaches them</h2>

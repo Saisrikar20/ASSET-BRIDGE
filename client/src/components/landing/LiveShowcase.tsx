@@ -75,9 +75,9 @@ export default function LiveShowcase({ tabs }: { tabs: ShowcaseTab[] }) {
 function Connector() {
   return (
     <div className="flex w-14 shrink-0 items-center" aria-hidden="true">
-      <span className="size-2 rounded-full bg-[#2dd4bf] shadow-[0_0_0_3px_rgba(45,212,191,.2)]" />
+      <span className="size-2 rounded-full bg-[#d64511] shadow-[0_0_0_3px_rgba(214,69,17,.2)]" />
       <span className="h-px flex-1 border-t border-dashed border-slate-300" />
-      <span className="size-2 rounded-full bg-[#2dd4bf] shadow-[0_0_0_3px_rgba(45,212,191,.2)]" />
+      <span className="size-2 rounded-full bg-[#d64511] shadow-[0_0_0_3px_rgba(214,69,17,.2)]" />
     </div>
   );
 }

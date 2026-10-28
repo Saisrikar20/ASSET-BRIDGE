@@ -24,8 +24,8 @@ export function Logo({ light = false, size = 'md', tagline = size === 'lg', onCl
     >
       <LogoMark onDark={light} className={cx('shrink-0', lg ? 'h-12 w-[65px]' : 'h-8 w-[43px]')} />
       <div className="leading-none">
-        <div className={cx('font-display font-bold whitespace-nowrap', lg ? 'text-[1.9rem] tracking-[0.06em]' : 'text-[1.12rem] tracking-[0.04em]', light ? 'text-white' : 'text-[#1f2d4d] dark:text-ink')}>ASSET BRIDGE</div>
-        {tagline && <div className={cx('mt-1 font-medium whitespace-nowrap', lg ? 'text-[10.5px] tracking-[0.28em]' : 'text-[8px] tracking-[0.2em]', light ? 'text-[#cbd5e1]' : 'text-[#1f2d4d]/80 dark:text-slate-500')}>RECOVERING FAMILY LEGACY</div>}
+        <div className={cx('font-display font-bold whitespace-nowrap', lg ? 'text-[1.9rem] tracking-[0.06em]' : 'text-[1.12rem] tracking-[0.04em]', light ? 'text-white' : 'text-[#17181a] dark:text-ink')}>ASSET BRIDGE</div>
+        {tagline && <div className={cx('mt-1 font-medium whitespace-nowrap', lg ? 'text-[10.5px] tracking-[0.28em]' : 'text-[8px] tracking-[0.2em]', light ? 'text-[#b9d3f5]' : 'text-[#17181a]/80 dark:text-slate-500')}>RECOVERING FAMILY LEGACY</div>}
       </div>
     </Link>
   );
