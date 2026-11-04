@@ -13,7 +13,7 @@ This directory contains the visual architecture diagrams, technology evaluations
 
 | File / Document | Format / Type | Description |
 | :--- | :--- | :--- |
-| [`Round 2 ( Shajith ).md`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/docs/round2/shajith/Round%202%20(%20Shajith%20).md) | Master Report | Comprehensive architectural audit, criteria evaluation, and round evolution report. |
+| [`Round 2 ( Shajith ).md`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/docs/round2/shajith/Round%202%20%28%20Shajith%20%29.md) | Master Report | Comprehensive architectural audit, criteria evaluation, and round evolution report. |
 | [`01-existing-system-audit.md`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/docs/round2/shajith/01-existing-system-audit.md) | Technical Audit | Detailed inspection of Round 1 components, identified bottlenecks, and architecture debt. |
 | [`02-current-architecture.drawio`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/docs/round2/shajith/02-current-architecture.drawio) / [`.svg`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/docs/round2/shajith/02-current-architecture.svg) | Visual Diagram | Round 1 baseline architecture showing fragmented Node/FastAPI/Express services. |
 | [`03-proposed-architecture.drawio`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/docs/round2/shajith/03-proposed-architecture.drawio) / [`.svg`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/docs/round2/shajith/03-proposed-architecture.svg) | Visual Diagram | Round 2 unified architecture with single FastAPI ASGI server, in-process RAG, and WebSocket alerts. |
