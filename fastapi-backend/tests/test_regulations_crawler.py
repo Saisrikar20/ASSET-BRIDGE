@@ -211,4 +211,11 @@ def test_api_endpoints():
     poll_data = poll_res.json()
     assert poll_data["ok"] is True
     assert "summary" in poll_data
-    print("[PASS] API endpoints (GET, POST ingest, POST poll) verified 200 OK.")
+    # POST /api/documents/regulations/crawl
+    crawl_res = client.post("/api/documents/regulations/crawl?spider=sebi_circulars&limit=1")
+    assert crawl_res.status_code == 200
+    crawl_data = crawl_res.json()
+    assert crawl_data["ok"] is True
+    assert crawl_data["engine"] == "scrapy"
+    assert crawl_data["spidersRun"] == 1
+    print("[PASS] API endpoints (GET, POST ingest, POST poll, POST crawl) verified 200 OK.")

@@ -8,9 +8,11 @@ import {
   Plus,
   Send,
   Sparkles,
+  Upload,
 } from 'lucide-react';
 import {
   api,
+  uploadDocument,
   type ChatSession,
   type GuideAction,
   type GuideAnswer,
@@ -84,6 +86,8 @@ export default function GuideChat({
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [docCount, setDocCount] = useState<number>(0);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const end = useRef<HTMLDivElement>(null);
   const initialTriggered = useRef(false);
 
@@ -149,6 +153,41 @@ export default function GuideChat({
       })
       .catch(() => {});
   }, [activeSessionId]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingDoc(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('docType', 'User Supporting Document');
+      if (caseId) fd.append('caseId', caseId);
+
+      const res = await uploadDocument(fd);
+      setDocCount((n) => n + 1);
+      setMsgs((m) => [
+        ...m,
+        {
+          role: 'assistant',
+          content: `I have indexed **${file.name}** into your SQLite Document Vault (${res.chunks_indexed} semantic chunks). You can now ask questions about this document or reference it for your succession filings.`,
+          engine: 'vault-indexer',
+        },
+      ]);
+    } catch (err: any) {
+      setMsgs((m) => [
+        ...m,
+        {
+          role: 'assistant',
+          content: `Failed to upload document: ${err?.message || 'Upload error'}`,
+          error: true,
+        },
+      ]);
+    } finally {
+      setUploadingDoc(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const startNewSession = () => {
     setActiveSessionId(null);
@@ -272,6 +311,24 @@ export default function GuideChat({
           >
             <Plus className="h-3.5 w-3.5" />
             <span>New Consultation</span>
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept=".pdf,.png,.jpg,.jpeg"
+            className="hidden"
+          />
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            loading={uploadingDoc}
+            className="text-xs gap-1 py-1 px-2.5"
+            title="Upload and index Will, passbook, or death certificate into Document Vault"
+          >
+            <Upload className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>Upload to Vault</span>
           </Button>
         </div>
       </div>

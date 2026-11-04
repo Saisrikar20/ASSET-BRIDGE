@@ -411,5 +411,11 @@ def list_regulations(
             or q_lower in d.get("circularNo", "").lower()
         ]
     docs.sort(key=lambda d: d.get("createdAt", ""), reverse=True)
-    return docs[:limit]
+    out = []
+    for d in docs[:limit]:
+        item = dict(d)
+        if "title" not in item:
+            item["title"] = item.get("fileName", "")
+        out.append(item)
+    return out
 

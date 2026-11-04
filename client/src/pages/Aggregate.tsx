@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown, Mail } from 'lucide-react';
+import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown, Mail, Database } from 'lucide-react';
 import EmailDossierModal from '../components/EmailDossierModal';
 import { downloadCsv } from '../lib/csv';
-import { api, downloadClaimingDossierPdf, type Consent, type Holding, type Regulator } from '../lib/api';
+import { api, downloadClaimingDossierPdf, saveClaimingDossierToVault, type Consent, type Holding, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date, inr } from '../lib/format';
-import { Badge, Button, ErrorNote, Input, RegChip, Select, cx } from '../components/ui';
+import { Badge, Button, ErrorNote, Input, RegChip, Select, cx, useToast } from '../components/ui';
 
 const ALL: Regulator[] = ['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC', 'PFRDA', 'DOP'];
 
@@ -75,6 +75,8 @@ export default function Aggregate() {
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [savingVault, setSavingVault] = useState(false);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   const load = async () => {
     try {
@@ -685,6 +687,28 @@ export default function Aggregate() {
               >
                 <FileDown className="h-3.5 w-3.5" />
                 <span>{downloadingPdf ? 'Generating…' : 'Export Claim Schedule (PDF)'}</span>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={savingVault}
+                disabled={savingVault}
+                onClick={async () => {
+                  try {
+                    setSavingVault(true);
+                    const res = await saveClaimingDossierToVault({ pan: user?.identity?.pan });
+                    toastSuccess('Dossier Saved to AI Vault', res.message || 'Indexed in SQLite document vault for AI consultation.');
+                  } catch (e) {
+                    toastError('Failed to save to vault', (e as Error).message);
+                  } finally {
+                    setSavingVault(false);
+                  }
+                }}
+                className="gap-1.5"
+                title="Index official claim schedule into SQLite Document Vault for AI consultation"
+              >
+                <Database className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>{savingVault ? 'Indexing…' : 'Save to Vault'}</span>
               </Button>
               <Button
                 variant="secondary"

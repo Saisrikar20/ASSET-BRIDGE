@@ -13,7 +13,7 @@ import {
   RefreshCw,
   Users,
 } from 'lucide-react';
-import { api, getRegulations, pollRegulations, type Alert, type Heir, type Holding, type RegulatoryCircular } from '../lib/api';
+import { api, getRegulations, pollRegulations, crawlRegulations, type Alert, type Heir, type Holding, type RegulatoryCircular } from '../lib/api';
 import { useLive, useLiveStatus } from '../lib/live';
 import { inr, time } from '../lib/format';
 import { Button, ErrorNote, Input, RegChip, Select, cx } from '../components/ui';
@@ -76,6 +76,7 @@ export default function Alerts() {
   const [flash, setFlash] = useState<string | null>(null);
   const [regulations, setRegulations] = useState<RegulatoryCircular[]>([]);
   const [pollingRegs, setPollingRegs] = useState(false);
+  const [crawlingScrapy, setCrawlingScrapy] = useState(false);
   const [pollResult, setPollResult] = useState<string | null>(null);
   const [selectedRegulator, setSelectedRegulator] = useState<string>('all');
   const [showRegs, setShowRegs] = useState<boolean>(true);
@@ -98,6 +99,31 @@ export default function Alerts() {
       .then((r) => setRegulations(r.regulations))
       .catch(() => {});
   }, []);
+
+  const handleRunScrapy = async () => {
+    setCrawlingScrapy(true);
+    setPollResult(null);
+    try {
+      const spiderMap: Record<string, string> = {
+        RBI: 'rbi_notifications',
+        SEBI: 'sebi_circulars',
+        EPFO: 'epfo_circulars',
+        IRDAI: 'irdai_circulars',
+      };
+      const spider = selectedRegulator !== 'all' ? spiderMap[selectedRegulator.toUpperCase()] : undefined;
+      const res = await crawlRegulations({ spider, limit: 3 });
+      if (res.ok) {
+        setPollResult(`Scrapy Crawl Complete: executed ${res.spidersRun} spiders (${res.totalRegulationsInVault} circulars in vault)`);
+      }
+      const fresh = await getRegulations();
+      setRegulations(fresh.regulations);
+      load();
+    } catch (e: any) {
+      setPollResult('Scrapy Crawl Error: ' + (e?.message || 'Crawler execution failed'));
+    } finally {
+      setCrawlingScrapy(false);
+    }
+  };
 
   const handlePollRegulations = async () => {
     setPollingRegs(true);
@@ -176,7 +202,7 @@ export default function Alerts() {
           <button
             type="button"
             onClick={handlePollRegulations}
-            disabled={pollingRegs}
+            disabled={pollingRegs || crawlingScrapy}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer shadow-xs disabled:opacity-60"
           >
             {pollingRegs ? (
@@ -184,7 +210,21 @@ export default function Alerts() {
             ) : (
               <RefreshCw className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
             )}
-            <span>{pollingRegs ? 'Polling Portals...' : 'Sync Regulations'}</span>
+            <span>{pollingRegs ? 'Polling Portals...' : 'Sync (Fast)'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleRunScrapy}
+            disabled={pollingRegs || crawlingScrapy}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50/80 dark:bg-teal-950/40 text-xs font-semibold text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition cursor-pointer shadow-xs disabled:opacity-60"
+            title="Execute Scrapy crawler suite with Redis deduplication and Document Vault indexing"
+          >
+            {crawlingScrapy ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-teal-600" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+            )}
+            <span>{crawlingScrapy ? 'Crawling Scrapy...' : 'Scrapy Deep Crawl'}</span>
           </button>
           <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
             <span

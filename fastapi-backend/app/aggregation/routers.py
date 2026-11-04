@@ -1760,7 +1760,15 @@ def api_trigger_poll_regulations(
     Runs synchronously and returns newly discovered/indexed circulars.
     """
     try:
-        from scripts.poll_regulations import poll_all_regulators
+        try:
+            from scripts.poll_regulations import poll_all_regulators
+        except ModuleNotFoundError:
+            import sys
+            from pathlib import Path
+            backend_dir = Path(__file__).resolve().parent.parent.parent
+            if str(backend_dir) not in sys.path:
+                sys.path.insert(0, str(backend_dir))
+            from scripts.poll_regulations import poll_all_regulators
         summary = poll_all_regulators(target_regulator=regulator, limit=limit, persist=True)
         return {
             "ok": True,
@@ -1771,3 +1779,74 @@ def api_trigger_poll_regulations(
             "ok": False,
             "error": str(e)
         }
+
+
+@router.post("/documents/regulations/crawl")
+def api_trigger_scrapy_crawl(
+    spider: Optional[str] = Query(None, description="Spider name: rbi_notifications, sebi_circulars, epfo_circulars, irdai_circulars, or None for all"),
+    limit: int = Query(5, le=20)
+):
+    """
+    Trigger full Scrapy crawler project across target regulatory portals.
+    Runs Scrapy spiders concurrently with Redis deduplication and SQLite Document Vault ingestion.
+    """
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root_dir = Path(__file__).resolve().parent.parent.parent.parent
+    scrapers_dir = root_dir / "scrapers"
+
+    if not scrapers_dir.exists():
+        raise HTTPException(status_code=404, detail="Scrapers project directory not found")
+
+    spiders_to_run = []
+    if spider:
+        spiders_to_run = [spider.strip().lower()]
+    else:
+        spiders_to_run = ["rbi_notifications", "sebi_circulars", "epfo_circulars", "irdai_circulars"]
+
+    results = []
+    for s in spiders_to_run:
+        cmd = [
+            sys.executable,
+            "-m",
+            "scrapy",
+            "crawl",
+            s,
+            "-s", f"CLOSESPIDER_ITEMCOUNT={limit}",
+            "-s", "DOWNLOAD_TIMEOUT=15",
+            "-s", "AUTOTHROTTLE_ENABLED=True"
+        ]
+        try:
+            proc = subprocess.run(cmd, cwd=str(scrapers_dir), capture_output=True, text=True, timeout=60)
+            success = (proc.returncode == 0)
+            results.append({
+                "spider": s,
+                "status": "success" if success else "failed",
+                "returncode": proc.returncode,
+                "outputSnippet": (proc.stderr[-300:] if proc.stderr else proc.stdout[-300:]).strip()
+            })
+        except subprocess.TimeoutExpired:
+            results.append({
+                "spider": s,
+                "status": "timeout",
+                "returncode": -1,
+                "outputSnippet": "Spider execution timed out after 60s"
+            })
+        except Exception as ex:
+            results.append({
+                "spider": s,
+                "status": "error",
+                "returncode": -1,
+                "outputSnippet": str(ex)
+            })
+
+    fresh_count = len(list_regulations(limit=200))
+    return {
+        "ok": True,
+        "engine": "scrapy",
+        "spidersRun": len(spiders_to_run),
+        "totalRegulationsInVault": fresh_count,
+        "results": results
+    }

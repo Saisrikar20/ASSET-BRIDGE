@@ -143,6 +143,48 @@ Statutory asset claiming dossiers contain confidential legal data and generated 
 
 ---
 
+## End-to-End Interconnected Application Architecture
+
+All engines and interfaces in Asset Bridge communicate seamlessly across the estate lifecycle:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                          REACT 19 FRONTEND                             │
+│  [Dashboard] ──> [Verify] ──> [Aggregate] ──> [Alerts] ──> [Reunite]  │
+│       │                              │              │            │     │
+│       ▼                              ▼              ▼            ▼     │
+│  [Download PDF]              [Save to Vault]  [Scrapy Crawl] [CRS Sim] │
+│  [Email Modal]                       │              │            │     │
+│       │                              │              │            │     │
+└───────┼──────────────────────────────┼──────────────┼────────────┼─────┘
+        │                              │              │            │
+        ▼                              ▼              ▼            ▼
+┌──────────────────┐           ┌──────────────┐ ┌──────────┐ ┌───────────┐
+│   EMAIL SENDER   │           │    AI BOT    │ │ SCRAPERS │ │   CASES   │
+│   (SMTP/Twilio)  │           │  (RAG / FTS) │ │ (Scrapy) │ │(Succession│
+│  Sends Dossier   │           │ Answers with │ │ Ingests  │ │  Tracker) │
+│   + SMS Alert    │           │ User Docs &  │ │ Circulars│ │ HeirTasks │
+│                  │           │ Regulations  │ │ to Vault │ │   Share   │
+└──────────────────┘           └──────────────┘ └──────────┘ └───────────┘
+```
+
+1. **Asset Discovery to Claiming Dossier**:
+   - Users aggregate institutional accounts across all 7 regulators on `/app/aggregate`.
+   - Clicking **Save to Vault** generates a ReportLab claiming dossier and immediately chunks and indexes it into the SQLite FTS5 Document Vault.
+   - The user can download the PDF or trigger **Email Dossier** with custom recipient email, optional SMS tracking alerts, and automated multi-tier delivery failover.
+2. **AI Succession Navigator with Multi-Corpus RAG**:
+   - The AI Assistant on `/app/guide` evaluates user queries using dual-corpus retrieval: user-uploaded documents (wills, passbooks, death certificates, generated claiming dossiers) plus statutory regulatory guides (RBI, SEBI, EPFO, IRDAI).
+   - Users can upload files directly into the vault within the chat interface via **Upload to Vault**.
+   - Answers feature interactive action routing pills directing users straight to estate claim checklists (`/app/cases/{id}`), alert resolution (`/app/alerts`), document uploads, and unclaimed asset search (`/app/reunite`).
+3. **Statutory Regulatory Synchronization**:
+   - Users on `/app/alerts` can choose between **Sync (Fast)** (lightweight HTTP feed poller) and **Scrapy Deep Crawl** (asynchronous Scrapy spider suite for RBI, SEBI, EPFO, and IRDAI).
+   - Both ingestion pathways deduplicate circulars via Redis sets and SQLite hashes, immediately indexing new regulations into the Document Vault and generating succession alerts for high-impact legal shifts.
+4. **Estate Case Opening and Heir Portal Access**:
+   - Simulating a CRS death event on `/app/reunite` opens an estate case, breaks succession down into concrete tasks per holding, and notifies registered heirs.
+   - Legal heirs can access their personalized claim workspace at `/heir/:caseId` with their PAN to track document submissions, review allocated asset shares, and download legal dossiers.
+
+---
+
 ## Quick Start (Monorepo Orchestration)
 
 ### Prerequisites

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, RotateCcw, FileDown, Loader2, Mail } from 'lucide-react';
+import { ArrowRight, CheckCircle2, RotateCcw, FileDown, Loader2, Mail, Database } from 'lucide-react';
 import EmailDossierModal from '../components/EmailDossierModal';
-import { api, downloadClaimingDossierPdf, type Alert, type Heir, type Holding, type Summary, type Regulator } from '../lib/api';
+import { api, downloadClaimingDossierPdf, saveClaimingDossierToVault, type Alert, type Heir, type Holding, type Summary, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useLive } from '../lib/live';
 import { inrShort } from '../lib/format';
-import { RegChip, cx } from '../components/ui';
+import { RegChip, cx, useToast } from '../components/ui';
 
 const REGULATOR_CATALOG: { code: Regulator; name: string; category: string }[] = [
   { code: 'RBI', name: 'RBI', category: 'Bank deposits' },
@@ -25,6 +25,8 @@ export default function Dashboard() {
   const [heirs, setHeirs] = useState<Heir[]>([]);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [savingVault, setSavingVault] = useState(false);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   const load = () => {
     api<{ holdings: Holding[]; summary: Summary }>('/holdings').then(setData).catch(() => {});
@@ -110,6 +112,29 @@ export default function Dashboard() {
               <FileDown className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
             )}
             <span>{downloadingPdf ? 'Generating…' : 'Download Claim Dossier (PDF)'}</span>
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                setSavingVault(true);
+                const res = await saveClaimingDossierToVault({ pan: user?.identity?.pan });
+                toastSuccess('Dossier Saved to AI Vault', res.message || 'Indexed in SQLite document vault for AI consultation.');
+              } catch (e) {
+                toastError('Failed to save to vault', (e as Error).message);
+              } finally {
+                setSavingVault(false);
+              }
+            }}
+            disabled={savingVault}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-sm transition-colors cursor-pointer disabled:opacity-60"
+            title="Index official claim schedule into SQLite Document Vault for AI consultation"
+          >
+            {savingVault ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600" />
+            ) : (
+              <Database className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+            )}
+            <span>{savingVault ? 'Indexing…' : 'Save to Vault'}</span>
           </button>
           <button
             onClick={reset}
