@@ -42,7 +42,7 @@ function NomineeIndicator({ nominee }: { nominee: Holding['nominee'] }) {
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+    <span className="inline-flex items-center gap-1.5 text-xs text-xs text-slate-700 dark:text-slate-300 font-medium">
       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
       <span>
         Nominee:{' '}
@@ -71,6 +71,7 @@ export default function Aggregate() {
   const [q, setQ] = useState('');
   const [reg, setReg] = useState<string>('all');
   const [confirmRevoke, setConfirmRevoke] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const load = async () => {
     try {
@@ -172,7 +173,7 @@ export default function Aggregate() {
             Approve what Asset Bridge can access. You stay in control.
           </p>
         </div>
-        <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900/40">
+        <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900">
           <p className="text-xs text-slate-500 dark:text-slate-400">
             We need a verified identity before requesting consent from any regulator.
           </p>
@@ -203,7 +204,7 @@ export default function Aggregate() {
 
       {/* STEP 3 — Compact Consent Status Header */}
       {currentConsent && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 sm:px-5 space-y-3">
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:px-5 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2.5 flex-wrap">
               <Badge
@@ -217,15 +218,15 @@ export default function Aggregate() {
               >
                 {currentConsent.status}
               </Badge>
-              <span className="font-mono text-slate-500 dark:text-slate-400">
+              <span className="font-mono text-xs text-slate-700 dark:text-slate-300 font-medium">
                 {currentConsent.id}
               </span>
-              <span className="text-slate-300 dark:text-slate-700">·</span>
-              <span className="text-slate-600 dark:text-slate-400">
+              <span className="text-slate-300 dark:text-slate-600">·</span>
+              <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
                 {currentConsent.regulators?.length || ALL.length} regulators
               </span>
-              <span className="text-slate-300 dark:text-slate-700">·</span>
-              <span className="text-slate-600 dark:text-slate-400">
+              <span className="text-slate-300 dark:text-slate-600">·</span>
+              <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
                 {currentConsent.status === 'REVOKED'
                   ? 'Consent revoked'
                   : currentConsent.status === 'EXPIRED'
@@ -291,9 +292,9 @@ export default function Aggregate() {
 
       {/* Consent Configuration Box (when no active consent exists) */}
       {!active && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 sm:p-6 space-y-5">
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-2 p-3 sm:px-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 text-xs border border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
               <span className="text-slate-400 uppercase font-mono text-[10px]">
                 From:
               </span>
@@ -301,7 +302,7 @@ export default function Aggregate() {
                 Asset Bridge (FIU)
               </span>
             </div>
-            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
               <span className="text-slate-400 uppercase font-mono text-[10px]">
                 To:
               </span>
@@ -328,7 +329,7 @@ export default function Aggregate() {
                         'flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-xs transition-colors',
                         isChecked
                           ? 'border-brand-300 dark:border-brand-700 bg-brand-50/40 dark:bg-brand-950/20'
-                          : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 opacity-70 hover:opacity-100'
+                          : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-70 hover:opacity-100'
                       )}
                     >
                       <input
@@ -453,7 +454,7 @@ export default function Aggregate() {
                     'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
                     reg === 'all'
                       ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                      : 'text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                   )}
                 >
                   All ({holdings.length})
@@ -469,7 +470,7 @@ export default function Aggregate() {
                         'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
                         reg === r
                           ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                          : 'text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                       )}
                     >
                       <span>{r}</span>
@@ -503,7 +504,7 @@ export default function Aggregate() {
           </div>
 
           {/* STEP 6 & 7 — Minimal Holdings List */}
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm">
             {shown.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
                 No holdings found matching {reg !== 'all' ? `regulator "${reg}"` : ''}{' '}
@@ -545,14 +546,14 @@ export default function Aggregate() {
                       {/* Second line: Institution · Masked ID */}
                       <div className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5 flex-wrap">
                         <span>{h.institution}</span>
-                        <span className="text-slate-300 dark:text-slate-700">·</span>
+                        <span className="text-slate-300 dark:text-slate-600">·</span>
                         <span>{h.ref}</span>
                         {h.registeredName && (
                           <>
-                            <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">
+                            <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">
                               ·
                             </span>
-                            <span className="text-slate-400 text-[11px] font-sans hidden sm:inline">
+                            <span className="text-slate-500 dark:text-slate-400 text-xs font-sans hidden sm:inline">
                               Name: {h.registeredName}
                             </span>
                           </>
@@ -570,7 +571,7 @@ export default function Aggregate() {
                       <div className="text-base sm:text-sm font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
                         {inr(h.value)}
                       </div>
-                      <div className="text-[11px] text-slate-400 dark:text-slate-500 tabular-nums">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                         Last activity: {date(h.lastActivity)}
                       </div>
                     </div>
@@ -581,7 +582,7 @@ export default function Aggregate() {
           </div>
 
           {/* Connected Next-Step Action Banner */}
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 text-xs">
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-slate-900 dark:text-white">
@@ -604,12 +605,23 @@ export default function Aggregate() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => downloadClaimingDossierPdf({ pan: user?.identity?.pan })}
+                loading={downloadingPdf}
+                disabled={downloadingPdf}
+                onClick={async () => {
+                  try {
+                    setDownloadingPdf(true);
+                    await downloadClaimingDossierPdf({ pan: user?.identity?.pan });
+                  } catch (e) {
+                    alert((e as Error).message || 'Failed to download dossier');
+                  } finally {
+                    setDownloadingPdf(false);
+                  }
+                }}
                 className="gap-1.5"
                 title="Export statutory claim schedule as PDF"
               >
                 <FileDown className="h-3.5 w-3.5" />
-                <span>Export Claim Schedule (PDF)</span>
+                <span>{downloadingPdf ? 'Generating…' : 'Export Claim Schedule (PDF)'}</span>
               </Button>
               <Button
                 variant="secondary"
@@ -637,7 +649,7 @@ export default function Aggregate() {
 
       {/* Loading state indicator */}
       {loading && holdings.length === 0 && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-8 text-center text-xs text-slate-400">
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-xs text-slate-400">
           Loading mapped holdings…
         </div>
       )}

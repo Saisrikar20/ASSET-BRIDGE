@@ -62,6 +62,7 @@ export default function Verify() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const toggleExpand = (code: string) => {
     setExpanded((prev) => ({ ...prev, [code]: !prev[code] }));
@@ -107,7 +108,7 @@ export default function Verify() {
           <button
             type="button"
             onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer self-start sm:self-center"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer self-start sm:self-center"
             title="Edit verification parameters"
           >
             <RotateCcw className="h-3.5 w-3.5" />
@@ -118,7 +119,7 @@ export default function Verify() {
 
       {/* Verification Form (shown when !results or when Re-verify is toggled) */}
       {(!results || showForm) && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 sm:p-6 space-y-4">
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Identity Parameters
@@ -256,13 +257,13 @@ export default function Verify() {
       {/* 4 & 5. Post-Verification Minimal State (Expandable Rows for All 7 Regulators) */}
       {!results ? (
         <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/20 p-8 text-center">
-          <p className="text-xs text-slate-400 dark:text-slate-500">
+          <p className="text-xs text-slate-400 dark:text-slate-400">
             Results will appear here after verification.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden">
             {results.map((r: VerifyResult) => {
               const s = STATUS[r.status] || STATUS.none;
               const Icon = s.icon;
@@ -280,18 +281,18 @@ export default function Verify() {
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <Icon className={`h-4 w-4 shrink-0 ${s.cls}`} />
                       <RegChip code={r.regulator} />
-                      <span className="truncate text-xs font-medium text-slate-800 dark:text-slate-200">
+                      <span className="truncate text-xs font-semibold text-slate-900 dark:text-white">
                         {regulatorTitle}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0 ml-3">
-                      <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                         {r.recordsFound} {r.recordsFound === 1 ? 'record' : 'records'}
                       </span>
                       {/* Status indicator remains visible even when collapsed */}
                       <Badge tone={s.tone}>{s.label}</Badge>
-                      <div className="text-slate-400 dark:text-slate-500">
+                      <div className="text-slate-400 dark:text-slate-400">
                         {isExpanded ? (
                           <ChevronUp className="h-4 w-4" />
                         ) : (
@@ -310,9 +311,9 @@ export default function Verify() {
                             key={c.ref}
                             className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs py-1.5 border-b border-slate-100 dark:border-slate-800/40 last:border-0"
                           >
-                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                            <span className="font-semibold text-slate-900 dark:text-white">
                               {c.institution}{' '}
-                              <span className="font-mono text-slate-400">· {c.ref}</span>
+                              <span className="font-mono text-slate-500 dark:text-slate-400">· {c.ref}</span>
                             </span>
                             <div className="shrink-0">
                               {c.name === 'exact' && c.dob === 'exact' ? (
@@ -340,15 +341,15 @@ export default function Verify() {
           </div>
 
           {/* 6 & 7. Verification Summary & Next Action */}
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="text-xs text-slate-500 dark:text-slate-400">
               <div>
                 Last verified:{' '}
-                <span className="font-medium text-slate-800 dark:text-slate-200">
+                <span className="font-semibold text-slate-900 dark:text-white">
                   {date(user!.verification!.at)}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {totalRecords} records found across {regulatorCount} registries
               </div>
             </div>
@@ -357,12 +358,23 @@ export default function Verify() {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => downloadClaimingDossierPdf({ pan: form.pan })}
+                loading={downloadingPdf}
+                disabled={downloadingPdf}
+                onClick={async () => {
+                  try {
+                    setDownloadingPdf(true);
+                    await downloadClaimingDossierPdf({ pan: form.pan });
+                  } catch (e) {
+                    alert((e as Error).message || 'Failed to download dossier');
+                  } finally {
+                    setDownloadingPdf(false);
+                  }
+                }}
                 className="gap-1.5"
                 title="Download consolidated statutory claim dossier"
               >
                 <FileDown className="h-4 w-4" />
-                <span>Download Claim Dossier (PDF)</span>
+                <span>{downloadingPdf ? 'Generating…' : 'Download Claim Dossier (PDF)'}</span>
               </Button>
               <Button type="button" onClick={() => nav('/app/aggregate')} className="px-5">
                 <span>Continue to consent</span>

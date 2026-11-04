@@ -13,10 +13,11 @@ import {
   Landmark,
   Printer,
   ShieldCheck,
+  Sparkles,
   Upload,
   X,
 } from 'lucide-react';
-import { api, uploadDocument, downloadClaimingDossierPdf, type Case, type Regulator, type Task } from '../lib/api';
+import { api, uploadDocument, downloadClaimingDossierPdf, saveClaimingDossierToVault, type Case, type Regulator, type Task } from '../lib/api';
 import { date, inr, inrShort, time } from '../lib/format';
 import { Badge, Button, Progress, RegChip, cx } from './ui';
 import GuideChat from './GuideChat';
@@ -45,7 +46,38 @@ export default function CaseBody({
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [showDossier, setShowDossier] = useState(false);
   const [copiedRef, setCopiedRef] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [indexingVault, setIndexingVault] = useState(false);
+  const [vaultFeedback, setVaultFeedback] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDownloadPdf = async () => {
+    try {
+      setDownloadingPdf(true);
+      await downloadClaimingDossierPdf({
+        caseId: c.id,
+        filename: `Asset_Bridge_Claiming_Dossier_${c.id}.pdf`,
+      });
+    } catch (err) {
+      alert((err as Error).message || 'Failed to download dossier');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleIndexVault = async () => {
+    try {
+      setIndexingVault(true);
+      setVaultFeedback(null);
+      const res = await saveClaimingDossierToVault({ caseId: c.id });
+      setVaultFeedback(res.message || 'Indexed in AI vault');
+      setTimeout(() => setVaultFeedback(null), 4000);
+    } catch (err) {
+      alert((err as Error).message || 'Failed to index dossier in vault');
+    } finally {
+      setIndexingVault(false);
+    }
+  };
   const [activeUploadTask, setActiveUploadTask] = useState<{
     taskId: string;
     docName: string;
@@ -218,10 +250,10 @@ export default function CaseBody({
 
       <div className="space-y-6">
         {/* STEP 2 & 3 — Estate Overview & Claim Progress */}
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 space-y-4 shadow-sm">
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div className="space-y-1">
-              <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-2">
+              <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase flex items-center gap-2">
                 <span>ESTATE CLAIM WORKSPACE</span>
                 <span>·</span>
                 <span className="text-slate-600 dark:text-slate-300 font-mono">
@@ -252,7 +284,19 @@ export default function CaseBody({
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={indexingVault}
+                disabled={indexingVault || downloadingPdf}
+                onClick={handleIndexVault}
+                className="gap-1.5 text-xs py-2"
+                title="Index statutory claim dossier into SQLite Document Vault for AI guidance"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                <span>{vaultFeedback || 'Index in AI Vault'}</span>
+              </Button>
               <Button
                 variant="secondary"
                 size="sm"
@@ -265,11 +309,14 @@ export default function CaseBody({
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => downloadClaimingDossierPdf({ caseId: c.id, filename: `Asset_Bridge_Claiming_Dossier_${c.id}.pdf` })}
+                loading={downloadingPdf}
+                disabled={downloadingPdf}
+                onClick={handleDownloadPdf}
                 className="gap-2 shadow-sm text-xs py-2"
+                title="Download consolidated statutory claim dossier (PDF)"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span>Download Claim Dossier (PDF)</span>
+                <span>{downloadingPdf ? 'Generating PDF…' : 'Download Claim Dossier (PDF)'}</span>
               </Button>
             </div>
           </div>
@@ -277,7 +324,7 @@ export default function CaseBody({
           {/* Metrics & Progress Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-1">
             <div>
-              <div className="text-[10px] font-mono uppercase font-semibold text-slate-400">
+              <div className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
                 Estate Total
               </div>
               <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-white mt-0.5 tabular-nums">
@@ -289,7 +336,7 @@ export default function CaseBody({
             </div>
 
             <div>
-              <div className="text-[10px] font-mono uppercase font-semibold text-slate-400">
+              <div className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
                 Total Holdings
               </div>
               <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-white mt-0.5 tabular-nums">
@@ -299,7 +346,7 @@ export default function CaseBody({
             </div>
 
             <div>
-              <div className="text-[10px] font-mono uppercase font-semibold text-slate-400">
+              <div className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
                 Registered Heirs
               </div>
               <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-white mt-0.5 tabular-nums">
@@ -315,7 +362,7 @@ export default function CaseBody({
 
             <div>
               <div className="flex justify-between items-baseline mb-1">
-                <span className="text-[10px] font-mono uppercase font-semibold text-slate-400">
+                <span className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
                   Claim Progress
                 </span>
                 <span className="text-xs font-semibold text-slate-900 dark:text-white tabular-nums">
@@ -369,7 +416,7 @@ export default function CaseBody({
                   <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Step 1: Statutory Prerequisites
                   </h2>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     Core state civil documentation required before institutional asset release.
                   </p>
                 </div>
@@ -388,7 +435,7 @@ export default function CaseBody({
                   return (
                     <div
                       key={t.id}
-                      className="border border-slate-200/80 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm"
+                      className="border border-slate-200/80 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
                     >
                       {/* Collapsed Header */}
                       <div className="p-3.5 sm:p-4 flex items-start justify-between gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
@@ -557,7 +604,7 @@ export default function CaseBody({
                   <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Step 2: Holdings & Individual Claims ({filteredHoldings.length})
                   </h2>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     Individual transmission workflows based on nominee status and asset class.
                   </p>
                 </div>
@@ -605,7 +652,7 @@ export default function CaseBody({
               {/* Collapsed/Expandable Holdings List */}
               <div className="space-y-2">
                 {filteredHoldings.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-slate-500 border border-dashed rounded-xl bg-white dark:bg-slate-900/40">
+                  <div className="p-8 text-center text-xs text-slate-500 border border-dashed rounded-xl bg-white dark:bg-slate-900">
                     No holdings match regulator filter "{filterReg}".
                     <div className="mt-2">
                       <button
@@ -639,7 +686,7 @@ export default function CaseBody({
                     return (
                       <div
                         key={h.id}
-                        className="border border-slate-200/80 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm"
+                        className="border border-slate-200/80 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
                       >
                         {/* Collapsed Holding Row */}
                         <div
@@ -870,7 +917,7 @@ export default function CaseBody({
             </div>
 
             {/* STEP 8 — Registered Heirs */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 space-y-3 shadow-sm">
+            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3 shadow-sm">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-xs font-semibold text-slate-900 dark:text-white">
                   Registered Heirs
@@ -912,7 +959,7 @@ export default function CaseBody({
             </div>
 
             {/* STEP 9 — Succession Timeline */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 space-y-3 shadow-sm">
+            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3 shadow-sm">
               <div className="pb-2 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-900 dark:text-white">
                 Succession Timeline
               </div>
@@ -955,10 +1002,12 @@ export default function CaseBody({
                 <Button 
                   variant="primary" 
                   size="sm" 
-                  onClick={() => downloadClaimingDossierPdf({ caseId: c.id, filename: `Asset_Bridge_Claiming_Dossier_${c.id}.pdf` })} 
+                  loading={downloadingPdf}
+                  disabled={downloadingPdf}
+                  onClick={handleDownloadPdf} 
                   className="gap-1.5"
                 >
-                  <Download className="h-4 w-4" /> Download Official PDF
+                  <Download className="h-4 w-4" /> {downloadingPdf ? 'Downloading…' : 'Download Official PDF'}
                 </Button>
                 <Button
                   variant="secondary"

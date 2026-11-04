@@ -102,7 +102,7 @@ export default function Reunite() {
             See how your family's succession journey works.
           </p>
         </div>
-        <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900/40">
+        <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900">
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mb-2">
             <HeartHandshake className="h-5 w-5" />
           </div>
@@ -170,9 +170,9 @@ export default function Reunite() {
       </div>
 
       {/* STEP 4 — Twin Summary */}
-      <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs shadow-sm">
+      <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs shadow-sm">
         <div>
-          <div className="text-[10px] font-mono uppercase font-semibold text-slate-400">
+          <div className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
             Matched Holdings
           </div>
           <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-white mt-0.5 tabular-nums">
@@ -184,7 +184,7 @@ export default function Reunite() {
         </div>
 
         <div>
-          <div className="text-[10px] font-mono uppercase font-semibold text-slate-400">
+          <div className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
             Total Matched Value
           </div>
           <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-white mt-0.5 tabular-nums">
@@ -196,7 +196,7 @@ export default function Reunite() {
         </div>
 
         <div>
-          <div className="text-[10px] font-mono uppercase font-semibold text-slate-400">
+          <div className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
             Registered Heirs
           </div>
           <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-white mt-0.5 tabular-nums">
@@ -211,7 +211,7 @@ export default function Reunite() {
         </div>
 
         <div>
-          <div className="text-[10px] font-mono uppercase font-semibold text-slate-400">
+          <div className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
             Estate Jurisdiction
           </div>
           <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-white mt-0.5 truncate">
@@ -224,7 +224,7 @@ export default function Reunite() {
       </div>
 
       {/* STEP 7 — Five-Step Process Connected Stepper */}
-      <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 space-y-4 shadow-sm">
+      <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-sm">
         <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
           <Radio className="h-4 w-4 text-brand-700 dark:text-brand-400" />
           <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -288,7 +288,7 @@ export default function Reunite() {
       </div>
 
       {/* STEP 3, 4, 5, 6 — Post-CRS Success State or Pre-CRS Demo Control */}
-      <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 sm:p-6 space-y-5 shadow-sm">
+      <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-5 shadow-sm">
         {existing ? (
           <div className="space-y-4">
             {/* STEP 3 — Estate Case Reference Focus */}
@@ -340,7 +340,7 @@ export default function Reunite() {
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Heir Notification Dispatch
               </div>
-              <div className="rounded-lg border border-slate-200/80 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden bg-white dark:bg-slate-900/40">
+              <div className="rounded-lg border border-slate-200/80 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden bg-white dark:bg-slate-900">
                 {heirs.length === 0 ? (
                   <div className="p-3 text-xs text-slate-500">
                     No heirs were registered on this twin prior to case creation.

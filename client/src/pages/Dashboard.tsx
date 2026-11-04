@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, RotateCcw, FileDown } from 'lucide-react';
+import { ArrowRight, CheckCircle2, RotateCcw, FileDown, Loader2 } from 'lucide-react';
 import { api, downloadClaimingDossierPdf, type Alert, type Heir, type Holding, type Summary, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useLive } from '../lib/live';
@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [data, setData] = useState<{ holdings: Holding[]; summary: Summary } | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [heirs, setHeirs] = useState<Heir[]>([]);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const load = () => {
     api<{ holdings: Holding[]; summary: Summary }>('/holdings').then(setData).catch(() => {});
@@ -79,16 +80,30 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-2.5 self-start sm:self-center">
           <button
-            onClick={() => downloadClaimingDossierPdf({ pan: user?.identity?.pan })}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-sm transition-colors cursor-pointer"
+            onClick={async () => {
+              try {
+                setDownloadingPdf(true);
+                await downloadClaimingDossierPdf({ pan: user?.identity?.pan });
+              } catch (e) {
+                alert((e as Error).message || 'Failed to download dossier');
+              } finally {
+                setDownloadingPdf(false);
+              }
+            }}
+            disabled={downloadingPdf}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-sm transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             title="Download statutory asset claiming dossier"
           >
-            <FileDown className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
-            <span>Download Claim Dossier (PDF)</span>
+            {downloadingPdf ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-600 dark:text-brand-400" />
+            ) : (
+              <FileDown className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+            )}
+            <span>{downloadingPdf ? 'Generating…' : 'Download Claim Dossier (PDF)'}</span>
           </button>
           <button
             onClick={reset}
-            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
             title="Reset demo data"
           >
             <RotateCcw className="h-3.5 w-3.5" />
@@ -107,14 +122,14 @@ export default function Dashboard() {
 
       {/* B. Compact Setup progress */}
       {nextStep && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 transition-all">
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 transition-all">
           <div className="flex items-center justify-between text-xs mb-2">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+              <span className="font-mono text-[10px] font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
                 SETUP YOUR TWIN
               </span>
               <span className="text-slate-300 dark:text-slate-700">·</span>
-              <span className="font-medium text-slate-700 dark:text-slate-300">
+              <span className="font-medium text-slate-800 dark:text-slate-200">
                 Step {completedCount + 1}: {nextStep.label}
               </span>
             </div>
@@ -143,29 +158,29 @@ export default function Dashboard() {
       )}
 
       {/* C. Four Financial Metrics (Compact Single Row on Desktop) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800/80 overflow-hidden">
+      <div className="grid grid-cols-2 lg:grid-cols-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800/80 overflow-hidden">
         {/* Total mapped */}
         <div className="p-4 sm:p-5">
-          <div className="text-[11px] font-medium tracking-wide uppercase text-slate-400 dark:text-slate-500">
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-500 dark:text-slate-400">
             Total mapped
           </div>
           <div className="mt-1.5 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
             {inrShort(data?.summary.total || 0)}
           </div>
-          <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+          <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             {data?.summary.count || 0} holdings
           </div>
         </div>
 
         {/* At risk */}
         <div className="p-4 sm:p-5">
-          <div className="text-[11px] font-medium tracking-wide uppercase text-slate-400 dark:text-slate-500">
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-500 dark:text-slate-400">
             At risk
           </div>
           <div className="mt-1.5 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
             {inrShort(data?.summary.atRisk || 0)}
           </div>
-          <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+          <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             {(data?.summary.atRisk || 0) > 0 ? (
               <span className="text-rose-600 dark:text-rose-400 font-medium">No valid nominee</span>
             ) : (
@@ -176,26 +191,26 @@ export default function Dashboard() {
 
         {/* Open alerts */}
         <div className="p-4 sm:p-5">
-          <div className="text-[11px] font-medium tracking-wide uppercase text-slate-400 dark:text-slate-500">
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-500 dark:text-slate-400">
             Open alerts
           </div>
           <div className="mt-1.5 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
             {open.length}
           </div>
-          <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+          <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             {open.filter((a) => a.severity === 'high').length} high priority
           </div>
         </div>
 
         {/* Nominee coverage */}
         <div className="p-4 sm:p-5">
-          <div className="text-[11px] font-medium tracking-wide uppercase text-slate-400 dark:text-slate-500">
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-500 dark:text-slate-400">
             Nominee coverage
           </div>
           <div className="mt-1.5 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
             {Math.round(coverage * 100)}%
           </div>
-          <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+          <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             {heirs.length} registered heirs
           </div>
         </div>
@@ -204,14 +219,14 @@ export default function Dashboard() {
       {/* D & E. Holdings by Regulator + Needs Attention */}
       <div className="grid gap-6 lg:grid-cols-12">
         {/* D. Holdings by regulator (7 cols) */}
-        <div className="lg:col-span-7 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 sm:p-5">
+        <div className="lg:col-span-7 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Holdings by Regulator
             </h2>
             <Link
               to="/app/aggregate"
-              className="text-xs font-medium text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+              className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
             >
               All holdings &rarr;
             </Link>
@@ -236,7 +251,7 @@ export default function Dashboard() {
                   <div key={reg.code} className="flex items-center justify-between py-2 text-xs">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <RegChip code={reg.code} />
-                      <span className="truncate text-slate-600 dark:text-slate-400">{reg.category}</span>
+                      <span className="truncate text-slate-700 dark:text-slate-200 font-medium">{reg.category}</span>
                     </div>
                     <div className="text-right shrink-0 font-mono">
                       {hasData ? (
@@ -255,7 +270,7 @@ export default function Dashboard() {
         </div>
 
         {/* E. Needs attention (5 cols) */}
-        <div className="lg:col-span-5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 sm:p-5 flex flex-col justify-between">
+        <div className="lg:col-span-5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -263,7 +278,7 @@ export default function Dashboard() {
               </h2>
               <Link
                 to="/app/alerts"
-                className="text-xs font-medium text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
               >
                 View all ({open.length}) &rarr;
               </Link>
@@ -274,7 +289,7 @@ export default function Dashboard() {
                 <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 mb-1.5">
                   <CheckCircle2 className="h-4 w-4" />
                 </div>
-                <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                <div className="text-xs font-medium text-slate-800 dark:text-slate-200">
                   You're all caught up.
                 </div>
                 <div className="text-[11px] text-slate-400 mt-0.5">
@@ -296,10 +311,10 @@ export default function Dashboard() {
                       )}
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="font-medium text-slate-800 dark:text-slate-200 truncate">
+                      <div className="font-semibold text-slate-900 dark:text-white truncate">
                         {a.title}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-400">
+                      <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                         <span>{a.regulator}</span>
                         <span>·</span>
                         <span className="capitalize">{a.severity}</span>
@@ -315,7 +330,7 @@ export default function Dashboard() {
             <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 mt-2 text-center">
               <Link
                 to="/app/alerts"
-                className="text-[11px] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
               >
                 +{open.length - 3} more alerts in queue &rarr;
               </Link>

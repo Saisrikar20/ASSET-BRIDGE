@@ -236,13 +236,30 @@ export async function downloadClaimingDossierPdf(params?: { pan?: string; person
 
   const res = await fetch(url, { headers });
   if (!res.ok) {
-    throw new Error(`Failed to download dossier (${res.status})`);
+    let detail = '';
+    try {
+      const errJson = await res.json();
+      detail = errJson.detail || errJson.error || '';
+    } catch {}
+    throw new Error(detail || `Failed to download dossier (${res.status})`);
   }
+
+  // Parse filename from Content-Disposition header if available
+  let filename = params?.filename;
+  if (!filename) {
+    const cd = res.headers.get('content-disposition');
+    if (cd) {
+      const match = cd.match(/filename=["']?([^"';]+)["']?/i);
+      if (match && match[1]) filename = match[1].trim();
+    }
+  }
+  if (!filename) filename = 'Asset_Bridge_Claiming_Dossier.pdf';
+
   const blob = await res.blob();
   const blobUrl = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = blobUrl;
-  a.download = params?.filename || 'Asset_Bridge_Claiming_Dossier.pdf';
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
