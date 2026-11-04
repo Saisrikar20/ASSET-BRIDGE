@@ -1,5 +1,6 @@
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
-import { Loader2 } from 'lucide-react';
+﻿import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
+import { Loader2, CheckCircle2, AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
 import { GlowingEffect } from './aceternity/glowing-effect';
 import { Link, useLocation } from 'react-router-dom';
 import LogoMark from './LogoMark';
@@ -135,5 +136,140 @@ export function Progress({ value, className }: { value: number; className?: stri
     <div className={cx('h-2 w-full overflow-hidden rounded-full bg-slate-100', className)}>
       <div className="h-full rounded-full bg-brand-600 transition-all" style={{ width: `${Math.round(value * 100)}%` }} />
     </div>
+  );
+}
+
+/* ==========================================================================
+   Centralized Non-Blocking Toast Notification System (future.md Â§1.3)
+   ========================================================================== */
+
+export type ToastVariant = 'success' | 'warning' | 'error' | 'info';
+
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
+export interface ToastItem {
+  id: string;
+  title: string;
+  detail?: string;
+  variant?: ToastVariant;
+  action?: ToastAction;
+  duration?: number;
+}
+
+interface ToastContextValue {
+  toast: (t: Omit<ToastItem, 'id'> & { id?: string }) => string;
+  success: (title: string, detail?: string, action?: ToastAction) => string;
+  warning: (title: string, detail?: string, action?: ToastAction) => string;
+  error: (title: string, detail?: string, action?: ToastAction) => string;
+  info: (title: string, detail?: string, action?: ToastAction) => string;
+  dismiss: (id: string) => void;
+}
+
+const ToastContext = createContext<ToastContextValue | null>(null);
+
+export function useToast(): ToastContextValue {
+  const ctx = useContext(ToastContext);
+  if (!ctx) {
+    // Fallback if rendered outside provider
+    return {
+      toast: (t) => { console.log('[Toast]', t); return 'mock'; },
+      success: (t, d) => { console.log('[Toast Success]', t, d); return 'mock'; },
+      warning: (t, d) => { console.warn('[Toast Warn]', t, d); return 'mock'; },
+      error: (t, d) => { console.error('[Toast Error]', t, d); return 'mock'; },
+      info: (t, d) => { console.info('[Toast Info]', t, d); return 'mock'; },
+      dismiss: () => {},
+    };
+  }
+  return ctx;
+}
+
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  const dismiss = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const toast = useCallback(
+    ({ id, title, detail, variant = 'info', action, duration = 4000 }: Omit<ToastItem, 'id'> & { id?: string }) => {
+      const toastId = id || Math.random().toString(36).slice(2, 9);
+      const item: ToastItem = { id: toastId, title, detail, variant, action, duration };
+
+      setToasts((prev) => [...prev.slice(-3), item]);
+
+      if (duration > 0) {
+        setTimeout(() => {
+          dismiss(toastId);
+        }, duration);
+      }
+      return toastId;
+    },
+    [dismiss]
+  );
+
+  const success = useCallback((title: string, detail?: string, action?: ToastAction) => toast({ title, detail, variant: 'success', action }), [toast]);
+  const warning = useCallback((title: string, detail?: string, action?: ToastAction) => toast({ title, detail, variant: 'warning', action }), [toast]);
+  const error = useCallback((title: string, detail?: string, action?: ToastAction) => toast({ title, detail, variant: 'error', action, duration: 6000 }), [toast]);
+  const info = useCallback((title: string, detail?: string, action?: ToastAction) => toast({ title, detail, variant: 'info', action }), [toast]);
+
+  return (
+    <ToastContext.Provider value={{ toast, success, warning, error, info, dismiss }}>
+      {children}
+      <div className="fixed bottom-5 right-5 z-[100] flex w-88 max-w-[calc(100vw-2.5rem)] flex-col gap-2.5 pointer-events-none" aria-live="polite">
+        {toasts.map((t) => {
+          const variantStyles = {
+            success: 'border-emerald-200/80 bg-surface dark:border-emerald-800/60 shadow-emerald-950/5',
+            warning: 'border-amber-200/80 bg-surface dark:border-amber-800/60 shadow-amber-950/5',
+            error: 'border-rose-200/80 bg-surface dark:border-rose-800/60 shadow-rose-950/5',
+            info: 'border-brand-200/80 bg-surface dark:border-brand-800/60 shadow-brand-950/5',
+          }[t.variant || 'info'];
+
+          const icon = {
+            success: <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />,
+            warning: <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />,
+            error: <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />,
+            info: <Info className="h-4 w-4 shrink-0 text-brand-600 dark:text-brand-400" />,
+          }[t.variant || 'info'];
+
+          return (
+            <div
+              key={t.id}
+              className={cx(
+                'pointer-events-auto flex items-start gap-3 rounded-xl border p-3.5 shadow-xl backdrop-blur-md transition-all duration-300 animate-in slide-in-from-bottom-3',
+                variantStyles
+              )}
+              role="alert"
+            >
+              <div className="mt-0.5">{icon}</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-slate-900 dark:text-white leading-snug">{t.title}</div>
+                {t.detail && <div className="mt-0.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed break-words">{t.detail}</div>}
+                {t.action && (
+                  <button
+                    onClick={() => {
+                      t.action?.onClick();
+                      dismiss(t.id);
+                    }}
+                    className="mt-2 inline-flex items-center text-xs font-bold text-brand-700 dark:text-brand-400 hover:underline cursor-pointer"
+                  >
+                    {t.action.label} â†’
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => dismiss(t.id)}
+                className="shrink-0 rounded-md p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+                aria-label="Close notification"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </ToastContext.Provider>
   );
 }

@@ -1,6 +1,9 @@
 import datetime, re
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
+from app.config import OUTBOX_DIR
 from app.core.store import store, uid
 from app.core.auth import hash_password, check_password, sign_token, get_current_user, public_user, seed_demo_heirs
 from app.core.identity import REGULATORS, STATES, STATE_HEIR_DOC, DEMO_IDENTITY, DEMO_RECORDS, NATIONAL_STATS, verify_identity, summarize
@@ -57,7 +60,6 @@ def get_meta():
         "nationalStats": NATIONAL_STATS
     }
 
-
 @router.get("/showcase")
 def get_showcase():
     return {
@@ -110,16 +112,30 @@ def login(body: LoginBody):
     return {"token": sign_token(user["id"]), "user": public_user(user)}
 
 @router.post("/auth/demo")
-def demo_login():
-    email = "demo@assetbridge.in"
+def demo_login(persona: Optional[str] = None):
+    """
+    Demo login with optional persona switching (future.md §1.4).
+    Supports raghavan, priya, vikram, sunita, rajesh.
+    """
+    pkey = (persona or "").lower().strip()
+    if pkey in ["raghavan", "priya", "vikram", "sunita", "rajesh"]:
+        email = f"{pkey}@demo.local"
+    else:
+        email = "demo@assetbridge.in"
+
     user = store.find("users", lambda u: u.get("email") == email)
     if not user:
-        user = store.insert("users", {
-            "id": uid("u_"), "email": email, "name": DEMO_IDENTITY["name"],
-            "passwordHash": hash_password(uid()), "identity": None, "verification": None, "deceased": None,
-            "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
-        })
-        seed_demo_heirs(user["id"])
+        if pkey in ["raghavan", "priya", "vikram", "sunita", "rajesh"]:
+            from app.core.seeder import seed_persona
+            seed_persona(pkey)
+            user = store.find("users", lambda u: u.get("email") == email)
+        if not user:
+            user = store.insert("users", {
+                "id": uid("u_"), "email": email, "name": DEMO_IDENTITY["name"],
+                "passwordHash": hash_password(uid()), "identity": None, "verification": None, "deceased": None,
+                "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
+            })
+            seed_demo_heirs(user["id"])
     return {"token": sign_token(user["id"]), "user": public_user(user)}
 
 @router.get("/me")
@@ -157,7 +173,6 @@ def api_seed_demo(body: SeedBody):
     seed_persona(body.persona, reset=body.reset)
     return {"ok": True, "persona": body.persona, "message": f"Successfully seeded mock data for '{body.persona}'"}
 
-
 @router.post("/identity")
 def update_identity(body: IdentityBody, user: dict = Depends(get_current_user)):
     pan = body.pan.strip().upper()
@@ -175,3 +190,42 @@ def update_identity(body: IdentityBody, user: dict = Depends(get_current_user)):
     }
     user = store.update("users", lambda u: u.get("id") == user["id"], {"identity": identity, "verification": verification})
     return {"user": public_user(user)}
+
+# ==============================================================================
+# Developer Experience (DX) & Outbox Inspection (future.md §3.1)
+# ==============================================================================
+
+@router.get("/dev/outbox")
+def list_dev_outbox():
+    """Lists all queued/mocked email transmissions with timestamp, recipient, and size."""
+    OUTBOX_DIR.mkdir(parents=True, exist_ok=True)
+    files = []
+    for f in sorted(OUTBOX_DIR.glob("*.eml"), key=lambda p: p.stat().st_mtime, reverse=True):
+        st = f.stat()
+        files.append({
+            "filename": f.name,
+            "size": st.st_size,
+            "modified": datetime.datetime.fromtimestamp(st.st_mtime, datetime.timezone.utc).isoformat()
+        })
+    return {"ok": True, "count": len(files), "outboxDir": str(OUTBOX_DIR), "files": files}
+
+@router.get("/dev/outbox/{filename}")
+def read_dev_outbox_file(filename: str):
+    """Downloads or renders the raw RFC 822 MIME message directly in the browser."""
+    clean_name = Path(filename).name
+    target = OUTBOX_DIR / clean_name
+    if not target.exists() or not target.is_file() or not target.name.endswith(".eml"):
+        raise HTTPException(status_code=404, detail="Outbox message not found")
+    content = target.read_text(encoding="utf-8", errors="replace")
+    return PlainTextResponse(content, media_type="message/rfc822")
+
+# ==============================================================================
+# SQLite Maintenance & Snapshot Hook (future.md §4.3)
+# ==============================================================================
+
+@router.post("/dev/backup")
+def run_sqlite_backup():
+    """Automated single-file snapshotting (VACUUM INTO 'data/backup_asset_bridge.db')."""
+    from app.core.db import backup_db
+    target = backup_db()
+    return {"ok": True, "backupPath": str(target), "size": target.stat().st_size}

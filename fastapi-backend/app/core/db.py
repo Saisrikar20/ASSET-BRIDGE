@@ -71,3 +71,16 @@ def execute_cmd(sql: str, params: Tuple[Any, ...] = ()) -> int:
     cursor.execute(sql, params)
     return cursor.rowcount
 
+def backup_db(dest_path: Optional[Path] = None) -> Path:
+    """Automated SQLite maintenance and snapshot via VACUUM INTO (future.md §4.3)."""
+    target = dest_path or (DATA_DIR / "backup_asset_bridge.db")
+    if target.exists():
+        try:
+            target.unlink()
+        except Exception:
+            pass
+    conn = get_connection()
+    # Normalize forward slashes for SQLite string literal across Windows/Unix
+    target_str = str(target.resolve()).replace("\\", "/")
+    conn.execute(f"VACUUM INTO '{target_str}';")
+    return target
