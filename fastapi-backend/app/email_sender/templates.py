@@ -296,3 +296,4 @@ def build_sendgrid_payload(
         payload["custom_args"] = custom_args
 
     return payload
+

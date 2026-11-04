@@ -16,3 +16,4 @@ The active production codebase is strictly organized across four dedicated engin
 2. `fastapi-backend/app/email_sender/`: Google App Password SMTP, Twilio Comms Email API, and SMS alerts.
 3. `fastapi-backend/app/pdf_generator/`: ReportLab statutory claiming dossier PDF generator.
 4. `scrapers/`: Scrapy statutory circular crawler with hybrid Redis and SQLite Document Vault storage.
+

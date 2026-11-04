@@ -131,3 +131,4 @@ class RedisRegulationStore:
 
 # Singleton instance
 redis_store = RedisRegulationStore()
+
