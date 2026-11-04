@@ -28,7 +28,7 @@ fastapi-backend/  Unified Python FastAPI Backend                :8000  (REST, We
 
 - **Unified FastAPI Backend**: Ingests identity, handles ReBIT-style consent, runs the 7-step core asset pipeline, runs Monte Carlo simulations and state-aware succession workflows.
 - **RAG Succession Guidance**: BM25 lexical search over `fastapi-backend/knowledge/*.md` with Gemini/OpenAI API and extractive fallback.
-- **Persistence**: Debounced JSON store behind `fastapi-backend/app/module1_core/store.py`, designed as an abstraction seam for PostgreSQL / Supabase.
+- **Persistence**: Debounced JSON store behind `fastapi-backend/app/core/store.py`, designed as an abstraction seam for PostgreSQL / Supabase.
 - **UI Components**: High-fidelity Kokonut UI dials, Aceternity UI lighting effects, and Tailwind CSS v4 dynamic theming.
 
 ## Run it

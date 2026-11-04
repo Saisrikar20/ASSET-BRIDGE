@@ -13,7 +13,7 @@
 | **Type Safety & Contracts** | Plain JavaScript without static typing; ad-hoc runtime checks | **Pydantic V2 strict schema contracts** on every endpoint request and response | Complete request validation at boundary; automated OpenAPI documentation (`/docs`). |
 | **PAN & Input Validation** | Basic regex test; no entity categorization; case-sensitive | Strict regex `^[A-Z]{5}[0-9]{4}[A-Z]$` + **4th-character ITD entity code check** (`P`, `C`, `H`, etc.) + auto sanitization | Blocks invalid PAN formats, categorizes taxpayer type, returns clean `400 Bad Request`. |
 | **Identity Matching** | Binary string comparison; partial name matches unhandled | **Confidence-scored matching** (`exact` = 1.0, `partial` = 0.65, `mismatch` = 0.0); partials never elevated to verified | Prevents false-positive asset claims; tags simulated data with provenance flags. |
-| **Asset Pipeline Architecture** | Unstructured, scattered helper functions across multiple JS files | **Deterministic 7-step Core Asset Pipeline** in `app/module2_aggregation/pipeline.py` | Predictable, sequential data flow from raw input to verified consolidated reporting. |
+| **Asset Pipeline Architecture** | Unstructured, scattered helper functions across multiple JS files | **Deterministic 7-step Core Asset Pipeline** in `app/aggregation/pipeline.py` | Predictable, sequential data flow from raw input to verified consolidated reporting. |
 | **Duplicate Asset Handling** | **Non-existent**: duplicated feeds were blindly appended, causing double-counted wealth | **Non-destructive deduplication**: rule-based matching tags `isDuplicate=True` without deleting records | **Zero double-counting** in `verifiableTotal` while preserving complete historical audit trail. |
 | **Asset Normalization** | Heterogeneous raw dictionary shapes stored directly in DB | Uniform **`NormalizedAsset` schema** across all 7 Indian regulatory umbrellas | Standardized category enums, currency balances, status codes, and holder metadata. |
 | **AI / Legal Guidance** | Proxied HTTP call to port 8001 with 45s timeout; crashed if AI service was down | **In-process BM25 statutory RAG index** with extractive fallback over 8 markdown guides | Instant responses (< 5ms), zero network failure mode, operates 100% offline. |
@@ -24,13 +24,13 @@
 
 ## 2. Deep Dive: What Was Done on the Backend
 
-### Module 1: Core Foundation & Identity (`app/module1_core/`)
-* **[`auth.py`](file:///g:/dexathon2026/fastapi-backend/app/module1_core/auth.py)**: Cryptographic password hashing (SHA-256 with salt), JWT token signing and verification via FastAPI dependency injection (`get_current_user`), and demo persona seeder.
-* **[`identity.py`](file:///g:/dexathon2026/fastapi-backend/app/module1_core/identity.py)**: Centralized regulatory metadata for all 7 regulators (RBI, EPFO, IRDAI, SEBI, LIC, PFRDA, DOP), 10 state succession document authorities, synthetic demo twin records, and string normalization algorithms.
-* **[`store.py`](file:///g:/dexathon2026/fastapi-backend/app/module1_core/store.py)**: Thread-safe in-memory cache backed by atomic JSON disk persistence (`data/db.json`), guaranteeing zero external database dependencies for offline demo resilience.
-* **[`live.py`](file:///g:/dexathon2026/fastapi-backend/app/module1_core/live.py)**: Native FastAPI WebSocket connection manager streaming live nominee alerts and estate case updates directly to frontend subscribers.
+### Core Foundation & Identity (`app/core/`)
+* **[`auth.py`](file:///g:/dexathon2026/fastapi-backend/app/core/auth.py)**: Cryptographic password hashing (SHA-256 with salt), JWT token signing and verification via FastAPI dependency injection (`get_current_user`), and demo persona seeder.
+* **[`identity.py`](file:///g:/dexathon2026/fastapi-backend/app/core/identity.py)**: Centralized regulatory metadata for all 7 regulators (RBI, EPFO, IRDAI, SEBI, LIC, PFRDA, DOP), 10 state succession document authorities, synthetic demo twin records, and string normalization algorithms.
+* **[`store.py`](file:///g:/dexathon2026/fastapi-backend/app/core/store.py)**: Thread-safe in-memory cache backed by atomic JSON disk persistence (`data/db.json`), guaranteeing zero external database dependencies for offline demo resilience.
+* **[`live.py`](file:///g:/dexathon2026/fastapi-backend/app/core/live.py)**: Native FastAPI WebSocket connection manager streaming live nominee alerts and estate case updates directly to frontend subscribers.
 
-### Module 2: 7-Step Core Asset Processing Pipeline (`app/module2_aggregation/`)
+### 7-Step Core Asset Processing Pipeline (`app/aggregation/`)
 * **Step 1 — Input Validation**:
   - Enforces 10-character PAN syntax `^[A-Z]{5}[0-9]{4}[A-Z]$`.
   - Analyzes the 4th character against official Income Tax Department entity codes (`P` = Individual, `C` = Company, `H` = HUF, `F` = Firm).
@@ -59,7 +59,7 @@
   - Runs in-process BM25 lexical search ranking passages by query relevance and state rules.
   - Provides cited legal guidance with extractive fallback if external LLM keys are absent.
 
-### Module 3: Wealth & Life Simulation (`app/module3_simulation/`)
+### Wealth & Life Simulation (`app/simulation/`)
 * **Investment Catalog & Options**: Pre-configured catalog of 19 Indian investment instruments (PPF, VPF, NPS, SCSS, index funds, SGBs).
 * **Compound Growth Forecaster**: Month-by-month compound projection supporting annual SIP step-up and idle money reclaim analysis.
 * **Portfolio Allocation Analyzer**: Computes equity vs. debt vs. gold vs. cash allocations, liquidity buckets, and the cost of idle dormant assets.

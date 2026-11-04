@@ -70,7 +70,7 @@ Broken links: 0
 
 ### Genuinely Implemented & Verified in Code
 
-1. **Deterministic 7-Step Asset Pipeline ([`fastapi-backend/app/module2_aggregation/pipeline.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/module2_aggregation/pipeline.py)):**
+1. **Deterministic 7-Step Asset Pipeline ([`fastapi-backend/app/aggregation/pipeline.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/aggregation/pipeline.py)):**
    - **Step 1 (Input Validation):** Validates 10-character PAN regex `^[A-Z]{5}[0-9]{4}[A-Z]$`. Analyzes 4th character entity code (`P` = Individual, `C` = Company, `H` = HUF, `F` = Firm). Sanitizes whitespace and lowercasing.
    - **Step 2 (Identity Matching):** String similarity token scoring (`exact` = 1.0, `partial` = 0.65, `mismatch` = 0.0). Partial matches are strictly flagged as `provisional` and never promoted to verified.
    - **Step 3 (Asset Discovery):** Aggregates across 7 regulatory categories (RBI, EPFO, IRDAI, SEBI, LIC, PFRDA, DOP).
@@ -85,11 +85,11 @@ Broken links: 0
    - **Statutory Name Discrepancy Advisory:** Flags variances between KYC registered names and claimant names, recommending legal affidavit / gazette remedies.
    - **Printable Statutory Dossier Modal:** Renders clean, pre-filled printable document with asset particulars, claimant verification, and legal signature blocks.
 
-3. **In-Process BM25 Statutory RAG ([`fastapi-backend/app/module2_aggregation/assistant.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/module2_aggregation/assistant.py)):**
+3. **In-Process BM25 Statutory RAG ([`fastapi-backend/app/aggregation/assistant.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/aggregation/assistant.py)):**
    - In-process BM25 index over 8 statutory markdown legal guides in `fastapi-backend/knowledge/`.
    - Operates offline with zero external network or LLM API key dependencies, falling back to extractive citation matching.
 
-4. **Simulation & Tax Engines ([`fastapi-backend/app/module3_simulation/routers.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/module3_simulation/routers.py)):**
+4. **Simulation & Tax Engines ([`fastapi-backend/app/simulation/routers.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/simulation/routers.py)):**
    - 1,000-run Monte Carlo stochastic simulation modeling return variance and inflation.
    - Indian income tax comparison engine between Old and New regimes (80C, 80D, standard deduction).
 
@@ -160,19 +160,19 @@ Command: npm run build --prefix client (tsc -b && vite build)
 ### Criterion 2: Technology & Component Selection
 - **Round 1 State:** Untyped Express handlers with loosely validated JSON dictionaries. Mixed CSS imports and duplicate bundler warnings.
 - **Round 2 State:** Pydantic v2 strict data contracts on every request/response. React 19 + TypeScript 5 + Vite 8 frontend. Browser-native Web Crypto SHA-256 binary digesting.
-- **Evidence:** [`fastapi-backend/app/module2_aggregation/models.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/module2_aggregation/models.py), [`client/src/components/CaseBody.tsx`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/client/src/components/CaseBody.tsx#L50-L100).
+- **Evidence:** [`fastapi-backend/app/aggregation/models.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/aggregation/models.py), [`client/src/components/CaseBody.tsx`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/client/src/components/CaseBody.tsx#L50-L100).
 - **Remaining Limitations:** `uvicorn` CLI binary is not added to Windows global PATH by default (requires running via `uv run`).
 
 ### Criterion 3: Implementation Depth & System Integration
 - **Round 1 State:** Superficial bank account cards; no real duplicate handling; succession cases were static text; multiple broken routes.
 - **Round 2 State:** Multi-regulator coverage across 7 statutory authorities; non-destructive duplicate detection preserving audit trail; interactive claim dossier generation; 100% active route integration.
-- **Evidence:** [`pipeline.py:process_pipeline`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/module2_aggregation/pipeline.py#L313-L370), [`docs/round2/asvand/20_IMPLEMENTATION_DEPTH_AND_SYSTEM_INTEGRATION.md`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/docs/round2/asvand/20_IMPLEMENTATION_DEPTH_AND_SYSTEM_INTEGRATION.md).
+- **Evidence:** [`pipeline.py:process_pipeline`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/aggregation/pipeline.py#L313-L370), [`docs/round2/asvand/20_IMPLEMENTATION_DEPTH_AND_SYSTEM_INTEGRATION.md`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/docs/round2/asvand/20_IMPLEMENTATION_DEPTH_AND_SYSTEM_INTEGRATION.md).
 - **Remaining Limitations:** Production integration with live government DigiLocker/EPFO servers is synthetically simulated.
 
 ### Criterion 4: Technical Innovation & Emerging Technologies
 - **Round 1 State:** Dependent on external LLM API calls that timed out or failed without API keys.
 - **Round 2 State:** In-process BM25 statutory legal succession RAG indexing 8 legal guides with zero-network fallback and exact citations. 1,000-run Monte Carlo stochastic simulation in <50ms. Native WebSocket live connection manager.
-- **Evidence:** [`fastapi-backend/app/module2_aggregation/assistant.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/module2_aggregation/assistant.py), [`fastapi-backend/app/module3_simulation/routers.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/module3_simulation/routers.py).
+- **Evidence:** [`fastapi-backend/app/aggregation/assistant.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/aggregation/assistant.py), [`fastapi-backend/app/simulation/routers.py`](file:///e:/Hackathon/SATHYABAMA%20OMR/ASSEST%20BRIDGE/fastapi-backend/app/simulation/routers.py).
 - **Remaining Limitations:** RAG uses keyword BM25 retrieval rather than heavy neural vector embeddings to maintain sub-50MB RAM usage and instant offline responses.
 
 ### Criterion 5: Reliability, Testing & Technical Risk Management

@@ -3,19 +3,19 @@ from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Header, status
 from pydantic import BaseModel
 
-from app.module1_core.store import store, uid
-from app.module1_core.auth import get_current_user, public_user, verify_token
-from app.module1_core.live import live_manager
-from app.module1_core.identity import REGULATORS, STATES, STATE_HEIR_DOC, DEMO_IDENTITY, DEMO_RECORDS
-from app.module2_aggregation.models import (
+from app.core.store import store, uid
+from app.core.auth import get_current_user, public_user, verify_token
+from app.core.live import live_manager
+from app.core.identity import REGULATORS, STATES, STATE_HEIR_DOC, DEMO_IDENTITY, DEMO_RECORDS
+from app.aggregation.models import (
     PANValidationRequest, PANValidationResponse, PipelineProcessRequest,
     ConsolidatedReport
 )
-from app.module2_aggregation.pipeline import (
+from app.aggregation.pipeline import (
     validate_input, process_pipeline, discover_assets, normalize_assets,
     detect_duplicates, analyze_financials, generate_consolidated_report
 )
-from app.module2_aggregation.assistant import answer_question, GuideIn
+from app.aggregation.assistant import answer_question, GuideIn
 
 router = APIRouter(prefix="/api")
 

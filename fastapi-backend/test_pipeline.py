@@ -4,8 +4,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from fastapi.testclient import TestClient
 from app.main import app
-from app.module2_aggregation.models import AssetCategory, RecordStatus, NomineeStatus
-from app.module2_aggregation.pipeline import (
+from app.aggregation.models import AssetCategory, RecordStatus, NomineeStatus
+from app.aggregation.pipeline import (
     validate_input, match_name_logic, match_identity, discover_assets,
     normalize_assets, detect_duplicates, analyze_financials, process_pipeline
 )

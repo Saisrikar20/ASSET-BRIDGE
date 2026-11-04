@@ -3,8 +3,8 @@ from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.module1_core.store import store, uid
-from app.module1_core.auth import get_current_user
+from app.core.store import store, uid
+from app.core.auth import get_current_user
 
 router = APIRouter(prefix="/api")
 

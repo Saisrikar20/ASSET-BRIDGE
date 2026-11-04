@@ -9,9 +9,9 @@
 
 In Round 2 of Dexathon 2026, the backend of **Asset Bridge** was audited, re-architected, and hardened. Key accomplishments:
 - **Unified Python FastAPI Service**: Eliminated the legacy Node.js/Express server and the separate secondary AI service, unifying all operations under a single high-performance asynchronous FastAPI application on port `4000`.
-- **7-Step Core Asset Processing Pipeline**: Built an end-to-end deterministic pipeline in `app/module2_aggregation` covering strict PAN validation, confidence-scored identity matching, multi-regulator asset discovery, standard normalization, non-destructive duplicate detection, verifiable financial analysis, and consolidated reporting.
+- **7-Step Core Asset Processing Pipeline**: Built an end-to-end deterministic pipeline in `app/aggregation` covering strict PAN validation, confidence-scored identity matching, multi-regulator asset discovery, standard normalization, non-destructive duplicate detection, verifiable financial analysis, and consolidated reporting.
 - **In-Process BM25 Legal Succession RAG**: Integrated legal succession retrieval directly within FastAPI over 8 statutory knowledge guides, eliminating external process latency and network failure risks while providing offline fallback.
-- **Complete Frontend Integration**: Implemented clean simulation endpoints (`app/module3_simulation`) ensuring every page on the React client (`/verify`, `/aggregate`, `/alerts`, `/reunite`, `/cases`, `/forecast`, `/invest`, `/plan`, `/heir`) operates flawlessly with zero 404 errors.
+- **Complete Frontend Integration**: Implemented clean simulation endpoints (`app/simulation`) ensuring every page on the React client (`/verify`, `/aggregate`, `/alerts`, `/reunite`, `/cases`, `/forecast`, `/invest`, `/plan`, `/heir`) operates flawlessly with zero 404 errors.
 - **Automated Verification Harness**: Implemented 9 automated test suites in `test_pipeline.py` testing 25+ assertions with a **100% pass rate**.
 
 ---
@@ -22,16 +22,16 @@ The audit verified actual code implementations across the system rather than rel
 
 | Subsystem / Feature | Implementation Status | Actual Code Reference | Implementation & Audit Details |
 | :--- | :--- | :--- | :--- |
-| **PAN Input Validation** | **Implemented & Working** | `app/module2_aggregation/pipeline.py` (L12–L35) | Strictly validates 10-char regex `^[A-Z]{5}[0-9]{4}[A-Z]$`. Validates 4th character entity type (`P` = Individual, `C` = Company, `H` = HUF, `F` = Firm). Rejects malformed input with `400 Bad Request`. Automatically normalizes whitespace and lowercase strings. |
-| **Identity Matching** | **Implemented & Working** | `app/module1_core/identity.py` (L63–L110) | Computes normalized string distance scoring (`exact` = 1.0, `partial` = 0.65, `mismatch` = 0.0). **Guarantees that partial matches are never elevated to verified status**. Explicitly flags simulated data with `isSimulated=True` and `verificationStatus=provisional`. |
-| **Asset Discovery** | **Implemented & Working** | `app/module2_aggregation/pipeline.py` (L70–L90) | Discovers financial holdings across all 7 statutory regulators (RBI, EPFO, IRDAI, SEBI, LIC, PFRDA, DOP). Handles missing fields gracefully with safe schema fallbacks. |
-| **Asset Normalization** | **Implemented & Working** | `app/module2_aggregation/pipeline.py` (L93–L155) | Transforms heterogeneous records (savings accounts, EPF UANs, demat folios, insurance policies, SGBs) into a unified `NormalizedAsset` Pydantic model with typed enums. |
-| **Duplicate Detection** | **Implemented & Working** | `app/module2_aggregation/pipeline.py` (L158–L205) | Multi-rule matching: (1) Identical institution + account reference; (2) Identical institution + asset category + holder name + balance within 180 days. **Non-destructive**: flags duplicates as `resolution='flagged_not_deleted'`, preserving data auditability without double counting. |
-| **Financial Analysis & Alerts** | **Implemented & Working** | `app/module2_aggregation/pipeline.py` (L208–L310) | Computes `verifiableTotal` exclusively on unique assets (preventing double counting). Generates real-time nominee-gap alerts (`nominee_missing`, `nominee_deceased`, `nominee_minor`, `inoperative`, `unclaimed`, `kyc_stale`). |
-| **Consolidated Report** | **Implemented & Working** | `app/module2_aggregation/pipeline.py` (L313–L370) | Generates structured JSON payload containing summary metrics, clean totals, potential duplicates, important findings, data limitations, and suggested next steps. |
-| **AI Succession Legal Guide** | **Implemented & Working** | `app/module2_aggregation/assistant.py` (L1–L162) | Unified in-process BM25 index over 8 markdown legal guides in `fastapi-backend/knowledge/`. Falls back to cited extractive answers when external LLM API keys are absent. |
-| **Storage & Persistence** | **Implemented & Working** | `app/module1_core/store.py` (L1–L63) | Dual-mode memory store backed by atomic JSON persistence (`fastapi-backend/data/db.json`), ensuring zero external database dependencies for offline demo resilience. |
-| **Live WebSocket Alerts** | **Implemented & Working** | `app/module1_core/live.py` (L1–L34) | Asynchronous WebSocket connection manager streaming alerts and case updates directly to connected frontend clients. |
+| **PAN Input Validation** | **Implemented & Working** | `app/aggregation/pipeline.py` (L12–L35) | Strictly validates 10-char regex `^[A-Z]{5}[0-9]{4}[A-Z]$`. Validates 4th character entity type (`P` = Individual, `C` = Company, `H` = HUF, `F` = Firm). Rejects malformed input with `400 Bad Request`. Automatically normalizes whitespace and lowercase strings. |
+| **Identity Matching** | **Implemented & Working** | `app/core/identity.py` (L63–L110) | Computes normalized string distance scoring (`exact` = 1.0, `partial` = 0.65, `mismatch` = 0.0). **Guarantees that partial matches are never elevated to verified status**. Explicitly flags simulated data with `isSimulated=True` and `verificationStatus=provisional`. |
+| **Asset Discovery** | **Implemented & Working** | `app/aggregation/pipeline.py` (L70–L90) | Discovers financial holdings across all 7 statutory regulators (RBI, EPFO, IRDAI, SEBI, LIC, PFRDA, DOP). Handles missing fields gracefully with safe schema fallbacks. |
+| **Asset Normalization** | **Implemented & Working** | `app/aggregation/pipeline.py` (L93–L155) | Transforms heterogeneous records (savings accounts, EPF UANs, demat folios, insurance policies, SGBs) into a unified `NormalizedAsset` Pydantic model with typed enums. |
+| **Duplicate Detection** | **Implemented & Working** | `app/aggregation/pipeline.py` (L158–L205) | Multi-rule matching: (1) Identical institution + account reference; (2) Identical institution + asset category + holder name + balance within 180 days. **Non-destructive**: flags duplicates as `resolution='flagged_not_deleted'`, preserving data auditability without double counting. |
+| **Financial Analysis & Alerts** | **Implemented & Working** | `app/aggregation/pipeline.py` (L208–L310) | Computes `verifiableTotal` exclusively on unique assets (preventing double counting). Generates real-time nominee-gap alerts (`nominee_missing`, `nominee_deceased`, `nominee_minor`, `inoperative`, `unclaimed`, `kyc_stale`). |
+| **Consolidated Report** | **Implemented & Working** | `app/aggregation/pipeline.py` (L313–L370) | Generates structured JSON payload containing summary metrics, clean totals, potential duplicates, important findings, data limitations, and suggested next steps. |
+| **AI Succession Legal Guide** | **Implemented & Working** | `app/aggregation/assistant.py` (L1–L162) | Unified in-process BM25 index over 8 markdown legal guides in `fastapi-backend/knowledge/`. Falls back to cited extractive answers when external LLM API keys are absent. |
+| **Storage & Persistence** | **Implemented & Working** | `app/core/store.py` (L1–L63) | Dual-mode memory store backed by atomic JSON persistence (`fastapi-backend/data/db.json`), ensuring zero external database dependencies for offline demo resilience. |
+| **Live WebSocket Alerts** | **Implemented & Working** | `app/core/live.py` (L1–L34) | Asynchronous WebSocket connection manager streaming alerts and case updates directly to connected frontend clients. |
 
 ---
 
@@ -63,13 +63,13 @@ All financial information is processed through a deterministic 7-step pipeline:
 ```
 
 ### Module Responsibilities:
-1. **`app.module2_aggregation.pipeline:validate_input`**: Enforces strict PAN structure and entity type resolution.
-2. **`app.module2_aggregation.pipeline:match_identity`**: Scores match confidence (1.0 for exact, 0.65 for partial, 0.0 for mismatch) and attaches regulatory provenance.
-3. **`app.module2_aggregation.pipeline:discover_assets`**: Extracts available holdings across approved regulatory umbrellas.
-4. **`app.module2_aggregation.pipeline:normalize_assets`**: Translates varied bank, pension, demat, and insurer formats into standard `NormalizedAsset` objects.
-5. **`app.module2_aggregation.pipeline:detect_duplicates`**: Isolates potential duplicate records with confidence ratings while preserving the raw records under `resolution="flagged_not_deleted"`.
-6. **`app.module2_aggregation.pipeline:analyze_financials`**: Computes totals exclusively over unique holdings, protecting the platform from double counting, while auditing for nominee gaps.
-7. **`app.module2_aggregation.pipeline:generate_consolidated_report`**: Packages all outputs into an executive `ConsolidatedReport`.
+1. **`app.aggregation.pipeline:validate_input`**: Enforces strict PAN structure and entity type resolution.
+2. **`app.aggregation.pipeline:match_identity`**: Scores match confidence (1.0 for exact, 0.65 for partial, 0.0 for mismatch) and attaches regulatory provenance.
+3. **`app.aggregation.pipeline:discover_assets`**: Extracts available holdings across approved regulatory umbrellas.
+4. **`app.aggregation.pipeline:normalize_assets`**: Translates varied bank, pension, demat, and insurer formats into standard `NormalizedAsset` objects.
+5. **`app.aggregation.pipeline:detect_duplicates`**: Isolates potential duplicate records with confidence ratings while preserving the raw records under `resolution="flagged_not_deleted"`.
+6. **`app.aggregation.pipeline:analyze_financials`**: Computes totals exclusively over unique holdings, protecting the platform from double counting, while auditing for nominee gaps.
+7. **`app.aggregation.pipeline:generate_consolidated_report`**: Packages all outputs into an executive `ConsolidatedReport`.
 
 ---
 
@@ -81,9 +81,9 @@ All financial information is processed through a deterministic 7-step pipeline:
 - **RAG microservice merged in-process**: The BM25 retrieval guide was integrated directly into FastAPI, eliminating the secondary microservice on port 8001.
 
 ### Clean Code Reduction & Deduplication:
-1. **Unified Name Matching**: Moved string cleaning and Levenshtein name comparison into `app/module1_core/identity.py`, reused directly by `app/module2_aggregation/pipeline.py` (eliminating duplicate code).
-2. **Consolidated Schemas**: Defined centralized Pydantic models in `app/module2_aggregation/models.py`.
-3. **Streamlined Simulation Router**: Implemented `app/module3_simulation/routers.py` in under 300 lines of clean, readable Python, replacing multiple disjointed JavaScript files.
+1. **Unified Name Matching**: Moved string cleaning and Levenshtein name comparison into `app/core/identity.py`, reused directly by `app/aggregation/pipeline.py` (eliminating duplicate code).
+2. **Consolidated Schemas**: Defined centralized Pydantic models in `app/aggregation/models.py`.
+3. **Streamlined Simulation Router**: Implemented `app/simulation/routers.py` in under 300 lines of clean, readable Python, replacing multiple disjointed JavaScript files.
 
 ---
 

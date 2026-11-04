@@ -4,12 +4,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "fastapi-backend
 
 from fastapi.testclient import TestClient
 from app.main import app
-from app.module1_core.auth import sign_token, verify_token, hash_password, check_password
+from app.core.auth import sign_token, verify_token, hash_password, check_password
 
 client = TestClient(app)
 
-def test_module1():
-    print("Testing Module 1...")
+def test_core():
+    print("Testing Core Foundation...")
     
     # 1. Health check
     res = client.get("/health")
@@ -69,7 +69,7 @@ def test_module1():
     assert res.status_code == 200 and res.json()["ok"] is True
     print("[PASS] POST /api/demo/reset passed")
 
-    print("\nALL MODULE 1 TESTS PASSED SUCCESSFULLY!")
+    print("\nALL CORE TESTS PASSED SUCCESSFULLY!")
 
 if __name__ == "__main__":
-    test_module1()
+    test_core()

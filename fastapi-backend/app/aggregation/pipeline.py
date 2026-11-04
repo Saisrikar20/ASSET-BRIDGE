@@ -1,13 +1,13 @@
 import re
 import datetime
 from typing import List, Dict, Any, Tuple, Optional
-from app.module2_aggregation.models import (
+from app.aggregation.models import (
     AssetCategory, RecordStatus, SourceType, VerificationStatus,
     NomineeStatus, AlertSeverity, NomineeDetail, NormalizedAsset,
     DuplicateCandidate, AlertItem, CategoryBreakdown, FinancialAnalysis,
     IdentityMatchingResult, ConsolidatedReport
 )
-from app.module1_core.identity import REGULATORS, DEMO_RECORDS, DEMO_IDENTITY, clean_name, match_name_logic
+from app.core.identity import REGULATORS, DEMO_RECORDS, DEMO_IDENTITY, clean_name, match_name_logic
 
 PAN_PATTERN = re.compile(r"^[A-Z]{5}[0-9]{4}[A-Z]$")
 

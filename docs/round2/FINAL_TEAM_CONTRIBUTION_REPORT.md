@@ -67,7 +67,7 @@ Every attributed percentage and statement is strictly corroborated by:
 
 #### Architectural Ownership & Responsibilities
 - **Unified Python FastAPI Architecture:** Replaced the legacy fragmented Node.js/Express mock server and secondary Python AI service with a unified, high-performance asynchronous ASGI FastAPI backend on port `8000`.
-- **Deterministic 7-Step Asset Processing Pipeline:** Architected and implemented `app/module2_aggregation/pipeline.py` covering:
+- **Deterministic 7-Step Asset Processing Pipeline:** Architected and implemented `app/aggregation/pipeline.py` covering:
   1. Strict PAN format and entity validation.
   2. Confidence-scored name and identity matching (partial matches locked to provisional).
   3. Multi-regulator discovery across 7 authorities (RBI, EPFO, IRDAI, SEBI, LIC, PFRDA, DOP).
@@ -75,15 +75,15 @@ Every attributed percentage and statement is strictly corroborated by:
   5. Non-destructive duplicate detection (`flagged_not_deleted`) with zero double counting.
   6. Financial risk and statutory nominee gap analysis.
   7. Consolidated intelligence report payload generation.
-- **In-Process BM25 Legal Succession RAG:** Created `app/module2_aggregation/assistant.py` indexing 8 statutory legal guides with local extractive search and citation generation for offline hackathon resilience.
+- **In-Process BM25 Legal Succession RAG:** Created `app/aggregation/assistant.py` indexing 8 statutory legal guides with local extractive search and citation generation for offline hackathon resilience.
 - **Comprehensive Simulation & Live Streaming:** Built 1,000-run Monte Carlo stochastic simulation, Indian income tax optimizer, and WebSocket connection manager for live alert streaming.
 - **Automated Verification Harness:** Implemented and executed automated test suites in `fastapi-backend/test_pipeline.py` and `test_module1.py`, achieving a **100% pass rate across 35+ assertions in 0.60 seconds**.
 
 #### Primary Files Authored
 - `fastapi-backend/app/main.py` (ASGI entrypoint, route routing, CORS configuration)
-- `fastapi-backend/app/module1_core/` (`auth.py`, `identity.py`, `store.py`, `live.py`, `routers.py`)
-- `fastapi-backend/app/module2_aggregation/` (`pipeline.py`, `models.py`, `assistant.py`, `routers.py`)
-- `fastapi-backend/app/module3_simulation/` (`routers.py`, Monte Carlo & tax engines)
+- `fastapi-backend/app/core/` (`auth.py`, `identity.py`, `store.py`, `live.py`, `routers.py`)
+- `fastapi-backend/app/aggregation/` (`pipeline.py`, `models.py`, `assistant.py`, `routers.py`)
+- `fastapi-backend/app/simulation/` (`routers.py`, Monte Carlo & tax engines)
 - `fastapi-backend/knowledge/*` (8 statutory legal markdown guides)
 - `fastapi-backend/test_module1.py` & `fastapi-backend/test_pipeline.py` (Automated test suites)
 - `docs/round2/sai/sai.md` (Master backend technical report)

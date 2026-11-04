@@ -3,11 +3,11 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
-from app.module1_core.routers import router as module1_router
-from app.module2_aggregation.routers import router as module2_router
-from app.module3_simulation.routers import router as module3_router
-from app.module1_core.live import live_manager
-from app.module1_core.auth import verify_token
+from app.core.routers import router as core_router
+from app.aggregation.routers import router as aggregation_router
+from app.simulation.routers import router as simulation_router
+from app.core.live import live_manager
+from app.core.auth import verify_token
 
 app = FastAPI(title="Asset Bridge API", version="1.0.0")
 
@@ -28,9 +28,9 @@ async def validation_exception_handler(request, exc):
     msg = exc.errors()[0].get("msg", "Validation error") if exc.errors() else "Validation error"
     return JSONResponse(status_code=400, content={"error": msg})
 
-app.include_router(module1_router)
-app.include_router(module2_router)
-app.include_router(module3_router)
+app.include_router(core_router)
+app.include_router(aggregation_router)
+app.include_router(simulation_router)
 
 @app.get("/")
 def root():

@@ -1,9 +1,9 @@
 import datetime, re
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from app.module1_core.store import store, uid
-from app.module1_core.auth import hash_password, check_password, sign_token, get_current_user, public_user, seed_demo_heirs
-from app.module1_core.identity import REGULATORS, STATES, STATE_HEIR_DOC, DEMO_IDENTITY, DEMO_RECORDS, NATIONAL_STATS, verify_identity, summarize
+from app.core.store import store, uid
+from app.core.auth import hash_password, check_password, sign_token, get_current_user, public_user, seed_demo_heirs
+from app.core.identity import REGULATORS, STATES, STATE_HEIR_DOC, DEMO_IDENTITY, DEMO_RECORDS, NATIONAL_STATS, verify_identity, summarize
 
 router = APIRouter(prefix="/api")
 PAN_RE = re.compile(r"^[A-Z]{5}[0-9]{4}[A-Z]$")

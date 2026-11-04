@@ -1,7 +1,7 @@
 import hashlib, hmac, base64, json, time, secrets
 from fastapi import Header, HTTPException, status
 from app.config import AUTH_SECRET
-from app.module1_core.store import store, uid
+from app.core.store import store, uid
 
 def hash_password(password: str) -> str:
     salt = secrets.token_hex(16)
