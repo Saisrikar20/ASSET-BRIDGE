@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { 
   CheckCircle2, Circle, FileText, Landmark, Upload, AlertTriangle, 
-  Download, Printer, X, ShieldCheck 
+  Download, Printer, X, ShieldCheck, BookOpen 
 } from 'lucide-react';
 import { api, uploadDocument, type Case, type Task } from '../lib/api';
 import { date, inr, inrShort, time } from '../lib/format';
@@ -191,9 +191,26 @@ export default function CaseBody({ c, onToggle }: { c: Case; onToggle: (t: Task)
               </div>
             )}
 
-            <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
-              <Landmark className="h-3 w-3" />
-              <span>Authority: {t.authority}</span>
+            <div className="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-1">
+                <Landmark className="h-3 w-3" />
+                <span>Authority: {t.authority}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent('guide:ask', {
+                      detail: `How do I complete "${t.title}" in ${c.state}? The authority involved is ${t.authority}.`
+                    })
+                  );
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-700 hover:text-brand-900 bg-brand-50 px-2 py-0.5 rounded cursor-pointer"
+                title="Ask AI succession guide about this step"
+              >
+                <BookOpen className="h-3 w-3" />
+                <span>Ask AI Guide</span>
+              </button>
             </div>
           </div>
         </div>

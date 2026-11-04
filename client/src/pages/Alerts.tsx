@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import { BellOff, CheckCircle2, Radio } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  ArrowRight, BellOff, BookOpen, CheckCircle2, Compass, 
+  HeartHandshake, Radio, Users 
+} from 'lucide-react';
 import { api, type Alert, type Heir, type Holding } from '../lib/api';
 import { useLive, useLiveStatus } from '../lib/live';
 import { inr, time } from '../lib/format';
@@ -9,6 +13,7 @@ const NOMINEE_KINDS = ['nominee_missing', 'nominee_deceased', 'nominee_minor'];
 const RELATIONS = ['Spouse', 'Son', 'Daughter', 'Mother', 'Father', 'Brother', 'Sister', 'Other'];
 
 export default function Alerts() {
+  const nav = useNavigate();
   const connected = useLiveStatus();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [holdings, setHoldings] = useState<Record<string, Holding>>({});
@@ -90,7 +95,16 @@ export default function Alerts() {
                     {h && <p className="mt-1 text-xs text-slate-400">{h.type} · {inr(h.value)} · raised {time(a.createdAt)}</p>}
                   </div>
                   {!a.resolved && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => nav('/app/guide?q=' + encodeURIComponent(`How do I resolve this alert: ${a.title} on ${a.regulator}?`))}
+                        className="gap-1 text-xs"
+                      >
+                        <BookOpen className="h-3.5 w-3.5" />
+                        Ask AI
+                      </Button>
                       {isNominee ? (
                         <Button size="sm" onClick={() => setEditing(editing === a.id ? null : a.id)}>{a.kind === 'nominee_minor' ? 'Add guardian' : 'Update nominee'}</Button>
                       ) : (
@@ -106,6 +120,54 @@ export default function Alerts() {
           })}
         </div>
       )}
+
+      {/* Connected Next-Step Journey Cards */}
+      <div className="mt-8 pt-6 border-t border-slate-200">
+        <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-3">Next Steps in Your Succession Journey</h3>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card className="p-4 flex flex-col justify-between hover:border-brand-400 transition">
+            <div>
+              <div className="inline-flex p-2 rounded-lg bg-brand-50 text-brand-700 mb-2">
+                <Compass className="h-4 w-4" />
+              </div>
+              <h4 className="font-semibold text-ink text-sm">Plan Financial Life</h4>
+              <p className="text-xs text-slate-500 mt-1">Run simulations for retirement, goals, and inheritance distributions.</p>
+            </div>
+            <Button size="sm" variant="secondary" onClick={() => nav('/app/plan')} className="mt-3 w-full justify-between">
+              <span>Open Life Plan</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </Card>
+
+          <Card className="p-4 flex flex-col justify-between hover:border-brand-400 transition">
+            <div>
+              <div className="inline-flex p-2 rounded-lg bg-emerald-50 text-emerald-700 mb-2">
+                <Users className="h-4 w-4" />
+              </div>
+              <h4 className="font-semibold text-ink text-sm">Register Family Heirs</h4>
+              <p className="text-xs text-slate-500 mt-1">Add legal heirs with PAN verification so they can claim your estate.</p>
+            </div>
+            <Button size="sm" variant="secondary" onClick={() => nav('/app/heirs')} className="mt-3 w-full justify-between">
+              <span>Manage Heirs</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </Card>
+
+          <Card className="p-4 flex flex-col justify-between hover:border-brand-400 transition">
+            <div>
+              <div className="inline-flex p-2 rounded-lg bg-indigo-50 text-indigo-700 mb-2">
+                <HeartHandshake className="h-4 w-4" />
+              </div>
+              <h4 className="font-semibold text-ink text-sm">Simulate Succession</h4>
+              <p className="text-xs text-slate-500 mt-1">Test the Civil Registration System (CRS) death notification flow.</p>
+            </div>
+            <Button size="sm" variant="secondary" onClick={() => nav('/app/reunite')} className="mt-3 w-full justify-between">
+              <span>Go to Reunite (Step 04)</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </Card>
+        </div>
+      </div>
     </>
   );
 }

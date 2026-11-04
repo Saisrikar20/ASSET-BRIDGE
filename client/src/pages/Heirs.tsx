@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Trash2, UserPlus, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, BookOpen, Trash2, UserPlus, Users } from 'lucide-react';
 import { api, type Heir } from '../lib/api';
 import { Button, Card, Empty, ErrorNote, Field, Input, PageHeader, Select } from '../components/ui';
 import DetentDial from '../components/kokonutui/detent-dial';
@@ -8,6 +9,7 @@ const RELATIONS = ['Spouse', 'Son', 'Daughter', 'Mother', 'Father', 'Brother', '
 const blank = { name: '', relation: 'Spouse', pan: '', mobile: '', email: '', share: 50 };
 
 export default function Heirs() {
+  const nav = useNavigate();
   const [heirs, setHeirs] = useState<Heir[]>([]);
   const [f, setF] = useState(blank);
   const [err, setErr] = useState<string | null>(null);
@@ -59,6 +61,37 @@ export default function Heirs() {
           )}
           {heirs.length > 0 && totalShare > 0 && totalShare !== 100 && (
             <p className="text-sm text-amber-700">Shares add up to {totalShare}% — intended shares usually total 100%. (Actual division follows your will or succession law.)</p>
+          )}
+
+          {/* Connected Next-Step Banner */}
+          {heirs.length > 0 && (
+            <Card className="mt-4 p-4 bg-gradient-to-r from-brand-50 via-white to-slate-50 border border-brand-200">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-ink">Ready to simulate estate transfer?</div>
+                  <div className="text-xs text-slate-500">Test how India's Civil Registration System (CRS) notifies {heirs.length} heir{heirs.length === 1 ? '' : 's'}.</div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => nav('/app/guide?q=' + encodeURIComponent('How do legal heirs claim estate assets if someone dies intestate?'))}
+                    className="gap-1.5"
+                  >
+                    <BookOpen className="h-3.5 w-3.5" />
+                    Ask AI Guide
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => nav('/app/reunite')}
+                    className="gap-1.5"
+                  >
+                    <span>Next: Reunite (Step 04)</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
           )}
         </div>
 

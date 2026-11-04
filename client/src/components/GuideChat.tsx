@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   BookOpen, FileText, Send, Sparkles, ArrowRight, 
   Plus, Database 
@@ -49,6 +49,7 @@ function render(md: string) {
 
 export default function GuideChat({ state, caseId, compact }: { state?: string; caseId?: string; compact?: boolean }) {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState(false);
@@ -56,10 +57,32 @@ export default function GuideChat({ state, caseId, compact }: { state?: string; 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [docCount, setDocCount] = useState<number>(0);
   const end = useRef<HTMLDivElement>(null);
+  const initialTriggered = useRef(false);
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [msgs, busy]);
+
+  // Handle URL query parameter ?q=
+  useEffect(() => {
+    const initialQuery = params.get('q');
+    if (initialQuery && !initialTriggered.current) {
+      initialTriggered.current = true;
+      ask(initialQuery);
+    }
+  }, [params]);
+
+  // Listen to custom in-page window event for cross-component triggers
+  useEffect(() => {
+    const handleCustomAsk = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail) {
+        ask(customEvent.detail);
+      }
+    };
+    window.addEventListener('guide:ask', handleCustomAsk);
+    return () => window.removeEventListener('guide:ask', handleCustomAsk);
+  }, [activeSessionId, state, caseId]);
 
   // Load chat sessions and user document count from SQLite vault
   useEffect(() => {

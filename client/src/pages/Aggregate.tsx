@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FileLock2, Layers, Search } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, BookOpen, FileLock2, Layers, Search, ShieldAlert } from 'lucide-react';
 import { api, type Consent, type Holding, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date, inr } from '../lib/format';
@@ -10,6 +10,7 @@ const ALL: Regulator[] = ['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC', 'PFRDA', 'DOP']
 
 export default function Aggregate() {
   const { user, meta } = useAuth();
+  const nav = useNavigate();
   const [consents, setConsents] = useState<Consent[]>([]);
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [picked, setPicked] = useState<Regulator[]>(ALL);
@@ -50,6 +51,9 @@ export default function Aggregate() {
     () => holdings.filter((h) => (reg === 'all' || h.regulator === reg) && `${h.institution} ${h.type} ${h.ref}`.toLowerCase().includes(q.toLowerCase())),
     [holdings, q, reg],
   );
+
+  const totalValue = holdings.reduce((s, h) => s + h.value, 0);
+  const gapCount = holdings.filter((h) => !h.nominee || h.nominee.status !== 'valid').length;
 
   if (!user?.identity) {
     return (
@@ -113,42 +117,83 @@ export default function Aggregate() {
       )}
 
       {holdings.length > 0 && (
-        <Card>
-          <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
-            <h2 className="font-semibold text-ink">{holdings.length} holdings</h2>
-            <div className="relative ml-auto">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-              <Input className="w-56 pl-8" placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <div className="space-y-4">
+          <Card>
+            <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
+              <h2 className="font-semibold text-ink">{holdings.length} holdings</h2>
+              <div className="relative ml-auto">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                <Input className="w-56 pl-8" placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} />
+              </div>
+              <Select className="w-32" value={reg} onChange={(e) => setReg(e.target.value)}>
+                <option value="all">All</option>
+                {ALL.map((r) => <option key={r}>{r}</option>)}
+              </Select>
             </div>
-            <Select className="w-32" value={reg} onChange={(e) => setReg(e.target.value)}>
-              <option value="all">All</option>
-              {ALL.map((r) => <option key={r}>{r}</option>)}
-            </Select>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                <tr><th className="px-4 py-2.5">Holding</th><th className="px-4 py-2.5">Value</th><th className="px-4 py-2.5">Status</th><th className="px-4 py-2.5">Nominee</th><th className="px-4 py-2.5">Last activity</th></tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {shown.map((h) => (
-                  <tr key={h.id} className="hover:bg-slate-50/50">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2"><RegChip code={h.regulator} /><span className="font-medium text-ink">{h.type}</span></div>
-                      <div className="mt-0.5 text-xs text-slate-500">{h.institution} · {h.ref}</div>
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-ink">{inr(h.value)}</td>
-                    <td className="px-4 py-3"><Badge tone={h.status === 'active' ? 'green' : h.status === 'inoperative' ? 'amber' : 'red'}>{h.status}</Badge></td>
-                    <td className="px-4 py-3">
-                      {!h.nominee ? <Badge tone="red">none</Badge> : h.nominee.status === 'valid' ? <span className="text-slate-700">{h.nominee.name} <span className="text-xs text-slate-400">({h.nominee.relation})</span></span> : <Badge tone="amber">{h.nominee.name} · {h.nominee.status}</Badge>}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">{date(h.lastActivity)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <tr><th className="px-4 py-2.5">Holding</th><th className="px-4 py-2.5">Value</th><th className="px-4 py-2.5">Status</th><th className="px-4 py-2.5">Nominee</th><th className="px-4 py-2.5">Last activity</th></tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {shown.map((h) => (
+                    <tr key={h.id} className="hover:bg-slate-50/50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2"><RegChip code={h.regulator} /><span className="font-medium text-ink">{h.type}</span></div>
+                        <div className="mt-0.5 text-xs text-slate-500">{h.institution} · {h.ref}</div>
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-ink">{inr(h.value)}</td>
+                      <td className="px-4 py-3"><Badge tone={h.status === 'active' ? 'green' : h.status === 'inoperative' ? 'amber' : 'red'}>{h.status}</Badge></td>
+                      <td className="px-4 py-3">
+                        {!h.nominee ? <Badge tone="red">none</Badge> : h.nominee.status === 'valid' ? <span className="text-slate-700">{h.nominee.name} <span className="text-xs text-slate-400">({h.nominee.relation})</span></span> : <Badge tone="amber">{h.nominee.name} · {h.nominee.status}</Badge>}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">{date(h.lastActivity)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* Connected Next-Step Action Banner */}
+          <Card className="p-5 bg-gradient-to-r from-brand-50 via-white to-slate-50 border border-brand-200">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-ink">Mapped {holdings.length} holdings ({inr(totalValue)})</span>
+                  {gapCount > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <ShieldAlert className="h-3.5 w-3.5 text-rose-600" />
+                      <Badge tone="red">{gapCount} nominee gap{gapCount === 1 ? '' : 's'}</Badge>
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-slate-600">
+                  Holdings are ready for succession review. Proceed to Nominee Alerts to secure unassigned accounts, or consult the AI guide.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={() => nav('/app/guide?q=' + encodeURIComponent('What are the statutory requirements for claiming my mapped holdings?'))}
+                  className="gap-1.5"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Ask AI Guide
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => nav('/app/alerts')}
+                  className="gap-1.5"
+                >
+                  <span>Next: Review Alerts (Step 03)</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
       )}
     </>
   );

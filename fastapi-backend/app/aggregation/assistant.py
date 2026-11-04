@@ -147,7 +147,7 @@ def build_multisource_prompt(
     return f"Jurisdiction/State: {state or 'Not specified'}\n\n{ctx}{user_src}Statutory Regulations:\n{stat_src}\n\n{hist}User: {question}"
 
 async def call_nvidia(prompt: str) -> str:
-    async with httpx.AsyncClient(timeout=45) as client:
+    async with httpx.AsyncClient(timeout=25) as client:
         r = await client.post(
             f"{NVIDIA_BASE_URL.rstrip('/')}/chat/completions",
             headers={

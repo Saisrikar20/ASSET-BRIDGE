@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { HeartHandshake, Radio, Send } from 'lucide-react';
+import { ArrowRight, BookOpen, ExternalLink, HeartHandshake, Radio, Send } from 'lucide-react';
 import { api, type Case, type Heir, type Holding } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { inrShort } from '../lib/format';
@@ -78,12 +78,33 @@ export default function Reunite() {
               <div className="text-xs font-bold uppercase tracking-widest text-emerald-600">Estate case open</div>
               <div className="font-mono text-3xl font-bold text-ink">{existing}</div>
               {result && (
-                <ul className="text-sm text-slate-600">
+                <ul className="text-sm text-slate-600 space-y-1">
                   {result.notified.map((n) => <li key={n.name}>✓ {n.name} notified {n.via.length ? `via ${n.via.join(' & ')}` : ''}</li>)}
                 </ul>
               )}
-              <p className="text-sm text-slate-600">Heirs can open it at <span className="font-mono">/heir</span> with this ID and their PAN.</p>
-              <Button onClick={() => nav(`/app/cases/${existing}`)}>Open transfer workflow</Button>
+              <p className="text-sm text-slate-600">Heirs can open it at <span className="font-mono font-semibold">/heir/{existing}</span> with this ID and their PAN.</p>
+              
+              <div className="mt-2 flex flex-col gap-2 w-full">
+                <Button onClick={() => nav(`/app/cases/${existing}`)} className="w-full justify-between">
+                  <span>Open transfer workflow (Step 05)</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+                
+                <div className="flex gap-2">
+                  <Button variant="secondary" onClick={() => nav(`/heir/${existing}`)} className="flex-1 gap-1.5 text-xs">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Preview Heir Portal
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    onClick={() => nav('/app/guide?caseId=' + existing + '&q=' + encodeURIComponent('What are the estate succession requirements for case ' + existing + '?'))} 
+                    className="flex-1 gap-1.5 text-xs"
+                  >
+                    <BookOpen className="h-3.5 w-3.5" />
+                    Ask AI Guide
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : (
             <>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HeartHandshake, Lightbulb, Sprout, Table2, TrendingUp } from 'lucide-react';
+import { HeartHandshake, Lightbulb, Sprout, Table2, TrendingUp, ShieldAlert, Users } from 'lucide-react';
 import { api, type Analysis, type Catalog, type Forecast, type Plan, type PlanSettings } from '../lib/api';
 import { CLASS_COLOR, CLASS_ORDER, inr, inrShort } from '../lib/format';
 import { Button, Card, Empty, GlowCard, PageHeader, cx } from '../components/ui';
@@ -168,6 +168,16 @@ export default function ForecastPage() {
               <div className="flex items-center gap-2 text-sm font-semibold text-[#b9d3f5]"><HeartHandshake className="h-4 w-4" /> If something happened today</div>
               <div className="mt-2 text-3xl font-extrabold">{inrShort(an.familyToday)}</div>
               <p className="mt-1 text-sm text-[#b9d3f5]/80">would reach your family: {inrShort(an.total)} in investments + {inrShort(an.protection)} in insurance payouts — provided every nominee is in place.</p>
+              <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-white/10">
+                <Link to="/app/alerts" className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-white/15 px-3 py-1.5 rounded-lg hover:bg-white/25 transition">
+                  <ShieldAlert className="h-3.5 w-3.5 text-amber-300" />
+                  <span>Review Nominee Gaps</span>
+                </Link>
+                <Link to="/app/heirs" className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-white/15 px-3 py-1.5 rounded-lg hover:bg-white/25 transition">
+                  <Users className="h-3.5 w-3.5 text-emerald-300" />
+                  <span>Manage Registered Heirs</span>
+                </Link>
+              </div>
             </Card>
             <Card className="p-5">
               <h2 className="mb-3 flex items-center gap-2 font-semibold text-ink"><Lightbulb className="h-4 w-4 text-brand-700" /> Analysis</h2>
