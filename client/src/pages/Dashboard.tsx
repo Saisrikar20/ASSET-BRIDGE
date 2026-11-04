@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, RotateCcw } from 'lucide-react';
-import { api, type Alert, type Heir, type Holding, type Summary, type Regulator } from '../lib/api';
+import { ArrowRight, CheckCircle2, RotateCcw, FileDown } from 'lucide-react';
+import { api, downloadClaimingDossierPdf, type Alert, type Heir, type Holding, type Summary, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useLive } from '../lib/live';
 import { inrShort } from '../lib/format';
@@ -77,14 +77,24 @@ export default function Dashboard() {
             Your financial life, in one place.
           </p>
         </div>
-        <button
-          onClick={reset}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer self-start sm:self-center"
-          title="Reset demo data"
-        >
-          <RotateCcw className="h-3.5 w-3.5" />
-          <span>Reset demo</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-center">
+          <button
+            onClick={() => downloadClaimingDossierPdf({ pan: user?.identity?.pan })}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-sm transition-colors cursor-pointer"
+            title="Download statutory asset claiming dossier"
+          >
+            <FileDown className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+            <span>Download Claim Dossier (PDF)</span>
+          </button>
+          <button
+            onClick={reset}
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+            title="Reset demo data"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span>Reset demo</span>
+          </button>
+        </div>
       </div>
 
       {/* Deceased Estate Case Notice (if applicable) */}

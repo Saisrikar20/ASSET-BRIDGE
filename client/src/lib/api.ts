@@ -216,3 +216,48 @@ export interface LifeResult {
 }
 export interface Snapshot { id: string; date: string; netWorth: number; demo?: boolean }
 export interface Progress { snapshots: Snapshot[]; baseline: { createdAt: string; points: { date: string; value: number }[]; demo?: boolean } | null; current: number }
+
+// ---------- PDF claiming dossier ----------
+export function getClaimingDossierPdfUrl(params?: { pan?: string; personaId?: string; caseId?: string; masked?: boolean }): string {
+  const query = new URLSearchParams();
+  if (params?.pan) query.set('pan', params.pan);
+  if (params?.personaId) query.set('personaId', params.personaId);
+  if (params?.caseId) query.set('caseId', params.caseId);
+  if (params?.masked) query.set('masked', 'true');
+  const qs = query.toString();
+  return `${API_BASE}/api/reports/claiming-dossier/pdf${qs ? `?${qs}` : ''}`;
+}
+
+export async function downloadClaimingDossierPdf(params?: { pan?: string; personaId?: string; caseId?: string; masked?: boolean; filename?: string }) {
+  const url = getClaimingDossierPdfUrl(params);
+  const token = tokenStore.get();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    throw new Error(`Failed to download dossier (${res.status})`);
+  }
+  const blob = await res.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  a.download = params?.filename || 'Asset_Bridge_Claiming_Dossier.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(blobUrl);
+}
+
+export async function saveClaimingDossierToVault(params?: { pan?: string; personaId?: string; caseId?: string }) {
+  const query = new URLSearchParams();
+  if (params?.pan) query.set('pan', params.pan);
+  if (params?.personaId) query.set('personaId', params.personaId);
+  if (params?.caseId) query.set('caseId', params.caseId);
+  const qs = query.toString();
+  return api<{ ok: boolean; message: string; document: any; chunks_indexed: number }>(
+    `/api/reports/claiming-dossier/vault${qs ? `?${qs}` : ''}`,
+    { method: 'POST' }
+  );
+}
+

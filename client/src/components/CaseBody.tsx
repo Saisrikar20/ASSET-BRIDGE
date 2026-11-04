@@ -3,7 +3,7 @@ import {
   CheckCircle2, Circle, FileText, Landmark, Upload, AlertTriangle, 
   Download, Printer, X, ShieldCheck, BookOpen 
 } from 'lucide-react';
-import { api, uploadDocument, type Case, type Task } from '../lib/api';
+import { api, uploadDocument, downloadClaimingDossierPdf, type Case, type Task } from '../lib/api';
 import { date, inr, inrShort, time } from '../lib/format';
 import { Badge, Card, Progress, RegChip, Button, cx } from './ui';
 import GuideChat from './GuideChat';
@@ -238,15 +238,26 @@ export default function CaseBody({ c, onToggle }: { c: Case; onToggle: (t: Task)
                 <span className="text-xs font-bold uppercase tracking-wider text-brand-700">Estate Reference: {c.id}</span>
                 <h1 className="text-xl font-bold text-ink">{c.deceasedName}'s Estate Claim Workspace</h1>
               </div>
-              <Button 
-                variant="primary" 
-                size="sm" 
-                onClick={() => setShowDossier(true)}
-                className="gap-2 shadow-sm"
-              >
-                <Download className="h-4 w-4" />
-                Download Claim Dossier
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={() => setShowDossier(true)}
+                  className="gap-1.5"
+                >
+                  <FileText className="h-4 w-4" />
+                  Preview Dossier
+                </Button>
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  onClick={() => downloadClaimingDossierPdf({ caseId: c.id, filename: `Asset_Bridge_Claiming_Dossier_${c.id}.pdf` })}
+                  className="gap-2 shadow-sm"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Claim Dossier (PDF)
+                </Button>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-6">
@@ -377,8 +388,16 @@ export default function CaseBody({ c, onToggle }: { c: Case; onToggle: (t: Task)
                 <p className="text-xs text-slate-500">Reference: {c.id} · Generated on {new Date().toLocaleDateString('en-IN')}</p>
               </div>
               <div className="flex items-center gap-2">
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  onClick={() => downloadClaimingDossierPdf({ caseId: c.id, filename: `Asset_Bridge_Claiming_Dossier_${c.id}.pdf` })} 
+                  className="gap-1.5"
+                >
+                  <Download className="h-4 w-4" /> Download Official PDF
+                </Button>
                 <Button variant="secondary" size="sm" onClick={() => window.print()} className="gap-1.5">
-                  <Printer className="h-4 w-4" /> Print / Save PDF
+                  <Printer className="h-4 w-4" /> Print
                 </Button>
                 <button onClick={() => setShowDossier(false)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer">
                   <X className="h-5 w-5" />

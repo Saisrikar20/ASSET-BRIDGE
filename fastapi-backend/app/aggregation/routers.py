@@ -1,7 +1,7 @@
 import datetime, re, random
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Header, status, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
 from app.core.store import store, uid
@@ -18,6 +18,10 @@ from app.aggregation.pipeline import (
 )
 from app.aggregation.assistant import answer_question, GuideIn
 from app.aggregation.documents import ingest_document, search_user_documents, delete_user_document
+from app.aggregation.pdf_generator import generate_claiming_dossier_pdf
+from app.aggregation.personas import PERSONAS
+from app.aggregation.mock_generator import generate_portfolio_for_pan
+
 
 router = APIRouter(prefix="/api")
 
@@ -537,4 +541,194 @@ def remove_document(doc_id: str, user: dict = Depends(get_current_user)):
     if not success:
         raise HTTPException(status_code=404, detail="Document not found or could not be removed")
     return {"ok": True, "message": "Document deleted"}
+
+# -------------------------------------------------------------
+# TASK 4: OFFICIAL SUCCESSION & ASSET CLAIMING DOSSIER (PDF)
+# -------------------------------------------------------------
+def resolve_person_context(
+    pan: Optional[str] = None,
+    persona_id: Optional[str] = None,
+    case_id: Optional[str] = None,
+    user: Optional[dict] = None
+) -> Dict[str, Any]:
+    """Resolve demographic profile, financial holdings, and legal heirs for PDF dossier."""
+    # 1. Check if case_id specified
+    if case_id:
+        case_data = store.find("cases", lambda c: c.get("id") == case_id)
+        if case_data:
+            state = case_data.get("state", "Tamil Nadu")
+            return {
+                "person": {
+                    "name": case_data.get("deceasedName", "Deceased"),
+                    "pan": case_data.get("deceasedPan", "ABCDE1234F"),
+                    "state": state,
+                    "dob": case_data.get("deceased", {}).get("dob", "—"),
+                    "aadhaarLast4": "—"
+                },
+                "holdings": case_data.get("holdings", []),
+                "heirs": case_data.get("heirs", []),
+                "state_info": STATE_HEIR_DOC.get(state, {"doc": "Legal Heir Certificate", "authority": "Tahsildar", "days": "15–30 days"}),
+                "case": case_data
+            }
+
+    # 2. Check if persona_id specified
+    pid = (persona_id or "").lower()
+    if pid in PERSONAS:
+        p = PERSONAS[pid]
+        state = p.get("state", "Tamil Nadu")
+        return {
+            "person": p,
+            "holdings": p.get("holdings", []),
+            "heirs": p.get("family", []),
+            "state_info": STATE_HEIR_DOC.get(state, {"doc": "Legal Heir Certificate", "authority": "Tahsildar", "days": "15–30 days"}),
+            "case": None
+        }
+
+    # 3. Check if pan matches a known persona
+    clean_pan = (pan or "").strip().upper()
+    for p in PERSONAS.values():
+        if p.get("pan", "").upper() == clean_pan:
+            state = p.get("state", "Tamil Nadu")
+            return {
+                "person": p,
+                "holdings": p.get("holdings", []),
+                "heirs": p.get("family", []),
+                "state_info": STATE_HEIR_DOC.get(state, {"doc": "Legal Heir Certificate", "authority": "Tahsildar", "days": "15–30 days"}),
+                "case": None
+            }
+
+    # 4. If authenticated user has holdings in DB
+    if user and user.get("id"):
+        uid_val = user["id"]
+        user_holdings = store.all("holdings", lambda h: h.get("userId") == uid_val or h.get("user_id") == uid_val)
+        user_heirs = store.all("heirs", lambda h: h.get("userId") == uid_val or h.get("user_id") == uid_val)
+        ident = user.get("identity") or {}
+        state = ident.get("state") or "Tamil Nadu"
+        if user_holdings:
+            return {
+                "person": {
+                    "name": ident.get("name") or user.get("name", "User"),
+                    "pan": clean_pan or ident.get("pan", "ABCPI1234K"),
+                    "dob": ident.get("dob", "1980-01-01"),
+                    "aadhaarLast4": ident.get("aadhaarLast4", "0000"),
+                    "state": state
+                },
+                "holdings": user_holdings,
+                "heirs": user_heirs,
+                "state_info": STATE_HEIR_DOC.get(state, {"doc": "Legal Heir Certificate", "authority": "Tahsildar", "days": "15–30 days"}),
+                "case": None
+            }
+
+    # 5. Fallback to procedural generator for arbitrary PAN
+    if clean_pan and len(clean_pan) == 10:
+        inv_name = f"Investor {clean_pan[:5]}"
+        holdings_list = generate_portfolio_for_pan(clean_pan, name=inv_name)
+        state = "Tamil Nadu"
+        return {
+            "person": {
+                "name": inv_name,
+                "pan": clean_pan,
+                "dob": "1985-05-15",
+                "aadhaarLast4": "8899",
+                "state": state
+            },
+            "holdings": holdings_list,
+            "heirs": [
+                {"name": "Nominated Beneficiary", "relation": "Spouse", "share": 100, "pan": f"{clean_pan[:4]}S9988E"}
+            ],
+            "state_info": STATE_HEIR_DOC.get(state, {"doc": "Legal Heir Certificate", "authority": "Tahsildar", "days": "15–30 days"}),
+            "case": None
+        }
+
+    # 6. Default to Raghavan
+    ragh = PERSONAS["raghavan"]
+    return {
+        "person": ragh,
+        "holdings": ragh.get("holdings", []),
+        "heirs": ragh.get("family", []),
+        "state_info": STATE_HEIR_DOC.get(ragh.get("state", "Tamil Nadu"), {"doc": "Legal Heir Certificate", "authority": "Tahsildar", "days": "15–30 days"}),
+        "case": None
+    }
+
+@router.get("/reports/claiming-dossier/pdf")
+def get_claiming_dossier_pdf(
+    pan: Optional[str] = None,
+    personaId: Optional[str] = None,
+    caseId: Optional[str] = None,
+    masked: bool = False,
+    authorization: Optional[str] = Header(None)
+):
+    """Generate and download publication-grade Asset Claiming & Succession Dossier in PDF format."""
+    auth_user = None
+    if isinstance(authorization, str) and authorization.startswith("Bearer "):
+        token = authorization.replace("Bearer ", "").strip()
+        uid_val = verify_token(token)
+        if uid_val:
+            auth_user = store.find("users", lambda u: u.get("id") == uid_val)
+
+    ctx = resolve_person_context(pan=pan, persona_id=personaId, case_id=caseId, user=auth_user)
+    
+    pdf_bytes = generate_claiming_dossier_pdf(
+        person_info=ctx["person"],
+        holdings=ctx["holdings"],
+        heirs=ctx["heirs"],
+        state_info=ctx["state_info"],
+        case_info=ctx.get("case"),
+        masked=masked
+    )
+    
+    clean_name = re.sub(r'[^a-zA-Z0-9_-]', '_', ctx["person"].get("name", "Claimant"))
+    filename = f"Asset_Bridge_Claiming_Dossier_{clean_name}.pdf"
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-cache, no-store, must-revalidate"
+        }
+    )
+
+@router.get("/cases/{case_id}/claiming-dossier/pdf")
+def get_case_claiming_dossier_pdf(case_id: str, masked: bool = False, authorization: Optional[str] = Header(None)):
+    """Generate case-specific claiming dossier PDF."""
+    return get_claiming_dossier_pdf(caseId=case_id, masked=masked, authorization=authorization)
+
+@router.post("/reports/claiming-dossier/vault")
+async def save_claiming_dossier_to_vault(
+    pan: Optional[str] = None,
+    personaId: Optional[str] = None,
+    caseId: Optional[str] = None,
+    user: dict = Depends(get_current_user)
+):
+    """Generate claiming dossier PDF and index directly into SQLite document vault for AI RAG navigation."""
+    ctx = resolve_person_context(pan=pan, persona_id=personaId, case_id=caseId, user=user)
+    
+    pdf_bytes = generate_claiming_dossier_pdf(
+        person_info=ctx["person"],
+        holdings=ctx["holdings"],
+        heirs=ctx["heirs"],
+        state_info=ctx["state_info"],
+        case_info=ctx.get("case")
+    )
+    
+    clean_name = re.sub(r'[^a-zA-Z0-9_-]', '_', ctx["person"].get("name", "Claimant"))
+    filename = f"Claiming_Dossier_{clean_name}_{datetime.date.today().strftime('%Y%m%d')}.pdf"
+    
+    # Ingest generated bytes into Document Vault
+    doc_meta = ingest_document(
+        file_bytes=pdf_bytes,
+        file_name=filename,
+        mime_type="application/pdf",
+        user_id=user["id"],
+        case_id=caseId or "",
+        doc_type="Statutory Claiming Dossier"
+    )
+    
+    return {
+        "ok": True,
+        "message": "Dossier generated and indexed into SQLite vault",
+        "document": doc_meta["document"],
+        "chunks_indexed": doc_meta.get("chunks_indexed", 0)
+    }
 

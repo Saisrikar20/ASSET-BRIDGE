@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, Search, ShieldAlert } from 'lucide-react';
-import { api, type Consent, type Holding, type Regulator } from '../lib/api';
+import { ArrowRight, BookOpen, Search, ShieldAlert, FileDown } from 'lucide-react';
+import { api, downloadClaimingDossierPdf, type Consent, type Holding, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date, inr } from '../lib/format';
 import { Badge, Button, ErrorNote, Input, RegChip, Select, cx } from '../components/ui';
@@ -375,6 +375,16 @@ export default function Aggregate() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => downloadClaimingDossierPdf({ pan: user?.identity?.pan })}
+                className="gap-1.5"
+                title="Export statutory claim schedule as PDF"
+              >
+                <FileDown className="h-3.5 w-3.5" />
+                <span>Export Claim Schedule (PDF)</span>
+              </Button>
               <Button
                 variant="secondary"
                 size="sm"

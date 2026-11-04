@@ -9,8 +9,9 @@ import {
   CircleDashed,
   RotateCcw,
   XCircle,
+  FileDown,
 } from 'lucide-react';
-import { api, type User, type VerifyResult } from '../lib/api';
+import { api, downloadClaimingDossierPdf, type User, type VerifyResult } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date } from '../lib/format';
 import { Badge, Button, ErrorNote, Field, Input, RegChip, Select, cx } from '../components/ui';
@@ -352,10 +353,22 @@ export default function Verify() {
               </div>
             </div>
 
-            <Button onClick={() => nav('/app/aggregate')} className="self-start sm:self-auto px-5">
-              <span>Continue to consent</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => downloadClaimingDossierPdf({ pan: form.pan })}
+                className="gap-1.5"
+                title="Download consolidated statutory claim dossier"
+              >
+                <FileDown className="h-4 w-4" />
+                <span>Download Claim Dossier (PDF)</span>
+              </Button>
+              <Button type="button" onClick={() => nav('/app/aggregate')} className="px-5">
+                <span>Continue to consent</span>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       )}
