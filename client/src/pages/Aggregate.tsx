@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown, Mail, Database } from 'lucide-react';
+import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown, Mail, Database, Loader2 } from 'lucide-react';
 import EmailDossierModal from '../components/EmailDossierModal';
 import { downloadCsv } from '../lib/csv';
 import { api, downloadClaimingDossierPdf, saveClaimingDossierToVault, type Consent, type Holding, type Regulator } from '../lib/api';
@@ -667,10 +667,8 @@ export default function Aggregate() {
                 <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
                 <span>Email Dossier</span>
               </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                loading={downloadingPdf}
+              <button
+                type="button"
                 disabled={downloadingPdf}
                 onClick={async () => {
                   try {
@@ -682,12 +680,16 @@ export default function Aggregate() {
                     setDownloadingPdf(false);
                   }
                 }}
-                className="gap-1.5"
-                title="Export statutory claim schedule as PDF"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                title="Download consolidated statutory claim dossier PDF"
               >
-                <FileDown className="h-3.5 w-3.5" />
-                <span>{downloadingPdf ? 'Generating…' : 'Export Claim Schedule (PDF)'}</span>
-              </Button>
+                {downloadingPdf ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-400 dark:text-brand-600" />
+                ) : (
+                  <FileDown className="h-3.5 w-3.5 text-brand-400 dark:text-brand-600" />
+                )}
+                <span>{downloadingPdf ? 'Generating PDF…' : 'Download Claim Dossier (PDF)'}</span>
+              </button>
               <Button
                 variant="secondary"
                 size="sm"

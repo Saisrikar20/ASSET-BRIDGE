@@ -170,7 +170,7 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
   }
   // A static host answering for a missing backend returns its HTML 404 page, not JSON.
   if (!(res.headers.get('content-type') || '').includes('application/json')) {
-    throw new ApiError(res.ok ? 'Unexpected response from the server.' : "The Asset Bridge server isn't connected to this site yet.", res.status || 0);
+    throw new ApiError(res.ok ? 'Unexpected response from the server.' : "The Asset Bridge server is not reachable on port 8000. Please verify that the backend is running via 'npm run dev'.", res.status || 0);
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError(data.error || `Request failed (${res.status})`, res.status);

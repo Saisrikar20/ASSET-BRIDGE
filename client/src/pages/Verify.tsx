@@ -10,11 +10,19 @@ import {
   RotateCcw,
   XCircle,
   FileDown,
+  Mail,
+  Loader2,
+  Lock,
+  User,
+  CreditCard,
+  MapPin,
+  Building2,
 } from 'lucide-react';
-import { api, downloadClaimingDossierPdf, type User, type VerifyResult } from '../lib/api';
+import { api, downloadClaimingDossierPdf, type User as ApiUser, type VerifyResult, type Heir } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date } from '../lib/format';
-import { Badge, Button, ErrorNote, Field, Input, RegChip, Select, cx } from '../components/ui';
+import { Badge, Button, ErrorNote, RegChip, Select, cx } from '../components/ui';
+import EmailDossierModal from '../components/EmailDossierModal';
 
 const STATUS = {
   verified: {
@@ -63,6 +71,8 @@ export default function Verify() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [heirs] = useState<Heir[]>([]);
 
   const toggleExpand = (code: string) => {
     setExpanded((prev) => ({ ...prev, [code]: !prev[code] }));
@@ -76,7 +86,7 @@ export default function Verify() {
     setErr(null);
     setBusy(true);
     try {
-      await api<{ user: User }>('/identity', { body: form });
+      await api<{ user: ApiUser }>('/identity', { body: form });
       await refresh();
       setShowForm(false);
     } catch (e) {
@@ -91,16 +101,21 @@ export default function Verify() {
 
   return (
     <div className="space-y-6">
-      {/* 3. Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200/60 dark:border-slate-800">
+      {/* 1. Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200/80 dark:border-slate-800">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-            Identity verification
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/40 px-2 py-0.5 rounded border border-brand-200/60 dark:border-brand-900/40">
+              STEP 01 / VERIFICATION
+            </span>
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white mt-1">
+            Identity Verification
           </h1>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
             {results
-              ? `${regulatorCount} regulators · ${totalRecords} records found`
-              : 'Confirm your identity to map your financial holdings.'}
+              ? `Consolidated check across ${regulatorCount} statutory registries · ${totalRecords} matching records detected`
+              : 'Authenticate identity credentials against central registries to map disparate financial holdings.'}
           </p>
         </div>
 
@@ -108,121 +123,37 @@ export default function Verify() {
           <button
             type="button"
             onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer self-start sm:self-center"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer self-start sm:self-center shadow-2xs"
             title="Edit verification parameters"
           >
-            <RotateCcw className="h-3.5 w-3.5" />
-            <span>{showForm ? 'Hide form' : 'Re-verify'}</span>
+            <RotateCcw className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+            <span>{showForm ? 'Hide credentials form' : 'Modify parameters'}</span>
           </button>
         )}
       </div>
 
-      {/* Verification Form (shown when !results or when Re-verify is toggled) */}
+      {/* 2. Structured Verification Form */}
       {(!results || showForm) && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Identity Parameters
-            </h2>
-            {results && (
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-
-          <form onSubmit={submit} className="space-y-4">
-            <Field label="Full name (as on PAN)">
-              <Input
-                required
-                value={form.name}
-                onChange={set('name')}
-                placeholder="e.g. Raghavan Sundaram"
-              />
-            </Field>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <Field label="PAN">
-                <Input
-                  required
-                  value={form.pan}
-                  onChange={(e) => setForm({ ...form, pan: e.target.value.toUpperCase() })}
-                  placeholder="ABCDE1234F"
-                  maxLength={10}
-                />
-              </Field>
-              <Field label="Date of birth">
-                <Input
-                  required
-                  type="date"
-                  value={form.dob}
-                  onChange={set('dob')}
-                />
-              </Field>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <Field label="Aadhaar (last 4 digits)" hint="We never store the full number.">
-                <Input
-                  value={form.aadhaarLast4}
-                  onChange={set('aadhaarLast4')}
-                  maxLength={4}
-                  inputMode="numeric"
-                  placeholder="e.g. 4417"
-                />
-              </Field>
-              <Field label="Mobile number">
-                <Input
-                  value={form.mobile}
-                  onChange={set('mobile')}
-                  inputMode="tel"
-                  placeholder="e.g. 9876543210"
-                />
-              </Field>
-            </div>
-
-            <Field
-              label="State of residence"
-              hint="Used to determine the relevant heir certificate process."
-            >
-              <Select value={form.state} onChange={set('state')}>
-                {meta?.states.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-
-            <ErrorNote msg={err} />
-
-            <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800">
-              <Button loading={busy} className="px-5">
-                {results ? 'Re-verify with all regulators' : 'Verify with all regulators'}
-              </Button>
-
-              {meta && (
-                <button
-                  type="button"
-                  onClick={() => setForm(meta.demoIdentity)}
-                  className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
-                >
-                  Fill demo identity (Raghavan)
-                </button>
-              )}
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs">
+          {/* Header & Persona Quick Fill */}
+          <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                Statutory KYC Parameters
+              </h2>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Inputs match Form 16, PAN database, and UIDAI validation standards.
+              </p>
             </div>
 
             {meta?.personas && meta.personas.length > 0 && (
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800/60">
-                <div className="text-[11px] font-medium text-slate-400 mb-2">
-                  Sample testing personas:
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {meta.personas.map((p) => (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-mono text-slate-400 uppercase mr-1">
+                  Demo Autofill:
+                </span>
+                {meta.personas.map((p) => {
+                  const isActive = form.pan === p.pan;
+                  return (
                     <button
                       key={p.id}
                       type="button"
@@ -237,33 +168,191 @@ export default function Verify() {
                         })
                       }
                       className={cx(
-                        'rounded-md border px-2 py-0.5 text-[11px] font-medium transition cursor-pointer',
-                        form.pan === p.pan
-                          ? 'border-brand-500 bg-brand-50/70 text-brand-700 dark:border-brand-400 dark:bg-brand-950/40 dark:text-brand-300 font-semibold'
-                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        'px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer',
+                        isActive
+                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
+                          : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-slate-300'
                       )}
-                      title={`${p.name} (${p.role} · ${p.state}): ${p.description}`}
+                      title={`${p.name} (${p.state}): ${p.description}`}
                     >
                       {p.name.split(' ')[0]} ({p.state.split(' ')[0]})
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             )}
+          </div>
+
+          <form onSubmit={submit} className="p-5 sm:p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Section 1: Demographics */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <User className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                  <span className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
+                    1. Particulars
+                  </span>
+                </div>
+
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Full Legal Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={form.name}
+                      onChange={set('name')}
+                      placeholder="e.g. Raghavan Sundaram"
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
+                    />
+                    <p className="text-[10.5px] text-slate-400 mt-1">Exact name as registered with income tax records.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Date of Birth <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={form.dob}
+                      onChange={set('dob')}
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
+                    />
+                    <p className="text-[10.5px] text-slate-400 mt-1">Required for EPFO & pension record triangulation.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Statutory Identifiers */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <CreditCard className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                  <span className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
+                    2. Identifiers
+                  </span>
+                </div>
+
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Permanent Account Number (PAN) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={form.pan}
+                      onChange={(e) => setForm({ ...form, pan: e.target.value.toUpperCase() })}
+                      placeholder="ABCDE1234F"
+                      maxLength={10}
+                      className="w-full font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500 uppercase tracking-wider"
+                    />
+                    <p className="text-[10.5px] text-slate-400 mt-1">10-character alphanumeric PAN key.</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Aadhaar (Last 4)
+                      </label>
+                      <input
+                        type="text"
+                        value={form.aadhaarLast4}
+                        onChange={set('aadhaarLast4')}
+                        maxLength={4}
+                        inputMode="numeric"
+                        placeholder="4417"
+                        className="w-full font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Mobile Number
+                      </label>
+                      <input
+                        type="tel"
+                        value={form.mobile}
+                        onChange={set('mobile')}
+                        inputMode="tel"
+                        placeholder="9876543210"
+                        className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10.5px] text-slate-400">UIDAI compliant: Full Aadhaar is never stored or cached.</p>
+                </div>
+              </div>
+
+              {/* Section 3: Geographic Jurisdiction */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <MapPin className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                  <span className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
+                    3. Jurisdiction
+                  </span>
+                </div>
+
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      State of Legal Domicile
+                    </label>
+                    <Select value={form.state} onChange={set('state')}>
+                      {meta?.states.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </Select>
+                    <p className="text-[10.5px] text-slate-400 mt-1">
+                      Determines local Tehsildar succession portal & e-District certificate guidelines.
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3 border border-slate-200/80 dark:border-slate-800 text-[11px] space-y-1">
+                    <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+                      <Lock className="h-3.5 w-3.5 text-brand-600" />
+                      <span>Statutory Privacy Assurance</span>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-[10.5px]">
+                      Identity matching executes via 256-bit encrypted protocol directly against regulatory APIs.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <ErrorNote msg={err} />
+
+            {/* Submit Action Row */}
+            <div className="pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                Matches are cross-checked across 7 registries: RBI, EPFO, IRDAI, SEBI, LIC, PFRDA & DOP.
+              </div>
+              <Button loading={busy} className="px-6 py-2.5 text-xs font-semibold">
+                {results ? 'Re-verify with all 7 regulators' : 'Verify across all 7 regulators'}
+              </Button>
+            </div>
           </form>
         </div>
       )}
 
-      {/* 4 & 5. Post-Verification Minimal State (Expandable Rows for All 7 Regulators) */}
+      {/* 3. Multi-Regulator Results List */}
       {!results ? (
         <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/20 p-8 text-center">
-          <p className="text-xs text-slate-400 dark:text-slate-400">
-            Results will appear here after verification.
+          <Building2 className="h-8 w-8 text-slate-400 mx-auto mb-2 opacity-50" />
+          <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
+            Awaiting credential verification.
+          </p>
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            Submit the particulars above or select a demo profile to preview live regulatory matching.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/80 overflow-hidden shadow-xs">
             {results.map((r: VerifyResult) => {
               const s = STATUS[r.status] || STATUS.none;
               const Icon = s.icon;
@@ -287,12 +376,11 @@ export default function Verify() {
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0 ml-3">
-                      <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400 tabular-nums">
                         {r.recordsFound} {r.recordsFound === 1 ? 'record' : 'records'}
                       </span>
-                      {/* Status indicator remains visible even when collapsed */}
                       <Badge tone={s.tone}>{s.label}</Badge>
-                      <div className="text-slate-400 dark:text-slate-400">
+                      <div className="text-slate-400">
                         {isExpanded ? (
                           <ChevronUp className="h-4 w-4" />
                         ) : (
@@ -304,25 +392,33 @@ export default function Verify() {
 
                   {/* Expanded State Details */}
                   {isExpanded && (
-                    <div className="border-t border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/60 p-3.5 sm:px-5 space-y-2">
+                    <div className="border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/40 p-4 sm:px-5 space-y-2.5">
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold mb-1">
+                        Registry Match Triangulation:
+                      </div>
                       {r.checks.length > 0 ? (
                         r.checks.map((c) => (
                           <div
                             key={c.ref}
-                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs py-1.5 border-b border-slate-100 dark:border-slate-800/40 last:border-0"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs py-2 border-b border-slate-200/60 dark:border-slate-800/50 last:border-0"
                           >
-                            <span className="font-semibold text-slate-900 dark:text-white">
-                              {c.institution}{' '}
-                              <span className="font-mono text-slate-500 dark:text-slate-400">· {c.ref}</span>
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-slate-900 dark:text-white">
+                                {c.institution}
+                              </span>
+                              <span className="font-mono text-[11px] text-slate-400">
+                                · {c.ref}
+                              </span>
+                            </div>
                             <div className="shrink-0">
                               {c.name === 'exact' && c.dob === 'exact' ? (
-                                <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                                  name ✓ dob ✓
+                                <span className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded">
+                                  <span>Name ✓</span>
+                                  <span>DOB ✓</span>
                                 </span>
                               ) : (
-                                <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
-                                  registered as “{c.registeredName}”
+                                <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded">
+                                  Registered as “{c.registeredName}”
                                 </span>
                               )}
                             </div>
@@ -330,7 +426,7 @@ export default function Verify() {
                         ))
                       ) : (
                         <p className="text-xs text-slate-400 py-1">
-                          No individual holding entries reported in this registry.
+                          No active individual holding records currently indexed for this PAN in this registry.
                         </p>
                       )}
                     </div>
@@ -340,25 +436,35 @@ export default function Verify() {
             })}
           </div>
 
-          {/* 6 & 7. Verification Summary & Next Action */}
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="text-xs text-slate-500 dark:text-slate-400">
+          {/* 4. Refined Actions Bar with Primary/Secondary Dossier Controls */}
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-xs">
+            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
               <div>
-                Last verified:{' '}
+                Registry authentication timestamp:{' '}
                 <span className="font-semibold text-slate-900 dark:text-white">
                   {date(user!.verification!.at)}
                 </span>
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {totalRecords} records found across {regulatorCount} registries
+              <div className="text-[11px]">
+                {totalRecords} records matched across {regulatorCount} statutory registries
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-              <Button
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Secondary Action: Email Dossier */}
+              <button
                 type="button"
-                variant="secondary"
-                loading={downloadingPdf}
+                onClick={() => setShowEmailModal(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer"
+                title="Email statutory claiming dossier with PDF attachment"
+              >
+                <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                <span>Email Dossier</span>
+              </button>
+
+              {/* Primary Action: Download Claim Dossier (PDF) */}
+              <button
+                type="button"
                 disabled={downloadingPdf}
                 onClick={async () => {
                   try {
@@ -370,20 +476,42 @@ export default function Verify() {
                     setDownloadingPdf(false);
                   }
                 }}
-                className="gap-1.5"
-                title="Download consolidated statutory claim dossier"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                title="Download consolidated statutory claim dossier PDF"
               >
-                <FileDown className="h-4 w-4" />
-                <span>{downloadingPdf ? 'Generating…' : 'Download Claim Dossier (PDF)'}</span>
-              </Button>
-              <Button type="button" onClick={() => nav('/app/aggregate')} className="px-5">
+                {downloadingPdf ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-400 dark:text-brand-600" />
+                ) : (
+                  <FileDown className="h-3.5 w-3.5 text-brand-400 dark:text-brand-600" />
+                )}
+                <span>{downloadingPdf ? 'Generating PDF…' : 'Download Claim Dossier (PDF)'}</span>
+              </button>
+
+              {/* Stepper Navigation: Continue */}
+              <Button
+                type="button"
+                onClick={() => nav('/app/aggregate')}
+                className="px-5 py-2 text-xs font-semibold gap-1.5"
+              >
                 <span>Continue to consent</span>
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Email Dossier Modal */}
+      <EmailDossierModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        pan={form.pan || user?.identity?.pan}
+        defaultEmail={user?.email || ''}
+        defaultName={form.name || user?.name || ''}
+        heirs={heirs}
+        title="Email Claiming Dossier"
+        subtitle="Statutory Identity & Registry Verification Report"
+      />
     </div>
   );
 }

@@ -426,8 +426,10 @@ function FaceArt({ face, look, blinkRef, className }: FaceArtProps) {
 }
 
 /** A saved avatar, drawn from its seed (see `avatarSeed`). */
+import { AvatarFace as MatrixAvatarFace } from '../AvatarMatrix';
+
 export function AvatarFace({ seed, className }: { seed: string; className?: string }) {
-  return <FaceArt className={className} face={createFace(seed)} />;
+  return <MatrixAvatarFace seed={seed} className={className} />;
 }
 
 const MORPH = { type: "spring", bounce: 0.22, visualDuration: 0.42 } as const;
