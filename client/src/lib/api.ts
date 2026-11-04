@@ -324,3 +324,32 @@ export async function getClaimingDossierEmailHistory(caseId?: string): Promise<{
   return api(`/reports/claiming-dossier/email/history${caseId ? `?caseId=${encodeURIComponent(caseId)}` : ''}`);
 }
 
+
+// ---------- Statutory Regulatory Intelligence Feeds ----------
+export interface RegulatoryCircular {
+  id: string;
+  regulator: string;
+  fileName: string;
+  circularNo?: string;
+  publicationDate?: string;
+  sourceUrl?: string;
+  pdfUrl?: string;
+  category?: string;
+  extractedText?: string;
+  createdAt?: string;
+}
+
+export async function getRegulations(params?: { regulator?: string; q?: string }): Promise<{ ok: boolean; count: number; regulations: RegulatoryCircular[] }> {
+  const query = new URLSearchParams();
+  if (params?.regulator) query.set('regulator', params.regulator);
+  if (params?.q) query.set('q', params.q);
+  const qs = query.toString();
+  return api(`/documents/regulations${qs ? `?${qs}` : ''}`);
+}
+
+export async function pollRegulations(params?: { regulator?: string }): Promise<{ ok: boolean; summary: any }> {
+  const query = new URLSearchParams();
+  if (params?.regulator) query.set('regulator', params.regulator);
+  const qs = query.toString();
+  return api(`/documents/regulations/poll${qs ? `?${qs}` : ''}`, { method: 'POST' });
+}

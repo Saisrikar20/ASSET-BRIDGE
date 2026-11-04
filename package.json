@@ -15,7 +15,9 @@
     "seed": "node scripts/run-python.js fastapi-backend/scripts/seed_mock_data.py --persona all",
     "seed:reset": "node scripts/run-python.js fastapi-backend/scripts/seed_mock_data.py --persona all --reset",
     "seed:raghavan": "node scripts/run-python.js fastapi-backend/scripts/seed_mock_data.py --persona raghavan",
-    "seed:priya": "node scripts/run-python.js fastapi-backend/scripts/seed_mock_data.py --persona priya"
+    "seed:priya": "node scripts/run-python.js fastapi-backend/scripts/seed_mock_data.py --persona priya",
+    "poll:regulations": "node scripts/run-python.js fastapi-backend/scripts/poll_regulations.py",
+    "crawl:regulations": "node scripts/run-python.js scrapers/runner.py"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

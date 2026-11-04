@@ -6,10 +6,14 @@ import {
   BookOpen,
   CheckCircle2,
   Compass,
+  ExternalLink,
   HeartHandshake,
+  Landmark,
+  Loader2,
+  RefreshCw,
   Users,
 } from 'lucide-react';
-import { api, type Alert, type Heir, type Holding } from '../lib/api';
+import { api, getRegulations, pollRegulations, type Alert, type Heir, type Holding, type RegulatoryCircular } from '../lib/api';
 import { useLive, useLiveStatus } from '../lib/live';
 import { inr, time } from '../lib/format';
 import { Button, ErrorNote, Input, RegChip, Select, cx } from '../components/ui';
@@ -70,6 +74,11 @@ export default function Alerts() {
   const [filter, setFilter] = useState<FilterKey>('all');
   const [editing, setEditing] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  const [regulations, setRegulations] = useState<RegulatoryCircular[]>([]);
+  const [pollingRegs, setPollingRegs] = useState(false);
+  const [pollResult, setPollResult] = useState<string | null>(null);
+  const [selectedRegulator, setSelectedRegulator] = useState<string>('all');
+  const [showRegs, setShowRegs] = useState<boolean>(true);
 
   const load = () => {
     api<{ alerts: Alert[] }>('/alerts')
@@ -85,7 +94,30 @@ export default function Alerts() {
     api<{ heirs: Heir[] }>('/heirs')
       .then((r) => setHeirs(r.heirs))
       .catch(() => {});
+    getRegulations()
+      .then((r) => setRegulations(r.regulations))
+      .catch(() => {});
   }, []);
+
+  const handlePollRegulations = async () => {
+    setPollingRegs(true);
+    setPollResult(null);
+    try {
+      const res = await pollRegulations({
+        regulator: selectedRegulator !== 'all' ? selectedRegulator : undefined,
+      });
+      if (res.ok && res.summary) {
+        setPollResult(`Polled ${res.summary.totalPolled} statutory sources (${res.summary.newlyIngested} newly indexed, ${res.summary.alreadyIndexed} up-to-date)`);
+      }
+      const fresh = await getRegulations();
+      setRegulations(fresh.regulations);
+      load();
+    } catch (e: any) {
+      setPollResult('Sync error: ' + (e?.message || 'Failed to poll government portals'));
+    } finally {
+      setPollingRegs(false);
+    }
+  };
 
   useLive((e) => {
     if (e.type === 'alert') {
@@ -140,15 +172,143 @@ export default function Alerts() {
             Issues that need your attention.
           </p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
-          <span
-            className={cx(
-              'h-2 w-2 rounded-full',
-              connected ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handlePollRegulations}
+            disabled={pollingRegs}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer shadow-xs disabled:opacity-60"
+          >
+            {pollingRegs ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-600" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
             )}
-          />
-          <span>{connected ? 'Live AA sync' : 'Demo mode'}</span>
+            <span>{pollingRegs ? 'Polling Portals...' : 'Sync Regulations'}</span>
+          </button>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+            <span
+              className={cx(
+                'h-2 w-2 rounded-full',
+                connected ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
+              )}
+            />
+            <span>{connected ? 'Live AA sync' : 'Demo mode'}</span>
+          </div>
         </div>
+      </div>
+
+      {/* Regulatory Intelligence Banner & Live Feed */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-slate-50 via-white to-teal-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950/20 p-5 space-y-3.5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-lg bg-teal-600 text-white p-2">
+              <Landmark className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Regulatory Intelligence & Master Directions
+                </h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/80 dark:text-teal-300 font-semibold border border-teal-200 dark:border-teal-800">
+                  Weekly Scrapy Feed
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Monitors RBI, SEBI, EPFO, and IRDAI gazette notifications for claim settlement timeframes and interest penalties.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowRegs(!showRegs)}
+            className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer"
+          >
+            {showRegs ? 'Collapse' : `View ${regulations.length} Indexed Regulations`}
+          </button>
+        </div>
+
+        {pollResult && (
+          <div className="rounded-lg bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 p-2.5 text-xs text-teal-800 dark:text-teal-300 flex items-center justify-between animate-in fade-in">
+            <span>{pollResult}</span>
+            <button type="button" onClick={() => setPollResult(null)} className="text-teal-600 hover:text-teal-900 cursor-pointer">
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {showRegs && (
+          <div className="space-y-3 pt-1 border-t border-slate-100 dark:border-slate-800">
+            {/* Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1">Regulator:</span>
+              {['all', 'RBI', 'SEBI', 'EPFO', 'IRDAI'].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setSelectedRegulator(r)}
+                  className={cx(
+                    "px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer",
+                    selectedRegulator.toUpperCase() === r.toUpperCase()
+                      ? "bg-slate-900 text-white dark:bg-white dark:text-black shadow-xs"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  )}
+                >
+                  {r.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
+            {/* Circulars Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              {(selectedRegulator === 'all'
+                ? regulations
+                : regulations.filter((x) => x.regulator.toUpperCase() === selectedRegulator.toUpperCase())
+              ).map((reg) => (
+                <div
+                  key={reg.id}
+                  className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-3.5 space-y-2 text-xs shadow-xs hover:border-slate-300 transition"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                      {reg.regulator}
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      {reg.publicationDate || 'Recent'}
+                    </span>
+                  </div>
+                  <div className="font-semibold text-slate-900 dark:text-white line-clamp-2">
+                    {reg.fileName.replace(/^\[[^\]]+\]\s*/, '')}
+                  </div>
+                  {reg.circularNo && (
+                    <div className="font-mono text-[11px] text-teal-700 dark:text-teal-400">
+                      Ref: {reg.circularNo}
+                    </div>
+                  )}
+                  {reg.extractedText && (
+                    <p className="text-slate-600 dark:text-slate-300 line-clamp-2 text-[11px] leading-relaxed">
+                      {reg.extractedText}
+                    </p>
+                  )}
+                  {reg.sourceUrl && (
+                    <div className="pt-1 flex items-center justify-between border-t border-slate-100 dark:border-slate-700/60 text-[11px]">
+                      <a
+                        href={reg.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                      >
+                        <span>Official Portal Notice</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                      <span className="text-slate-400 font-mono text-[10px]">Vault Indexed</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* STEP 3 — Compact Summary Metrics */}

@@ -1,8 +1,10 @@
 import os
 import re
 import hashlib
+import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+import httpx
 from app.config import UPLOADS_DIR
 from app.core.store import store, uid
 from app.core.db import get_connection, transaction, query_all
@@ -237,4 +239,177 @@ def delete_user_document(doc_id: str, user_id: str) -> bool:
         
     store.remove("user_documents", lambda d: d.get("id") == doc_id)
     return True
+
+def ingest_regulation_document(
+    regulator: str,
+    title: str,
+    source_url: str,
+    text: Optional[str] = None,
+    pdf_bytes: Optional[bytes] = None,
+    pdf_url: Optional[str] = None,
+    circular_no: Optional[str] = None,
+    publication_date: Optional[str] = None,
+    category: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Ingest, deduplicate, chunk, and index a statutory regulation or circular
+    from government portals (RBI, SEBI, EPFO, IRDAI, PFRDA, IEPFA, India Post)
+    into the SQLite Document Vault and FTS5 search index.
+    """
+    reg_clean = (regulator or "GOV").strip().upper()
+    title_clean = (title or "Regulatory Circular").strip()
+    
+    extracted_text = (text or "").strip()
+    raw_bytes = pdf_bytes or b""
+    is_pdf = False
+
+    if pdf_bytes:
+        is_pdf = True
+        if not extracted_text:
+            extracted_text = extract_text_from_pdf(pdf_bytes)
+    elif pdf_url and not extracted_text:
+        try:
+            resp = httpx.get(pdf_url, timeout=25.0)
+            if resp.status_code == 200:
+                raw_bytes = resp.content
+                is_pdf = True
+                extracted_text = extract_text_from_pdf(raw_bytes)
+        except Exception as e:
+            extracted_text = f"Regulatory circular from {reg_clean}: {title_clean}. URL: {source_url}. (PDF fetch deferred: {str(e)[:80]})"
+
+    if not extracted_text:
+        extracted_text = f"Statutory circular issued by {reg_clean}: {title_clean}. Circular Reference: {circular_no or 'N/A'}. Published on: {publication_date or 'Recent'}. Source: {source_url}."
+
+    # Compute deduplication hash based on sourceUrl + circular_no + title
+    dedup_input = f"{reg_clean}|{circular_no or ''}|{source_url}|{title_clean}".encode("utf-8")
+    sha256 = hashlib.sha256(dedup_input).hexdigest()
+
+    # Check for existing document in SQLite
+    existing = store.find(
+        "user_documents",
+        lambda d: d.get("docType") == "regulatory_circular" and (
+            d.get("sha256") == sha256 or (circular_no and d.get("circularNo") and d.get("circularNo") == circular_no and d.get("regulator") == reg_clean)
+        )
+    )
+    if existing:
+        return {
+            "ok": True,
+            "duplicate": True,
+            "docId": existing.get("id"),
+            "regulator": reg_clean,
+            "title": title_clean,
+            "circularNo": circular_no or "",
+            "chunksIndexed": 0,
+            "message": f"Circular '{title_clean[:50]}' is already indexed."
+        }
+
+    doc_id = uid("reg_")
+    safe_title = sanitize_filename(f"{reg_clean}_{title_clean}")
+    regs_dir = UPLOADS_DIR / "regulations"
+    regs_dir.mkdir(parents=True, exist_ok=True)
+    
+    file_ext = ".pdf" if is_pdf else ".txt"
+    file_path = regs_dir / f"{doc_id}_{safe_title}{file_ext}"
+    if raw_bytes:
+        file_path.write_bytes(raw_bytes)
+    else:
+        file_path.write_text(extracted_text, encoding="utf-8")
+
+    now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    doc_record = {
+        "id": doc_id,
+        "userId": "SYSTEM",
+        "caseId": "REGULATORY_FEED",
+        "taskId": "",
+        "docType": "regulatory_circular",
+        "fileName": f"[{reg_clean}] {title_clean[:90]}",
+        "filePath": str(file_path),
+        "fileSize": len(raw_bytes) if raw_bytes else len(extracted_text.encode("utf-8")),
+        "mimeType": "application/pdf" if is_pdf else "text/plain",
+        "sha256": sha256,
+        "extractedText": extracted_text[:1000],
+        "status": "ready",
+        "regulator": reg_clean,
+        "circularNo": circular_no or "",
+        "publicationDate": publication_date or "",
+        "sourceUrl": source_url,
+        "pdfUrl": pdf_url or "",
+        "category": category or "Statutory Regulation",
+        "createdAt": now_iso
+    }
+    store.insert("user_documents", doc_record)
+
+    # Chunk and index into FTS5
+    chunks = chunk_text(extracted_text)
+    conn = get_connection()
+    with transaction():
+        for ch in chunks:
+            chunk_id = uid("chk_")
+            conn.execute(
+                """INSERT INTO doc_chunks 
+                   (id, document_id, user_id, doc_type, source_name, title, section, chunk_index, content, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))""",
+                (chunk_id, doc_id, "SYSTEM", "regulatory_circular", f"[{reg_clean}] {title_clean}", title_clean, ch["section"], ch["chunk_index"], ch["content"])
+            )
+            conn.execute(
+                """INSERT INTO doc_chunks_fts 
+                   (chunk_id, user_id, document_id, doc_type, source_name, title, section, content)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (chunk_id, "SYSTEM", doc_id, "regulatory_circular", f"[{reg_clean}] {title_clean}", title_clean, ch["section"], ch["content"])
+            )
+
+    # Check for policy-relevant keywords to trigger high-priority alerts
+    impact_keywords = ["delay", "penalty", "interest", "compensation", "deceased", "nomination", "transmission", "settlement", "15 days", "30 days", "udgam"]
+    full_text_lower = (title_clean + " " + extracted_text[:3000]).lower()
+    if any(k in full_text_lower for k in impact_keywords):
+        alert_rec = {
+            "id": uid("alt_"),
+            "userId": "SYSTEM",
+            "severity": "medium",
+            "title": f"New {reg_clean} Guidance: {title_clean[:65]}",
+            "detail": f"Reference: {circular_no or 'N/A'}. Date: {publication_date or 'Recent'}. Indexed into Document Vault for automated succession analysis.",
+            "action": "View in Document Vault",
+            "resolved": False,
+            "regulator": reg_clean,
+            "createdAt": now_iso
+        }
+        try:
+            store.insert("alerts", alert_rec)
+        except Exception:
+            pass
+
+    return {
+        "ok": True,
+        "duplicate": False,
+        "docId": doc_id,
+        "regulator": reg_clean,
+        "title": title_clean,
+        "circularNo": circular_no or "",
+        "publicationDate": publication_date or "",
+        "sourceUrl": source_url,
+        "pdfUrl": pdf_url or "",
+        "chunksIndexed": len(chunks),
+        "message": f"Successfully indexed {reg_clean} circular '{title_clean[:40]}' ({len(chunks)} search chunks)."
+    }
+
+def list_regulations(
+    regulator: Optional[str] = None,
+    q: Optional[str] = None,
+    limit: int = 50
+) -> List[Dict[str, Any]]:
+    """List indexed regulatory circulars with optional regulator and text search."""
+    docs = store.all("user_documents", lambda d: d.get("docType") == "regulatory_circular")
+    if regulator:
+        reg_upper = regulator.strip().upper()
+        docs = [d for d in docs if d.get("regulator", "").upper() == reg_upper]
+    if q and q.strip():
+        q_lower = q.strip().lower()
+        docs = [
+            d for d in docs
+            if q_lower in d.get("fileName", "").lower()
+            or q_lower in d.get("extractedText", "").lower()
+            or q_lower in d.get("circularNo", "").lower()
+        ]
+    docs.sort(key=lambda d: d.get("createdAt", ""), reverse=True)
+    return docs[:limit]
 

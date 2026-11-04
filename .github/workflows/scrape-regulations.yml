@@ -1,0 +1,62 @@
+name: Weekly Regulatory Intelligence Crawler
+
+on:
+  schedule:
+    # Runs every Monday at 02:00 UTC (07:30 IST)
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+    inputs:
+      regulator:
+        description: 'Specific regulator to crawl (or all)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - rbi
+          - sebi
+          - epfo
+          - irdai
+
+permissions:
+  contents: write
+
+jobs:
+  crawl-regulations:
+    name: Crawl and Ingest Regulatory Directives
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r fastapi-backend/requirements.txt
+
+      - name: Execute Scrapy Regulatory Crawlers
+        run: |
+          python scrapers/runner.py --spider ${{ github.event.inputs.regulator || 'all' }}
+
+      - name: Execute Phase 1 High-Speed Poller
+        run: |
+          python fastapi-backend/scripts/poll_regulations.py --regulator ${{ github.event.inputs.regulator || 'all' }} --limit 10
+
+      - name: Commit & Push Updated Regulatory Intelligence
+        run: |
+          git config user.name "AssetBridge-RegulatoryBot"
+          git config user.email "bot@assetbridge.in"
+          git add fastapi-backend/data/ || true
+          if git diff --staged --quiet; then
+            echo "No new regulatory circulars or database updates to commit."
+          else
+            git commit -m "chore(regulations): sync weekly statutory circulars [skip ci]"
+            git push origin main
+          fi

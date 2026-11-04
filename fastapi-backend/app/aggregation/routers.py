@@ -4,7 +4,7 @@ import datetime, re, random
 
 from typing import List, Dict, Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Header, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, Header, status, UploadFile, File, Form, Query
 
 from fastapi.responses import FileResponse, Response
 
@@ -38,7 +38,13 @@ from app.aggregation.pipeline import (
 
 from app.aggregation.assistant import answer_question, GuideIn
 
-from app.aggregation.documents import ingest_document, search_user_documents, delete_user_document
+from app.aggregation.documents import (
+    ingest_document,
+    search_user_documents,
+    delete_user_document,
+    ingest_regulation_document,
+    list_regulations
+)
 
 from app.aggregation.pdf_generator import generate_claiming_dossier_pdf
 
@@ -1661,3 +1667,69 @@ def download_outbox_email(tracking_id: str):
         media_type="message/rfc822"
     )
 
+
+# ---------- Regulatory Intelligence & Crawling Endpoints ----------
+
+class IngestRegulationIn(BaseModel):
+    regulator: str
+    title: str
+    sourceUrl: str
+    text: Optional[str] = None
+    pdfUrl: Optional[str] = None
+    circularNo: Optional[str] = None
+    date: Optional[str] = None
+    category: Optional[str] = None
+
+@router.post("/documents/ingest-regulation")
+def api_ingest_regulation(body: IngestRegulationIn):
+    """
+    Ingest, deduplicate, chunk, and index an official government regulatory circular
+    from RBI, SEBI, EPFO, IRDAI, PFRDA, IEPFA, or India Post into Document Vault.
+    """
+    res = ingest_regulation_document(
+        regulator=body.regulator,
+        title=body.title,
+        source_url=body.sourceUrl,
+        text=body.text,
+        pdf_url=body.pdfUrl,
+        circular_no=body.circularNo,
+        publication_date=body.date,
+        category=body.category
+    )
+    return res
+
+@router.get("/documents/regulations")
+def api_list_regulations(
+    regulator: Optional[str] = Query(None),
+    q: Optional[str] = Query(None),
+    limit: int = Query(50, le=100)
+):
+    """List indexed statutory regulations and circulars with optional search filtering."""
+    results = list_regulations(regulator=regulator, q=q, limit=limit)
+    return {
+        "ok": True,
+        "count": len(results),
+        "regulations": results
+    }
+
+@router.post("/documents/regulations/poll")
+def api_trigger_poll_regulations(
+    regulator: Optional[str] = Query(None),
+    limit: int = Query(5, le=20)
+):
+    """
+    Trigger the lightweight poller for RBI/SEBI/EPFO updates.
+    Runs synchronously and returns newly discovered/indexed circulars.
+    """
+    try:
+        from scripts.poll_regulations import poll_all_regulators
+        summary = poll_all_regulators(target_regulator=regulator, limit=limit, persist=True)
+        return {
+            "ok": True,
+            "summary": summary
+        }
+    except Exception as e:
+        return {
+            "ok": False,
+            "error": str(e)
+        }
