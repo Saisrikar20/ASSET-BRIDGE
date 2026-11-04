@@ -9,6 +9,7 @@
     "dev:frontend": "npm --prefix client run dev",
     "build": "npm --prefix client run build",
     "start": "npm run dev",
+    "doctor": "node scripts/doctor.js",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "node scripts/run-python.js -m pytest fastapi-backend -v",
     "test:frontend": "npm --prefix client run build",

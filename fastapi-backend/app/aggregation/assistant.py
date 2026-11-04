@@ -52,10 +52,27 @@ def load_chunks() -> List[Chunk]:
             chunks.append(Chunk(path.name, doc_title, heading, " ".join(buf)))
     return chunks
 
-CHUNKS = load_chunks()
-N = len(CHUNKS)
-AVGDL = sum(len(c.toks) for c in CHUNKS) / max(N, 1)
-DF = Counter(t for c in CHUNKS for t in set(c.toks))
+_LAST_KNOWLEDGE_MTIME: float = 0.0
+CHUNKS = []
+N = 0
+AVGDL = 0.0
+DF = Counter()
+
+def ensure_knowledge_fresh():
+    """Auto-detects edits in knowledge/*.md and hot-reloads chunks and BM25 index (future.md §3.3)."""
+    global CHUNKS, N, AVGDL, DF, _LAST_KNOWLEDGE_MTIME
+    if not KNOWLEDGE_DIR.exists():
+        return
+    current_max_mtime = max((f.stat().st_mtime for f in KNOWLEDGE_DIR.glob("*.md")), default=0.0)
+    if current_max_mtime > _LAST_KNOWLEDGE_MTIME or not CHUNKS:
+        CHUNKS = load_chunks()
+        N = len(CHUNKS)
+        AVGDL = sum(len(c.toks) for c in CHUNKS) / max(N, 1)
+        DF = Counter(t for c in CHUNKS for t in set(c.toks))
+        _LAST_KNOWLEDGE_MTIME = current_max_mtime
+        print(f"[RAG] Knowledge base hot-reindexed: {len(CHUNKS)} statutory chunks loaded (mtime {current_max_mtime})")
+
+ensure_knowledge_fresh()
 
 def bm25(query: List[str], chunk: Chunk, k1=1.4, b=0.75) -> float:
     tf = Counter(chunk.toks)
@@ -86,6 +103,7 @@ ALIASES = {
 }
 
 def retrieve_statutory(question: str, state: Optional[str] = None, k: int = 4) -> List[Chunk]:
+    ensure_knowledge_fresh()
     q = tokens(question)
     expanded = list(q)
     for t in q:

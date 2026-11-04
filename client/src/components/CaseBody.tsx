@@ -20,9 +20,16 @@ import {
 } from 'lucide-react';
 import { api, uploadDocument, downloadClaimingDossierPdf, saveClaimingDossierToVault, type Case, type Regulator, type Task } from '../lib/api';
 import EmailDossierModal from './EmailDossierModal';
+import RbiDelayCalculator from './RbiDelayCalculator';
 import { date, inr, inrShort, time } from '../lib/format';
-import { Badge, Button, Progress, RegChip, cx } from './ui';
+import { Badge, Button, Progress, RegChip, cx, useToast } from './ui';
 import GuideChat from './GuideChat';
+import TransmissionsDrawer from './TransmissionsDrawer';
+import ClaimFormWizardModal from './ClaimFormWizardModal';
+import DocUploadDropzone from './DocUploadDropzone';
+import { getStatePortal } from '../lib/statePortals';
+import { ExternalLink } from 'lucide-react';
+
 
 const ALL_REGS: Regulator[] = ['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC', 'PFRDA', 'DOP'];
 
@@ -48,6 +55,11 @@ export default function CaseBody({
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [showDossier, setShowDossier] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showOutbox, setShowOutbox] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+  const [dropzoneForTask, setDropzoneForTask] = useState<string | null>(null);
+  const { success: toastSuccess, error: toastError } = useToast();
+
 
   const [copiedRef, setCopiedRef] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
@@ -63,7 +75,7 @@ export default function CaseBody({
         filename: `Asset_Bridge_Claiming_Dossier_${c.id}.pdf`,
       });
     } catch (err) {
-      alert((err as Error).message || 'Failed to download dossier');
+      toastError('Failed to download dossier', (err as Error).message);
     } finally {
       setDownloadingPdf(false);
     }
@@ -75,9 +87,10 @@ export default function CaseBody({
       setVaultFeedback(null);
       const res = await saveClaimingDossierToVault({ caseId: c.id });
       setVaultFeedback(res.message || 'Indexed in AI vault');
+      toastSuccess('AI Vault Indexed', res.message || 'Indexed in AI vault');
       setTimeout(() => setVaultFeedback(null), 4000);
     } catch (err) {
-      alert((err as Error).message || 'Failed to index dossier in vault');
+      toastError('Failed to index dossier in vault', (err as Error).message);
     } finally {
       setIndexingVault(false);
     }
@@ -313,6 +326,36 @@ export default function CaseBody({
               <Button
                 variant="secondary"
                 size="sm"
+                onClick={() => setShowOutbox(true)}
+                className="gap-1.5 text-xs py-2 cursor-pointer"
+                title="Inspect transmission outbox audit log and tracking IDs"
+              >
+                <Mail className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
+                <span>Transmissions</span>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowWizard(true)}
+                className="gap-1.5 text-xs py-2 cursor-pointer"
+                title="Interactive pre-fill wizard for claimant IFSC, branch and employer codes"
+              >
+                <FileText className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>Pre-Fill Wizard</span>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => window.print()}
+                className="gap-1.5 text-xs py-2 cursor-pointer"
+                title="Print hardcopy packet optimized for bank branch submission"
+              >
+                <Printer className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
+                <span>Print Hardcopy</span>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setShowEmailModal(true)}
                 className="gap-1.5 text-xs py-2"
                 title="Send official statutory claim dossier with PDF attachment via email"
@@ -530,9 +573,38 @@ export default function CaseBody({
                         <div className="px-4 pb-4 pt-1 border-t border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/60 space-y-3 text-xs">
                           {t.docs.length > 0 && (
                             <div className="space-y-1.5 pt-2">
-                              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                                Supporting Paperwork
+                              <div className="flex items-center justify-between pb-1">
+                                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Supporting Paperwork</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setDropzoneForTask(dropzoneForTask === t.id ? null : t.id)}
+                                  className="text-[11px] font-semibold text-brand-700 dark:text-brand-400 hover:underline cursor-pointer"
+                                >
+                                  {dropzoneForTask === t.id ? 'Hide Dropzone' : 'Drag & Drop Zone'}
+                                </button>
                               </div>
+                              {dropzoneForTask === t.id && (
+                                <DocUploadDropzone
+                                  taskId={t.id}
+                                  caseId={c.id}
+                                  docName={t.docs[0] || 'Proof'}
+                                  onUploaded={(doc) => {
+                                    setUploadedDocs((prev) => [
+                                      ...prev,
+                                      {
+                                        id: doc.id,
+                                        taskId: doc.taskId || t.id,
+                                        docName: doc.docType || '',
+                                        fileName: doc.fileName,
+                                        fileSize: doc.fileSize,
+                                        hash: doc.sha256,
+                                        uploadedAt: doc.createdAt,
+                                      },
+                                    ]);
+                                    setDropzoneForTask(null);
+                                  }}
+                                />
+                              )}
                               <div className="flex flex-wrap gap-2">
                                 {t.docs.map((d) => {
                                   const uploaded = taskDocs.find((u) => u.docName === d);
@@ -584,9 +656,25 @@ export default function CaseBody({
                           )}
 
                           <div className="flex items-center justify-between gap-2 pt-1 text-xs text-slate-500">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               <Landmark className="h-3.5 w-3.5 text-slate-400" />
                               <span>Authority: {t.authority}</span>
+                              {(() => {
+                                const portal = getStatePortal(c.state);
+                                if (!portal) return null;
+                                return (
+                                  <a
+                                    href={portal.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-700 dark:text-brand-400 hover:underline ml-1"
+                                    title={`Launch official ${portal.name} portal`}
+                                  >
+                                    <span>· Launch {portal.name}</span>
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                );
+                              })()}
                             </div>
                             <button
                               type="button"
@@ -775,6 +863,14 @@ export default function CaseBody({
                             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 pb-1 border-b border-slate-200/60 dark:border-slate-800">
                               Holding Transmission & Claim Checklist
                             </div>
+
+                            {h.regulator === 'RBI' && (
+                              <RbiDelayCalculator
+                                holding={h}
+                                deceasedName={c.deceasedName}
+                                caseId={c.id}
+                              />
+                            )}
 
                             <div className="space-y-2.5">
                               {tasks.map((t) => {
@@ -1189,6 +1285,26 @@ export default function CaseBody({
         </div>
       )}
     
+
+      {/* Sent Transmissions & Outbox Audit Drawer (future.md §1.2) */}
+      <TransmissionsDrawer
+        open={showOutbox}
+        onClose={() => setShowOutbox(false)}
+        caseId={c.id}
+        deceasedName={c.deceasedName}
+        onOpenEmailModal={() => setShowEmailModal(true)}
+      />
+
+      {/* Pre-Fill Claim Form Particulars Wizard (future.md §2.3) */}
+      <ClaimFormWizardModal
+        open={showWizard}
+        onClose={() => setShowWizard(false)}
+        caseId={c.id}
+        pan={c.deceasedPan}
+        deceasedName={c.deceasedName}
+        onEmailDossier={() => setShowEmailModal(true)}
+      />
+
       {/* Email Dossier Modal Dialog */}
       <EmailDossierModal
         isOpen={showEmailModal}

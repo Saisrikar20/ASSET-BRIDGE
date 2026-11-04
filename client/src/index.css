@@ -211,3 +211,69 @@ html {
 .cb .nd.on .halo { opacity: 1; }
 .cb-cap { position: absolute; bottom: 12vh; left: 0; right: 0; text-align: center; font: 500 14px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-slate-500); letter-spacing: 0.04em; }
 .cb-cap b { color: var(--color-brand-600); font-weight: 600; }
+/* ==========================================================================
+   Print-Optimized Stylesheet (@media print) (future.md §1.5)
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm 12mm 15mm 12mm;
+  }
+
+  body {
+    background: white !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide app navigation chrome, interactive widgets, floating toasts, modals */
+  nav,
+  aside,
+  header,
+  footer,
+  button:not(.print-keep),
+  .no-print,
+  [role="alert"],
+  .fixed,
+  .sticky {
+    display: none !important;
+  }
+
+  /* Reset layout constraints for full paper usage */
+  .lg\:pl-64,
+  main,
+  .max-w-6xl {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Ensure card backgrounds and borders are clean high-contrast */
+  .border,
+  .rounded-xl,
+  .rounded-2xl {
+    box-shadow: none !important;
+    border-color: #cbd5e1 !important;
+    break-inside: avoid;
+  }
+
+  /* Page breaks between distinct institutional claim schedules */
+  .page-break-after,
+  .institutional-schedule {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .avoid-page-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  a[href]:after {
+    content: "" !important;
+  }
+}
