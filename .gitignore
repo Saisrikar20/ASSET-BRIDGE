@@ -2,7 +2,10 @@ node_modules/
 dist/
 .venv/
 __pycache__/
+*.pyc
 server/data/
+fastapi-backend/data/
 .env
 .DS_Store
+.idea/
 *.tsbuildinfo
