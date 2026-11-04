@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, X, AlertTriangle, CheckCircle2, Loader2, Send, Check } from 'lucide-react';
+import { Mail, X, AlertTriangle, CheckCircle2, Loader2, Send, Check, Download, Info } from 'lucide-react';
 import { sendClaimingDossierEmail } from '../lib/api';
 import { Button, cx } from './ui';
 
@@ -42,6 +42,11 @@ export default function EmailDossierModal({
   const [emailSending, setEmailSending] = useState(false);
   const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [dispatchResult, setDispatchResult] = useState<{
+    isMock: boolean;
+    trackingId: string;
+    toEmail: string;
+  } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -51,6 +56,7 @@ export default function EmailDossierModal({
       setTouched(false);
       setEmailSuccess(null);
       setEmailError(null);
+      setDispatchResult(null);
     }
   }, [isOpen, defaultEmail, defaultName]);
 
@@ -92,10 +98,20 @@ export default function EmailDossierModal({
         customNote: customNote.trim() || undefined,
       });
 
-      setEmailSuccess(`Claiming dossier successfully dispatched to ${trimmedEmail} (Tracking ID: ${res.trackingId})`);
-      setTimeout(() => {
-        onClose();
-      }, 2500);
+      setDispatchResult({
+        isMock: Boolean(res.isMock),
+        trackingId: res.trackingId,
+        toEmail: trimmedEmail,
+      });
+
+      if (res.isMock) {
+        setEmailSuccess(`Dossier generated in Mock Mode (Tracking ID: ${res.trackingId})`);
+      } else {
+        setEmailSuccess(`Claiming dossier successfully dispatched to ${trimmedEmail} via live SMTP (Tracking ID: ${res.trackingId})`);
+        setTimeout(() => {
+          onClose();
+        }, 3000);
+      }
     } catch (err: any) {
       setEmailError(err.message || 'Failed to dispatch email. Please check your network and recipient address.');
     } finally {
@@ -233,11 +249,54 @@ export default function EmailDossierModal({
             />
           </div>
 
-          {/* Success Banner */}
-          {emailSuccess && (
-            <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 p-3 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2">
+          {/* Mock Mode Notice and Direct EML Downloader */}
+          {dispatchResult && dispatchResult.isMock && (
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-4 space-y-2.5 text-xs text-amber-900 dark:text-amber-200 animate-in fade-in duration-150">
+              <div className="flex items-start gap-2">
+                <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-semibold text-amber-950 dark:text-amber-100">
+                    Mock Mode Active (Local Outbox Delivery)
+                  </div>
+                  <p className="mt-1 text-amber-800 dark:text-amber-300 leading-relaxed">
+                    Live SMTP credentials are not yet configured in your <code className="font-mono bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded">.env</code> file (<code className="font-mono">SMTP_ENABLED=false</code>).
+                    To protect developer privacy and prevent delivery failures, the complete RFC 822 email with the attached PDF was stored safely in the local server outbox:
+                  </p>
+                  <p className="mt-1 font-mono text-[11px] text-amber-700 dark:text-amber-400 break-all">
+                    Tracking ID: {dispatchResult.trackingId}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-amber-200/60 dark:border-amber-800/60 flex items-center justify-between flex-wrap gap-2">
+                <a
+                  href={`/api/reports/claiming-dossier/outbox/${dispatchResult.trackingId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs shadow-sm transition cursor-pointer"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>Download .EML Email Packet</span>
+                </a>
+                <span className="text-[11px] text-amber-700/80 dark:text-amber-400">
+                  Can be opened in Outlook, Apple Mail, or Thunderbird
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Live SMTP Success Banner */}
+          {dispatchResult && !dispatchResult.isMock && emailSuccess && (
+            <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 p-3 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2 animate-in fade-in duration-150">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-              <span>{emailSuccess}</span>
+              <div>
+                <div className="font-semibold">Live Email Dispatched via SMTP</div>
+                <div className="mt-0.5">{emailSuccess}</div>
+                <div className="mt-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-400">
+                  Please check your inbox (or spam folder) for the statutory packet.
+                </div>
+              </div>
             </div>
           )}
 
@@ -258,27 +317,29 @@ export default function EmailDossierModal({
               onClick={onClose}
               disabled={emailSending}
             >
-              Cancel
+              {dispatchResult ? 'Close' : 'Cancel'}
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={emailSending || (touched && !isEmailValid)}
-              className="gap-1.5"
-            >
-              {emailSending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Dispatching Email...</span>
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4" />
-                  <span>Send Dossier by Email</span>
-                </>
-              )}
-            </Button>
+            {!dispatchResult && (
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                disabled={emailSending || (touched && !isEmailValid)}
+                className="gap-1.5"
+              >
+                {emailSending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Dispatching Email...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    <span>Send Dossier by Email</span>
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </form>
       </div>
