@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, RotateCcw, FileDown, Loader2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2, RotateCcw, FileDown, Loader2, Mail } from 'lucide-react';
+import EmailDossierModal from '../components/EmailDossierModal';
 import { api, downloadClaimingDossierPdf, type Alert, type Heir, type Holding, type Summary, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useLive } from '../lib/live';
@@ -23,6 +24,7 @@ export default function Dashboard() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [heirs, setHeirs] = useState<Heir[]>([]);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   const load = () => {
     api<{ holdings: Holding[]; summary: Summary }>('/holdings').then(setData).catch(() => {});
@@ -79,6 +81,14 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2.5 self-start sm:self-center">
+          <button
+            onClick={() => setShowEmailModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-sm transition-colors cursor-pointer"
+            title="Email statutory claiming dossier with PDF attachment"
+          >
+            <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+            <span>Email Dossier</span>
+          </button>
           <button
             onClick={async () => {
               try {
@@ -338,6 +348,17 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      <EmailDossierModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        pan={user?.identity?.pan}
+        defaultEmail={user?.email || ''}
+        defaultName={user?.name || ''}
+        heirs={heirs}
+        title="Email Claiming Dossier"
+        subtitle="Personal Financial Twin · Consolidated Asset Packet"
+      />
     </div>
   );
 }

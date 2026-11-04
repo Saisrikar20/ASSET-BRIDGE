@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown } from 'lucide-react';
+import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown, Mail } from 'lucide-react';
+import EmailDossierModal from '../components/EmailDossierModal';
 import { api, downloadClaimingDossierPdf, type Consent, type Holding, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date, inr } from '../lib/format';
@@ -72,6 +73,7 @@ export default function Aggregate() {
   const [reg, setReg] = useState<string>('all');
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   const load = async () => {
     try {
@@ -605,6 +607,16 @@ export default function Aggregate() {
               <Button
                 variant="secondary"
                 size="sm"
+                onClick={() => setShowEmailModal(true)}
+                className="gap-1.5"
+                title="Send official statutory claim schedule with PDF attachment via email"
+              >
+                <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                <span>Email Dossier</span>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 loading={downloadingPdf}
                 disabled={downloadingPdf}
                 onClick={async () => {
@@ -653,6 +665,16 @@ export default function Aggregate() {
           Loading mapped holdings…
         </div>
       )}
+
+      <EmailDossierModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        pan={user?.identity?.pan}
+        defaultEmail={user?.email || ''}
+        defaultName={user?.name || ''}
+        title="Email Statutory Claim Schedule"
+        subtitle="Consolidated 7-Regulator Mapped Holdings Schedule"
+      />
     </div>
   );
 }
