@@ -83,3 +83,4 @@ class RBISpider(scrapy.Spider):
             item["raw_text"] = body_text[:4000]
 
         yield item
+

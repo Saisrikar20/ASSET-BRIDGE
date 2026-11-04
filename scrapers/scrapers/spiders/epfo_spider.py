@@ -23,3 +23,4 @@ class EPFOSpider(scrapy.Spider):
             raw_text="EPFO directives: All death claims under Form 20 and Employees' Deposit Linked Insurance (EDLI) must be settled within 7 working days with max benefit of Rs. 7,00,000.",
             scraped_at=datetime.datetime.now(datetime.timezone.utc).isoformat()
         )
+

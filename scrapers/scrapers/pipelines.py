@@ -107,3 +107,4 @@ class AssetBridgeVaultPipeline:
             f"Spider {spider.name} finished. Ingested: {self.ingested_count}, "
             f"Already Present (Deduplicated): {self.duplicate_count}."
         )
+

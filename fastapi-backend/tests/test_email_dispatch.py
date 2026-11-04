@@ -1,6 +1,7 @@
 """
 Unit Test Suite for Statutory Claiming Dossier Email Dispatch Service
-Verifies: Twilio SendGrid v3 payload construction, mocked Twilio delivery, MIME construction,
+Verifies: Google App Password SMTP delivery, Twilio Comms native Email API,
+Twilio SendGrid v3 payload construction, mocked Twilio delivery, MIME construction,
 outbox fallback delivery, API endpoints, and SQLite audit logs.
 """
 
@@ -25,6 +26,7 @@ from app.core.mailer import (
     build_mime_message,
     build_sendgrid_payload,
     send_via_twilio_sendgrid,
+    send_via_twilio_comms,
     send_claiming_dossier_email
 )
 from app.aggregation.pdf_generator import generate_claiming_dossier_pdf
@@ -140,7 +142,9 @@ def test_twilio_sendgrid_mocked_live_dispatch(monkeypatch):
 
     import httpx
     monkeypatch.setattr(httpx, "Client", MockClient)
+    monkeypatch.setattr(mailer_module, "is_smtp_configured", lambda: False)
     monkeypatch.setattr(mailer_module, "is_twilio_configured", lambda: True)
+    monkeypatch.setattr(mailer_module, "is_twilio_comms_configured", lambda: False)
     monkeypatch.setattr(mailer_module, "TWILIO_SENDGRID_API_KEY", "SG.mock_test_key")
 
     dummy_pdf = b"%PDF-1.4 Mock Dossier Buffer"
@@ -164,10 +168,101 @@ def test_twilio_sendgrid_mocked_live_dispatch(monkeypatch):
     assert "Twilio SendGrid" in result["message"]
     print("[PASS] Mocked Twilio SendGrid live dispatch verified with 202 Accepted.")
 
-def test_outbox_fallback_mock_delivery(monkeypatch):
-    print("--- 4. Testing Outbox Mock Delivery Fallback ---")
-    monkeypatch.setattr(mailer_module, "is_twilio_configured", lambda: False)
+def test_twilio_comms_mocked_dispatch(monkeypatch):
+    print("--- 4. Testing Mocked Twilio Comms Native Email Dispatch ---")
+    
+    class MockCommsResponse:
+        status_code = 202
+        text = '{"operationId": "comms_op_mock123"}'
+        def json(self):
+            return {"operationId": "comms_op_mock123"}
+
+    class MockCommsClient:
+        def __init__(self, *args, **kwargs):
+            pass
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def post(self, url, json=None, auth=None, **kwargs):
+            assert "comms.twilio.com" in url
+            assert auth[0] == "ACmock_sid"
+            return MockCommsResponse()
+
+    import httpx
+    monkeypatch.setattr(httpx, "Client", MockCommsClient)
     monkeypatch.setattr(mailer_module, "is_smtp_configured", lambda: False)
+    monkeypatch.setattr(mailer_module, "is_twilio_configured", lambda: False)
+    monkeypatch.setattr(mailer_module, "is_twilio_comms_configured", lambda: True)
+    monkeypatch.setattr(mailer_module, "TWILIO_ACCOUNT_SID", "ACmock_sid")
+    monkeypatch.setattr(mailer_module, "TWILIO_AUTH_TOKEN", "mock_token")
+
+    dummy_pdf = b"%PDF-1.4 Mock Dossier Buffer"
+    result = send_claiming_dossier_email(
+        to_email="test.claimant@example.com",
+        pdf_bytes=dummy_pdf,
+        filename="Test_Dossier.pdf",
+        person_name="Test Person",
+        pan="ABCDE1234F"
+    )
+
+    assert result["ok"] is True
+    assert result["isMock"] is False
+    assert result["status"] == "sent"
+    assert result["provider"] == "twilio_comms"
+    assert result["providerMessageId"] == "comms_op_mock123"
+    print("[PASS] Mocked Twilio Comms live dispatch verified with 202 Accepted.")
+
+def test_google_app_password_smtp_dispatch(monkeypatch):
+    print("--- 5. Testing Mocked Google App Password SMTP Dispatch ---")
+    sent_messages = []
+
+    class MockSMTP:
+        def __init__(self, host, port, timeout=None):
+            self.host = host
+            self.port = port
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def starttls(self):
+            pass
+        def login(self, user, password):
+            assert user == "claims@assetbridge.in"
+            assert password == "mock_app_password"
+        def send_message(self, msg):
+            sent_messages.append(msg)
+
+    import smtplib
+    monkeypatch.setattr(smtplib, "SMTP", MockSMTP)
+    monkeypatch.setattr(mailer_module, "is_smtp_configured", lambda: True)
+    monkeypatch.setattr(mailer_module, "SMTP_HOST", "smtp.gmail.com")
+    monkeypatch.setattr(mailer_module, "SMTP_PORT", 587)
+    monkeypatch.setattr(mailer_module, "SMTP_USER", "claims@assetbridge.in")
+    monkeypatch.setattr(mailer_module, "SMTP_PASSWORD", "mock_app_password")
+
+    dummy_pdf = b"%PDF-1.4 Mock Dossier Buffer"
+    result = send_claiming_dossier_email(
+        to_email="heir@family.org",
+        pdf_bytes=dummy_pdf,
+        filename="Test_Dossier.pdf",
+        person_name="Test Person",
+        pan="ABCDE1234F"
+    )
+
+    assert result["ok"] is True
+    assert result["isMock"] is False
+    assert result["status"] == "sent"
+    assert result["provider"] == "smtp"
+    assert len(sent_messages) == 1
+    assert "heir@family.org" in sent_messages[0]["To"]
+    print("[PASS] Google App Password SMTP dispatch verified cleanly.")
+
+def test_outbox_fallback_mock_delivery(monkeypatch):
+    print("--- 6. Testing Outbox Mock Delivery Fallback ---")
+    monkeypatch.setattr(mailer_module, "is_smtp_configured", lambda: False)
+    monkeypatch.setattr(mailer_module, "is_twilio_configured", lambda: False)
+    monkeypatch.setattr(mailer_module, "is_twilio_comms_configured", lambda: False)
 
     dummy_pdf = b"%PDF-1.4 Mock Dossier Buffer"
     result = send_claiming_dossier_email(
@@ -204,9 +299,10 @@ def test_outbox_fallback_mock_delivery(monkeypatch):
     print(f"[PASS] Mock delivery successfully stored and decoded in {eml_file.name} ({len(eml_content)} bytes).")
 
 def test_api_send_dossier_email_endpoint(monkeypatch):
-    print("--- 5. Testing POST /api/reports/claiming-dossier/email ---")
-    monkeypatch.setattr(mailer_module, "is_twilio_configured", lambda: False)
+    print("--- 7. Testing POST /api/reports/claiming-dossier/email ---")
     monkeypatch.setattr(mailer_module, "is_smtp_configured", lambda: False)
+    monkeypatch.setattr(mailer_module, "is_twilio_configured", lambda: False)
+    monkeypatch.setattr(mailer_module, "is_twilio_comms_configured", lambda: False)
     
     # A. Validation check: Invalid email
     bad_res = client.post("/api/reports/claiming-dossier/email", json={
@@ -231,7 +327,7 @@ def test_api_send_dossier_email_endpoint(monkeypatch):
     print(f"[PASS] API dispatch endpoint returned 200 OK with trackingId: {data['trackingId']}.")
 
 def test_audit_history_endpoint():
-    print("--- 6. Testing GET /api/reports/claiming-dossier/email/history ---")
+    print("--- 8. Testing GET /api/reports/claiming-dossier/email/history ---")
     res = client.get("/api/reports/claiming-dossier/email/history")
     assert res.status_code == 200
     data = res.json()

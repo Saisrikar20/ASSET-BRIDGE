@@ -70,3 +70,4 @@ class SEBISpider(scrapy.Spider):
             item["raw_text"] = main_text[:4000]
 
         yield item
+

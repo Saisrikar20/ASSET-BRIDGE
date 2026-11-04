@@ -1,7 +1,8 @@
 """
 Asset Bridge Email Dispatcher
 Delivers official statutory claiming dossiers (PDF) to claimants, legal heirs, and institutions.
-Powered by Twilio SendGrid Web API v3 with optional Twilio SMS alerts and local outbox fallback.
+Powered by Google Workspace / Gmail SMTP with App Password, Twilio Comms & SendGrid APIs,
+Twilio SMS alerts, and local outbox fallback.
 """
 
 import os
@@ -21,6 +22,8 @@ from app.config import (
     TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN,
     TWILIO_PHONE_NUMBER,
+    TWILIO_COMMS_FROM_EMAIL,
+    TWILIO_COMMS_FROM_NAME,
     SMTP_HOST,
     SMTP_PORT,
     SMTP_USER,
@@ -29,9 +32,10 @@ from app.config import (
     SMTP_FROM_NAME,
     SMTP_USE_TLS,
     OUTBOX_DIR,
+    is_smtp_configured,
     is_twilio_configured,
+    is_twilio_comms_configured,
     is_twilio_sms_configured,
-    is_smtp_configured
 )
 from app.core.store import store, uid
 
@@ -120,51 +124,54 @@ def build_email_html(
                                 Please find attached the official, publication-grade statutory claiming packet for <strong>{person_name}</strong> (PAN: <span style="font-family: monospace; font-weight: 600;">{pan}</span>). This dossier consolidates verified asset holdings, legal heir distribution schedules, and pre-formatted statutory claim applications.
                             </p>
 
-                            {custom_note_block}
-
-                            <!-- Summary Metrics Card -->
-                            <table width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px 0;">
+                            <!-- Key Financial Summary Card -->
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin: 20px 0;">
                                 <tr>
-                                    <td style="padding: 16px 20px; border-right: 1px solid #e2e8f0; width: 50%;">
-                                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">Total Portfolio Value</div>
-                                        <div style="font-size: 18px; font-weight: 800; color: #0f172a; margin-top: 4px; font-family: monospace;">{inr_formatted}</div>
+                                    <td style="padding: 16px 20px; border-right: 1px solid #e2e8f0;" width="50%">
+                                        <div style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Total Identified Value</div>
+                                        <div style="font-size: 20px; font-weight: 800; color: #0f766e; margin-top: 4px;">{inr_formatted}</div>
                                     </td>
-                                    <td style="padding: 16px 20px; width: 50%;">
-                                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">Institutional Assets</div>
-                                        <div style="font-size: 18px; font-weight: 800; color: #0f172a; margin-top: 4px;">{holdings_count} Records</div>
+                                    <td style="padding: 16px 20px;" width="50%">
+                                        <div style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Registered Holdings</div>
+                                        <div style="font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 4px;">{holdings_count} Records</div>
                                     </td>
                                 </tr>
                             </table>
 
-                            <!-- Included Documents List -->
-                            <div style="margin: 20px 0;">
-                                <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #475569; letter-spacing: 0.05em; margin-bottom: 8px;">Dossier Inclusions:</div>
-                                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #475569; line-height: 1.8;">
-                                    <li><strong>Cover Particulars:</strong> Identity, PAN, and state succession jurisdiction.</li>
-                                    <li><strong>Multi-Regulator Schedule:</strong> Complete audit across RBI, EPFO, IRDAI, SEBI, LIC, PFRDA, DOP.</li>
-                                    <li><strong>Statutory Claim Forms:</strong> Pre-filled Form 20 (EPFO), Form DA-2 (Banking), Form A (LIC), and Demat T3.</li>
-                                    <li><strong>Legal Heir Distribution Schedule:</strong> Percentage shares and calculated INR values per heir.</li>
-                                    <li><strong>Statutory Annexures:</strong> Formatted Indemnity Bond, No Objection Certificate (NOC), and Affidavit templates.</li>
+                            {custom_note_block}
+
+                            <div style="margin: 24px 0 20px 0; padding: 16px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+                                <div style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 6px;">
+                                    Included Documentation in PDF Attachment:
+                                </div>
+                                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #166534; line-height: 1.6;">
+                                    <li>Consolidated Asset Register across Banking, EPFO, Demat, Insurance, and NPS</li>
+                                    <li>Regulator-specific Claim Applications (Form 20, DA-2, Demat Transmission)</li>
+                                    <li>Legal Heir Distribution Schedule with Indian Succession Act shares</li>
+                                    <li>Pre-drafted Indemnity Bonds, NOC Affidavits, and Name Discrepancy forms</li>
                                 </ul>
                             </div>
 
-                            <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 12px 16px; margin-top: 24px;">
-                                <p style="margin: 0; font-size: 12px; color: #065f46; line-height: 1.5;">
-                                    <strong>Attachment Notice:</strong> The official PDF dossier is attached to this transmission. Legal heirs may submit these forms directly to the respective institutional nodal officers.
-                                </p>
+                            <p style="font-size: 13px; line-height: 1.5; color: #64748b; margin: 0 0 24px 0;">
+                                <strong>Instructions for Heir / Executor:</strong> Download and review the attached PDF dossier. Sign the relevant annexures where indicated and present them along with the Death Certificate and KYC to the respective nodal branches or nodal officers.
+                            </p>
+
+                            <!-- Security Notice -->
+                            <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; line-height: 1.5;">
+                                This transmission is strictly confidential and generated for legitimate legal heirs and succession coordinators. Digital fingerprint: <span style="font-family: monospace;">SHA256-AUTHENTICATED</span>.
                             </div>
                         </td>
                     </tr>
 
                     <!-- Footer -->
                     <tr>
-                        <td style="background-color: #f8fafc; padding: 20px 32px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; line-height: 1.6;">
-                            <p style="margin: 0 0 6px 0;">
-                                This automated legal packet was generated by Asset Bridge under user-authorized digital consent.
-                            </p>
-                            <p style="margin: 0;">
-                                Asset Bridge Platform · Confidential & Privileged Succession Documentation
-                            </p>
+                        <td style="background-color: #f8fafc; padding: 20px 32px; border-top: 1px solid #e2e8f0; text-align: center;">
+                            <div style="font-size: 12px; font-weight: 600; color: #475569;">
+                                Asset Bridge Platform · Statutory Succession Engine
+                            </div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
+                                Automated Claiming Dossier Dispatch Service · Powered by Google SMTP & Twilio Communications
+                            </div>
                         </td>
                     </tr>
                 </table>
@@ -182,18 +189,21 @@ def build_email_text(
     total_value_inr: float = 0.0,
     custom_note: Optional[str] = None
 ) -> str:
-    """Render plain text fallback for email clients that do not render HTML."""
+    """Render plain text fallback for the claiming dossier email."""
+    inr_formatted = format_inr(total_value_inr)
+    now_str = datetime.datetime.now().strftime("%d %B %Y, %I:%M %p IST")
     lines = [
         "ASSET BRIDGE - STATUTORY ASSET CLAIMING DOSSIER",
         "=" * 50,
-        f"Claimant / Deceased: {person_name} (PAN: {pan})",
+        f"Generated: {now_str}",
+        f"Subject: Official Claiming Dossier for {person_name} (PAN: {pan})",
     ]
     if case_id:
-        lines.append(f"Estate Case Reference: {case_id}")
+        lines.append(f"Case Reference: {case_id}")
     lines.extend([
-        f"Portfolio Value: {format_inr(total_value_inr)}",
-        f"Holdings Count: {holdings_count} Records",
-        "-" * 50,
+        f"Total Identified Value: {inr_formatted}",
+        f"Registered Holdings Count: {holdings_count}",
+        "",
     ])
     if custom_note and custom_note.strip():
         lines.extend([
@@ -226,8 +236,8 @@ def build_mime_message(
     msg = EmailMessage()
     msg["Subject"] = subject
     
-    sender_name = TWILIO_FROM_NAME or SMTP_FROM_NAME or "Asset Bridge Succession Engine"
-    sender_addr = TWILIO_FROM_EMAIL or SMTP_FROM_EMAIL or "claims@assetbridge.in"
+    sender_name = SMTP_FROM_NAME or TWILIO_FROM_NAME or "Asset Bridge Succession Engine"
+    sender_addr = SMTP_FROM_EMAIL or TWILIO_FROM_EMAIL or "claims@assetbridge.in"
     msg["From"] = f"{sender_name} <{sender_addr}>"
     
     if recipient_name and recipient_name.strip():
@@ -365,6 +375,81 @@ def send_via_twilio_sendgrid(
             "provider": "twilio_sendgrid"
         }
 
+def send_via_twilio_comms(
+    to_email: str,
+    subject: str,
+    body_html: str,
+    from_address: Optional[str] = None,
+    from_name: Optional[str] = None,
+    account_sid: Optional[str] = None,
+    auth_token: Optional[str] = None,
+    timeout: float = 15.0
+) -> Dict[str, Any]:
+    """
+    Deliver email via Twilio Comms native Email API (https://comms.twilio.com/v1/Emails).
+    Authenticates using HTTP Basic Auth (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN).
+    """
+    sid = (account_sid or TWILIO_ACCOUNT_SID).strip()
+    token = (auth_token or TWILIO_AUTH_TOKEN).strip()
+    if not sid or not token:
+        return {"ok": False, "error": "Twilio Account SID or Auth Token is not configured", "provider": "twilio_comms"}
+
+    from_addr = (from_address or TWILIO_COMMS_FROM_EMAIL or f"{sid}@twilio.email").strip()
+    from_nm = (from_name or TWILIO_COMMS_FROM_NAME or "Trial with Twilio").strip()
+
+    url = "https://comms.twilio.com/v1/Emails"
+    payload = {
+        "from": {
+            "address": from_addr,
+            "name": from_nm
+        },
+        "to": [
+            {"address": to_email.strip()}
+        ],
+        "content": {
+            "subject": subject,
+            "html": body_html
+        }
+    }
+
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            resp = client.post(
+                url,
+                auth=(sid, token),
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
+        
+        if resp.status_code in (200, 201, 202):
+            data = resp.json() if resp.text else {}
+            op_id = data.get("operationId", "")
+            return {
+                "ok": True,
+                "statusCode": resp.status_code,
+                "operationId": op_id,
+                "provider": "twilio_comms"
+            }
+        
+        err_msg = resp.text
+        try:
+            data = resp.json()
+            err_msg = data.get("message") or data.get("error") or err_msg
+        except Exception:
+            pass
+        return {
+            "ok": False,
+            "statusCode": resp.status_code,
+            "error": f"Twilio Comms error: {err_msg}",
+            "provider": "twilio_comms"
+        }
+    except Exception as e:
+        return {
+            "ok": False,
+            "error": f"Twilio Comms connection error: {str(e)}",
+            "provider": "twilio_comms"
+        }
+
 def send_twilio_sms_alert(
     to_phone: str,
     person_name: str,
@@ -417,7 +502,8 @@ def send_claiming_dossier_email(
     user_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Dispatch official statutory claiming dossier via Twilio SendGrid API, SMTP, or local outbox fallback.
+    Dispatch official statutory claiming dossier via authenticated Google App Password SMTP,
+    Twilio SendGrid API, Twilio Comms Email API, or local outbox fallback.
     Audits the transmission into SQLite 'sent_emails' table.
     """
     tracking_id = uid("eml_")
@@ -458,7 +544,55 @@ def send_claiming_dossier_email(
     provider_msg_id = None
     warning_note = None
 
-    if is_twilio_configured():
+    # Priority 1: Primary SMTP with Google App Password
+    # Sends authentic MIME messages with binary PDF attachments directly to real inboxes
+    if is_smtp_configured():
+        provider = "smtp"
+        try:
+            if SMTP_PORT == 465:
+                # SSL Direct
+                with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=20.0) as server:
+                    server.login(SMTP_USER, SMTP_PASSWORD)
+                    server.send_message(msg)
+            else:
+                # STARTTLS (Port 587 or default)
+                with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20.0) as server:
+                    if SMTP_USE_TLS:
+                        server.starttls()
+                    server.login(SMTP_USER, SMTP_PASSWORD)
+                    server.send_message(msg)
+            status = "sent"
+            is_mock = False
+        except Exception as e:
+            warning_note = f"SMTP dispatch failed: {str(e)}"
+            # If SMTP fails, attempt fallback to Twilio SendGrid
+            if is_twilio_configured():
+                sendgrid_payload = build_sendgrid_payload(
+                    to_email=to_email,
+                    subject=subject,
+                    body_html=body_html,
+                    body_text=body_text,
+                    pdf_bytes=pdf_bytes,
+                    filename=filename,
+                    recipient_name=recipient_name,
+                    case_id=case_id,
+                    pan=pan,
+                    tracking_id=tracking_id
+                )
+                res = send_via_twilio_sendgrid(sendgrid_payload)
+                if res.get("ok"):
+                    status = "sent"
+                    is_mock = False
+                    provider = "twilio_sendgrid"
+                    provider_msg_id = res.get("messageId")
+                    warning_note = None
+            if is_mock:
+                status = f"smtp_fallback_outbox: {warning_note[:120]}"
+                outbox_file = OUTBOX_DIR / f"{tracking_id}_{filename}.eml"
+                outbox_file.write_bytes(msg.as_bytes())
+
+    # Priority 2: Twilio SendGrid Web API v3
+    elif is_twilio_configured():
         provider = "twilio_sendgrid"
         sendgrid_payload = build_sendgrid_payload(
             to_email=to_email,
@@ -478,37 +612,33 @@ def send_claiming_dossier_email(
             is_mock = False
             provider_msg_id = res.get("messageId")
         else:
-            # Twilio SendGrid dispatch failed (e.g. unverified sender) -> fallback to outbox
             warning_note = res.get("error", "Twilio SendGrid dispatch failed")
             status = f"twilio_fallback_outbox: {warning_note[:120]}"
             outbox_file = OUTBOX_DIR / f"{tracking_id}_{filename}.eml"
             outbox_file.write_bytes(msg.as_bytes())
             is_mock = True
-    elif is_smtp_configured():
-        provider = "smtp"
-        try:
-            if SMTP_PORT == 465:
-                # SSL Direct
-                with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=20.0) as server:
-                    server.login(SMTP_USER, SMTP_PASSWORD)
-                    server.send_message(msg)
-            else:
-                # STARTTLS (Port 587 or default)
-                with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20.0) as server:
-                    if SMTP_USE_TLS:
-                        server.starttls()
-                    server.login(SMTP_USER, SMTP_PASSWORD)
-                    server.send_message(msg)
+
+    # Priority 3: Twilio Comms Native Email API (https://comms.twilio.com/v1/Emails)
+    elif is_twilio_comms_configured():
+        provider = "twilio_comms"
+        comms_res = send_via_twilio_comms(
+            to_email=to_email,
+            subject=subject,
+            body_html=body_html
+        )
+        if comms_res.get("ok"):
             status = "sent"
             is_mock = False
-        except Exception as e:
-            warning_note = str(e)
-            status = f"smtp_fallback: {str(e)[:120]}"
+            provider_msg_id = comms_res.get("operationId")
+        else:
+            warning_note = comms_res.get("error", "Twilio Comms dispatch failed")
+            status = f"twilio_comms_fallback_outbox: {warning_note[:120]}"
             outbox_file = OUTBOX_DIR / f"{tracking_id}_{filename}.eml"
             outbox_file.write_bytes(msg.as_bytes())
             is_mock = True
+
+    # Priority 4: Local Outbox Mock Fallback
     else:
-        # Mock mode / Local Outbox
         provider = "mock"
         outbox_file = OUTBOX_DIR / f"{tracking_id}_{filename}.eml"
         outbox_file.write_bytes(msg.as_bytes())
@@ -549,9 +679,11 @@ def send_claiming_dossier_email(
     except Exception as e:
         print(f"[WARN] Failed to insert sent_emails record into SQLite: {e}")
 
-    message_str = "Dossier sent via Twilio SendGrid" if (provider == "twilio_sendgrid" and not is_mock) else (
-        "Dossier sent via SMTP" if (provider == "smtp" and not is_mock) else (
-            f"Dossier written to local outbox in mock mode ({tracking_id})"
+    message_str = "Dossier sent via Google SMTP with App Password" if (provider == "smtp" and not is_mock) else (
+        "Dossier sent via Twilio SendGrid" if (provider == "twilio_sendgrid" and not is_mock) else (
+            "Dossier sent via Twilio Comms" if (provider == "twilio_comms" and not is_mock) else (
+                f"Dossier written to local outbox in mock mode ({tracking_id})"
+            )
         )
     )
 

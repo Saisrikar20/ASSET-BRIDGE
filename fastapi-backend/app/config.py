@@ -33,34 +33,40 @@ NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "nvidia/nemotron-3.5-bolt-e4b")
 GEMINI_KEY = os.getenv("GEMINI_API_KEY", "")
 OPENAI_KEY = os.getenv("OPENAI_API_KEY", "")
 
-# Twilio Email Configuration (Twilio SendGrid v3 API)
-TWILIO_SENDGRID_API_KEY = os.getenv("TWILIO_SENDGRID_API_KEY", os.getenv("SENDGRID_API_KEY", ""))
-TWILIO_FROM_EMAIL = os.getenv("TWILIO_FROM_EMAIL", os.getenv("SENDGRID_FROM_EMAIL", os.getenv("SMTP_FROM_EMAIL", "claims@assetbridge.in")))
-TWILIO_FROM_NAME = os.getenv("TWILIO_FROM_NAME", os.getenv("SENDGRID_FROM_NAME", "Asset Bridge Succession Engine"))
-
-# Twilio Communications (Optional: SMS alerts upon dossier dispatch)
-TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
-TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
-TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER", "")
-
-# Fallback SMTP Configurations (Twilio SendGrid SMTP relay: smtp.sendgrid.net)
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.sendgrid.net" if TWILIO_SENDGRID_API_KEY else "")
+# Email SMTP Configuration (Google Workspace / Gmail with App Password or Custom SMTP)
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
 SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
-SMTP_USER = os.getenv("SMTP_USER", "apikey" if TWILIO_SENDGRID_API_KEY else "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", TWILIO_SENDGRID_API_KEY or "")
-SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", TWILIO_FROM_EMAIL)
-SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", TWILIO_FROM_NAME)
+SMTP_USER = os.getenv("SMTP_USER", "").strip()
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "").strip()
+SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", SMTP_USER or "claims@assetbridge.in").strip()
+SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Asset Bridge Succession Engine").strip()
 SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() in ("true", "1", "yes")
-SMTP_ENABLED = os.getenv("SMTP_ENABLED", "true" if (TWILIO_SENDGRID_API_KEY and os.getenv("SMTP_HOST")) else "false").lower() in ("true", "1", "yes")
+SMTP_ENABLED = os.getenv("SMTP_ENABLED", "true" if (SMTP_HOST and SMTP_USER and SMTP_PASSWORD) else "false").lower() in ("true", "1", "yes")
+
+# Twilio Email Configuration (Twilio SendGrid v3 API)
+TWILIO_SENDGRID_API_KEY = os.getenv("TWILIO_SENDGRID_API_KEY", os.getenv("SENDGRID_API_KEY", "")).strip()
+TWILIO_FROM_EMAIL = os.getenv("TWILIO_FROM_EMAIL", os.getenv("SENDGRID_FROM_EMAIL", SMTP_FROM_EMAIL)).strip()
+TWILIO_FROM_NAME = os.getenv("TWILIO_FROM_NAME", os.getenv("SENDGRID_FROM_NAME", SMTP_FROM_NAME)).strip()
+
+# Twilio Communications & Comms Email (https://comms.twilio.com/v1/Emails and SMS)
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "").strip()
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "").strip()
+TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER", "").strip()
+TWILIO_COMMS_FROM_EMAIL = os.getenv("TWILIO_COMMS_FROM_EMAIL", f"{TWILIO_ACCOUNT_SID}@twilio.email" if TWILIO_ACCOUNT_SID else "").strip()
+TWILIO_COMMS_FROM_NAME = os.getenv("TWILIO_COMMS_FROM_NAME", "Trial with Twilio").strip()
+
+def is_smtp_configured() -> bool:
+    """Check if authentic SMTP credentials (such as Google App Password) are configured and enabled."""
+    return bool(SMTP_HOST and SMTP_USER and SMTP_PASSWORD and SMTP_ENABLED)
 
 def is_twilio_configured() -> bool:
     """Check if Twilio SendGrid email API credentials are configured."""
     return bool(TWILIO_SENDGRID_API_KEY and TWILIO_SENDGRID_API_KEY.strip())
 
+def is_twilio_comms_configured() -> bool:
+    """Check if Twilio Comms native Email API credentials (Account SID + Auth Token) are configured."""
+    return bool(TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN)
+
 def is_twilio_sms_configured() -> bool:
     """Check if Twilio SMS credentials are configured."""
     return bool(TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_PHONE_NUMBER)
-
-def is_smtp_configured() -> bool:
-    """Check if legacy or SendGrid SMTP credentials are validly supplied."""
-    return bool(SMTP_HOST and SMTP_USER and SMTP_PASSWORD and SMTP_ENABLED)

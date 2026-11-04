@@ -1,4 +1,4 @@
-from app.core.mailer import send_claiming_dossier_email
+from app.core.mailer import send_claiming_dossier_email, send_via_twilio_comms
 
 import datetime, re, random
 
@@ -1651,6 +1651,44 @@ def get_claiming_dossier_email_history(
     records.sort(key=lambda r: r.get("createdAt", ""), reverse=True)
 
     return {"ok": True, "count": len(records), "history": records[:50]}
+
+class TestTwilioEmailIn(BaseModel):
+    toEmail: str
+    subject: Optional[str] = None
+    html: Optional[str] = None
+    useTrialTemplate: bool = True
+
+@router.post("/reports/claiming-dossier/email/test-twilio")
+def api_test_twilio_email(body: TestTwilioEmailIn):
+    """
+    Test direct email dispatch via Twilio Comms native Email API (https://comms.twilio.com/v1/Emails).
+    Supports trial template matching for free Twilio developer accounts.
+    """
+    clean_email = (body.toEmail or "").strip()
+    if not clean_email or "@" not in clean_email:
+        raise HTTPException(status_code=400, detail="Invalid recipient email address")
+
+    if body.useTrialTemplate:
+        subject = body.subject or "Your Order Has Been Confirmed!"
+        html = body.html or (
+            "<p><b>This is a test email from Twilio.</b></p>"
+            "<h2>Thank you for your order!</h2>"
+            "<p>We are excited to let you know that your order has been confirmed and is being processed.</p>"
+            "<p>You will receive a shipping confirmation email once your items are on their way.</p>"
+            "<p>Order Number: #12345</p>"
+            "<p>Thank you for shopping with us!</p>"
+            "<p>Best regards,<br/>The Team</p>"
+        )
+    else:
+        subject = body.subject or "Asset Bridge Succession Engine - Twilio Verification"
+        html = body.html or "<p>Asset Bridge Succession Engine test notification via Twilio Comms.</p>"
+
+    res = send_via_twilio_comms(
+        to_email=clean_email,
+        subject=subject,
+        body_html=html
+    )
+    return res
 
 @router.get("/reports/claiming-dossier/outbox/{tracking_id}")
 def download_outbox_email(tracking_id: str):

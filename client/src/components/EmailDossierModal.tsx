@@ -114,7 +114,7 @@ export default function EmailDossierModal({
       if (res.isMock) {
         setEmailSuccess(`Dossier generated in Mock Mode (Tracking ID: ${res.trackingId})`);
       } else {
-        const providerName = res.provider === 'twilio_sendgrid' ? 'Twilio SendGrid' : 'live transmission';
+        const providerName = res.provider === 'twilio_sendgrid' ? 'Twilio SendGrid' : res.provider === 'twilio_comms' ? 'Twilio Comms' : res.provider === 'smtp' ? 'Google App Password SMTP' : 'live transmission';
         setEmailSuccess(`Claiming dossier successfully dispatched to ${trimmedEmail} via ${providerName} (Tracking ID: ${res.trackingId})`);
         setTimeout(() => {
           onClose();
@@ -141,7 +141,7 @@ export default function EmailDossierModal({
                 {title}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {subtitle || (caseId ? `Case Reference: ${caseId} · Twilio SendGrid Email Service` : 'Twilio SendGrid Email Service · Statutory PDF Attached')}
+                {subtitle || (caseId ? `Case Reference: ${caseId} · Statutory Claiming Dossier Dispatch` : 'Statutory Claiming Dossier Dispatch · Statutory PDF Attached')}
               </p>
             </div>
           </div>
@@ -362,7 +362,7 @@ export default function EmailDossierModal({
                 {emailSending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Dispatching via Twilio...</span>
+                    <span>Dispatching Email...</span>
                   </>
                 ) : (
                   <>

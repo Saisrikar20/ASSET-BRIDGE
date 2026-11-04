@@ -23,3 +23,4 @@ class IRDAISpider(scrapy.Spider):
             raw_text="IRDAI Master Circular: Mandates life insurers to settle death claims within 30 days of receipt of all requirements. Delays mandate payment of penal interest at Bank Rate + 2.00% p.a.",
             scraped_at=datetime.datetime.now(datetime.timezone.utc).isoformat()
         )
+
