@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { api, uploadDocument, downloadClaimingDossierPdf, saveClaimingDossierToVault, type Case, type Regulator, type Task } from '../lib/api';
 import EmailDossierModal from './EmailDossierModal';
+import RbiDelayCalculator from './RbiDelayCalculator';
 import { date, inr, inrShort, time } from '../lib/format';
 import { Badge, Button, Progress, RegChip, cx } from './ui';
 import GuideChat from './GuideChat';
@@ -775,6 +776,14 @@ export default function CaseBody({
                             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 pb-1 border-b border-slate-200/60 dark:border-slate-800">
                               Holding Transmission & Claim Checklist
                             </div>
+
+                            {h.regulator === 'RBI' && (
+                              <RbiDelayCalculator
+                                holding={h}
+                                deceasedName={c.deceasedName}
+                                caseId={c.id}
+                              />
+                            )}
 
                             <div className="space-y-2.5">
                               {tasks.map((t) => {
