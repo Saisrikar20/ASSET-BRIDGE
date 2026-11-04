@@ -237,3 +237,4 @@ def delete_user_document(doc_id: str, user_id: str) -> bool:
         
     store.remove("user_documents", lambda d: d.get("id") == doc_id)
     return True
+

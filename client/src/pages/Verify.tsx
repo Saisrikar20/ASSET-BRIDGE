@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2, CircleDashed, CircleAlert, XCircle } from 'lu
 import { api, type User, type VerifyResult } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date } from '../lib/format';
-import { Badge, Button, Card, ErrorNote, Field, Input, PageHeader, RegChip, Select } from '../components/ui';
+import { Badge, Button, Card, ErrorNote, Field, Input, PageHeader, RegChip, Select, cx } from '../components/ui';
 
 const STATUS = {
   verified: { icon: CheckCircle2, cls: 'text-emerald-600', label: 'Verified', tone: 'green' as const },
@@ -57,8 +57,39 @@ export default function Verify() {
             <ErrorNote msg={err} />
             <div className="flex flex-wrap gap-2">
               <Button loading={busy}>{results ? 'Re-verify' : 'Verify with all regulators'}</Button>
-              {meta && <Button type="button" variant="ghost" onClick={() => setForm(meta.demoIdentity)}>Fill demo identity</Button>}
+              {meta && <Button type="button" variant="ghost" onClick={() => setForm(meta.demoIdentity)}>Default (Raghavan)</Button>}
             </div>
+
+            {meta?.personas && meta.personas.length > 0 && (
+              <div className="pt-3 border-t border-slate-100">
+                <div className="text-xs font-semibold text-slate-500 mb-2">Choose Demo Persona:</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {meta.personas.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setForm({
+                        name: p.name,
+                        pan: p.pan,
+                        dob: p.dob,
+                        aadhaarLast4: p.aadhaarLast4,
+                        mobile: p.mobile,
+                        state: p.state
+                      })}
+                      className={cx(
+                        "rounded-md border px-2.5 py-1 text-xs font-medium transition cursor-pointer",
+                        form.pan === p.pan 
+                          ? "border-brand-500 bg-brand-50 text-brand-800 font-semibold" 
+                          : "border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:bg-slate-50"
+                      )}
+                      title={`${p.name} (${p.role} · ${p.state}): ${p.description}`}
+                    >
+                      {p.name.split(' ')[0]} ({p.state.split(' ')[0]})
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </form>
         </Card>
 

@@ -32,13 +32,31 @@ class AvatarBody(BaseModel):
 
 @router.get("/meta")
 def get_meta():
+    from app.aggregation.personas import PERSONAS
+    personas_summary = [
+        {
+            "id": p["id"],
+            "name": p["name"],
+            "pan": p["pan"],
+            "dob": p["dob"],
+            "state": p["state"],
+            "aadhaarLast4": p["aadhaarLast4"],
+            "mobile": p["mobile"],
+            "role": p["role"],
+            "age": p["age"],
+            "description": p["description"]
+        }
+        for p in PERSONAS.values()
+    ]
     return {
         "regulators": REGULATORS,
         "states": STATES,
         "heirDocs": STATE_HEIR_DOC,
         "demoIdentity": DEMO_IDENTITY,
+        "personas": personas_summary,
         "nationalStats": NATIONAL_STATS
     }
+
 
 @router.get("/showcase")
 def get_showcase():
@@ -127,6 +145,18 @@ def reset_demo(user: dict = Depends(get_current_user)):
     if user.get("email") == "demo@assetbridge.in":
         seed_demo_heirs(uid_val)
     return {"ok": True}
+
+class SeedBody(BaseModel):
+    persona: str = "all"
+    reset: bool = False
+
+@router.post("/demo/seed")
+def api_seed_demo(body: SeedBody):
+    """Seed multi-persona mock data into SQLite database."""
+    from seed_mock_data import seed_persona
+    seed_persona(body.persona, reset=body.reset)
+    return {"ok": True, "persona": body.persona, "message": f"Successfully seeded mock data for '{body.persona}'"}
+
 
 @router.post("/identity")
 def update_identity(body: IdentityBody, user: dict = Depends(get_current_user)):

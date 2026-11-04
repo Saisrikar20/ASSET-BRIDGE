@@ -4,7 +4,8 @@ dist/
 __pycache__/
 *.pyc
 server/data/
-fastapi-backend/data/
+fastapi-backend/data/*
+!fastapi-backend/data/sample_documents/
 .env
 .DS_Store
 .idea/

@@ -95,17 +95,19 @@ def match_identity(identity: Dict[str, Any], regulators: Optional[List[str]] = N
 def discover_assets(identity: Dict[str, Any], regulators: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     target_regulators = set(regulators or REGULATORS.keys())
     is_demo = identity.get("pan", "").upper() == DEMO_IDENTITY["pan"]
+    from app.core.identity import get_records_for_identity
+    all_recs = get_records_for_identity(identity)
     
     discovered: List[Dict[str, Any]] = []
-    for r in DEMO_RECORDS:
+    for r in all_recs:
         if r.get("regulator") in target_regulators:
             record_copy = dict(r)
             if not is_demo:
-                record_copy["registeredName"] = identity.get("name", "")
-                record_copy["registeredDob"] = identity.get("dob", "")
+                record_copy["registeredName"] = record_copy.get("registeredName") or identity.get("name", "")
+                record_copy["registeredDob"] = record_copy.get("registeredDob") or identity.get("dob", "")
             else:
                 record_copy["registeredName"] = record_copy.get("registeredName") or DEMO_IDENTITY["name"]
-                record_copy["registeredDob"] = DEMO_IDENTITY["dob"]
+                record_copy["registeredDob"] = record_copy.get("registeredDob") or DEMO_IDENTITY["dob"]
             discovered.append(record_copy)
             
     return discovered

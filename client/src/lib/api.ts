@@ -27,11 +27,25 @@ export interface Case {
   deceased: { dateOfDeath: string; registrationNo: string; place: string };
   holdings: Holding[]; heirs: Heir[]; tasks: Task[]; timeline: { at: string; text: string }[]; createdAt: string;
 }
+export interface Persona {
+  id: string;
+  name: string;
+  pan: string;
+  dob: string;
+  state: string;
+  aadhaarLast4: string;
+  mobile: string;
+  role: string;
+  age: number;
+  description: string;
+}
+
 export interface Meta {
   regulators: Record<Regulator, { name: string; covers: string; fiType: string }>;
   states: string[];
   heirDocs: Record<string, { doc: string; authority: string; days: string }>;
   demoIdentity: Identity;
+  personas?: Persona[];
   nationalStats: { label: string; value: number; regulator: Regulator }[];
 }
 export type AssetClass = 'equity' | 'debt' | 'pension' | 'gold' | 'cash';

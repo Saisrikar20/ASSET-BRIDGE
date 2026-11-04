@@ -77,16 +77,44 @@ def match_name_logic(given: str, registered: str) -> tuple[str, float]:
 def name_match(given: str, registered: str) -> str:
     return match_name_logic(given, registered)[0]
 
+def get_records_for_identity(identity: dict) -> list:
+    pan = (identity.get('pan') or '').strip().upper()
+    name = identity.get('name') or 'User'
+    dob = identity.get('dob') or '1985-05-15'
+    state = identity.get('state') or 'Tamil Nadu'
+    
+    # 1. Match Raghavan demo PAN (exact default baseline)
+    if pan == DEMO_IDENTITY['pan']:
+        return DEMO_RECORDS
+        
+    # 2. Match other defined personas
+    try:
+        from app.aggregation.personas import PERSONAS
+        for p in PERSONAS.values():
+            if p['pan'].upper() == pan:
+                return p['holdings']
+    except Exception:
+        pass
+        
+    # 3. Procedural deterministic generation for custom PAN
+    try:
+        from app.aggregation.mock_generator import generate_portfolio_for_pan
+        return generate_portfolio_for_pan(pan, name, dob, state)
+    except Exception:
+        return DEMO_RECORDS
+
 def query_regulator(regulator: str, identity: dict) -> list:
     is_demo = identity.get('pan', '').upper() == DEMO_IDENTITY['pan']
-    recs = [r for r in DEMO_RECORDS if r['regulator'] == regulator]
+    all_recs = get_records_for_identity(identity)
+    recs = [r for r in all_recs if r.get('regulator') == regulator]
     out = []
     for r in recs:
         c = dict(r)
         c['registeredName'] = c.get('registeredName') or (DEMO_IDENTITY['name'] if is_demo else identity.get('name', ''))
-        c['registeredDob'] = DEMO_IDENTITY['dob'] if is_demo else identity.get('dob', '')
+        c['registeredDob'] = c.get('registeredDob') or (DEMO_IDENTITY['dob'] if is_demo else identity.get('dob', ''))
         out.append(c)
     return out
+
 
 def verify_identity(identity: dict) -> list:
     out = []

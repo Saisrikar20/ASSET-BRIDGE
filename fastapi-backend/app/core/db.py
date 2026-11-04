@@ -70,3 +70,4 @@ def execute_cmd(sql: str, params: Tuple[Any, ...] = ()) -> int:
     cursor = conn.cursor()
     cursor.execute(sql, params)
     return cursor.rowcount
+

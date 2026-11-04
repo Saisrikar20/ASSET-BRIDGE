@@ -1,0 +1,25 @@
+================================================================================
+LIFE INSURANCE CORPORATION OF INDIA (LIC)
+DIVISIONAL OFFICE I · ANNA SALAI, CHENNAI - 600002
+DEATH CLAIM INTIMATION & STATUTORY NOTICE (FORM NO. 3783 / FORM A)
+================================================================================
+
+Policy Reference 1: POL 7124XX09 · LIC Jeevan Anand (with Profits)
+- Life Assured      : RAGHAVAN R
+- Sum Assured       : INR 10,00,000.00
+- Accrued Bonus     : INR 2,45,000.00
+- Total Claim Value : INR 12,45,000.00
+- Registered Nominee: MEENAKSHI R (Wife) · Status: VALID
+
+Policy Reference 2: POL 6630XX55 · LIC Jeevan Saral (Matured Unpaid)
+- Policy Status     : Matured on 20/12/2019 (Unclaimed Maturity Proceeds)
+- Payable Balance   : INR 2,87,000.00
+- Registered Nominee: SMT. LAKSHMI R (Mother) · Status: RECORDED AS DECEASED
+
+IMPORTANT STATUTORY CLAIM NOTICE FOR POLICY 6630XX55:
+Because the designated nominee (Smt. Lakshmi R) has predeceased the Life Assured,
+the nomination has become inoperative under Section 39 of the Insurance Act, 1938.
+Proceeds can only be released to surviving legal heirs upon production of:
+1. Tahsildar Legal Heir Certificate or Court Succession Certificate.
+2. Consent / No-Objection Affidavit (Form 3801) from other adult legal heirs.
+3. Original Policy Document Bond and Death Certificate of Life Assured.

@@ -1,0 +1,35 @@
+================================================================================
+CONSOLIDATED ACCOUNT STATEMENT (CAS) · CAMS & KFINTECH
+MUTUAL FUND & DEMAT HOLDINGS STATEMENT (SEBI REGULATED)
+Generated Date: 15/10/2026 | Statement Period: 01/04/2025 to 30/09/2026
+Primary Holder: RAGHAVAN R | PAN: ABCPI1234K | Email: r.raghavan@demo.local
+================================================================================
+
+1. MUTUAL FUND FOLIOS (via CAMS)
+--------------------------------------------------------------------------------
+Folio Number: 1182XX44 | AMC: SBI Mutual Fund
+Scheme Name : SBI Bluechip Fund - Direct Plan - Growth (ISIN: INF200K01123)
+Units       : 12,450.210 | Nav: INR 74.401 | Valuation: INR 9,26,300.00
+Nominee     : [NOT REGISTERED] · RISK ALERT: HIGH
+Bank Mandate: State Bank of India A/C XXXX4417
+
+Folio Number: 5530XX19 | AMC: HDFC Mutual Fund
+Scheme Name : HDFC Top 100 Fund - Regular Plan - Growth
+Units       : 2,100.000 | Valuation: INR 2,14,800.00 | Status: Inoperative / Unclaimed
+Nominee     : MEENAKSHI R (Spouse) - Registered
+Last Txn    : 11/03/2016 (Dividend Reinvestment)
+
+2. DEMAT HOLDINGS (via CDSL & Zerodha)
+--------------------------------------------------------------------------------
+Demat A/C (BO ID) : 1208XXXX3321 | DP Name: Zerodha Broking Limited
+Total Portfolio Value: INR 13,48,000.00 | Nomination Status: VALID (Meenakshi R 100%)
+Major Holdings:
+- RELIANCE INDUSTRIES LTD (50 Units · Val: INR 1,45,000.00)
+- TATA CONSULTANCY SERVICES (40 Units · Val: INR 1,60,000.00)
+- HDFC BANK LTD (120 Units · Val: INR 2,10,000.00)
+- ICICI PRUDENTIAL NIFTY ETF (800 Units · Val: INR 2,24,000.00)
+- BHARAT ELECTRONICS LTD (600 Units · Val: INR 1,86,000.00)
+
+Statutory Transmission Guidelines:
+Submit Transmission Request Form (Annexure C) along with Client Master List (CML)
+duly attested by Depository Participant.
