@@ -1,16 +1,65 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ArrowRight, BellOff, BookOpen, CheckCircle2, Compass, 
-  HeartHandshake, Radio, Users 
+import {
+  ArrowRight,
+  BellOff,
+  BookOpen,
+  CheckCircle2,
+  Compass,
+  HeartHandshake,
+  Users,
 } from 'lucide-react';
 import { api, type Alert, type Heir, type Holding } from '../lib/api';
 import { useLive, useLiveStatus } from '../lib/live';
 import { inr, time } from '../lib/format';
-import { Badge, Button, Card, Empty, ErrorNote, Input, PageHeader, RegChip, Select, cx } from '../components/ui';
+import { Button, ErrorNote, Input, RegChip, Select, cx } from '../components/ui';
 
 const NOMINEE_KINDS = ['nominee_missing', 'nominee_deceased', 'nominee_minor'];
 const RELATIONS = ['Spouse', 'Son', 'Daughter', 'Mother', 'Father', 'Brother', 'Sister', 'Other'];
+
+type FilterKey = 'all' | 'high' | 'medium' | 'low' | 'resolved';
+
+function SeverityChip({
+  severity,
+  resolved,
+}: {
+  severity: Alert['severity'];
+  resolved: boolean;
+}) {
+  if (resolved) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full ring-1 ring-emerald-200 dark:ring-emerald-900/60">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        Resolved
+      </span>
+    );
+  }
+
+  if (severity === 'high') {
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-full ring-1 ring-rose-200 dark:ring-rose-900/60">
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+        High
+      </span>
+    );
+  }
+
+  if (severity === 'medium') {
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full ring-1 ring-amber-200 dark:ring-amber-900/60">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+        Medium
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full ring-1 ring-slate-200 dark:ring-slate-700">
+      <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+      Low
+    </span>
+  );
+}
 
 export default function Alerts() {
   const nav = useNavigate();
@@ -18,17 +67,24 @@ export default function Alerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [holdings, setHoldings] = useState<Record<string, Holding>>({});
   const [heirs, setHeirs] = useState<Heir[]>([]);
-  const [tab, setTab] = useState<'open' | 'resolved'>('open');
+  const [filter, setFilter] = useState<FilterKey>('all');
   const [editing, setEditing] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
 
   const load = () => {
-    api<{ alerts: Alert[] }>('/alerts').then((r) => setAlerts(r.alerts));
-    api<{ holdings: Holding[] }>('/holdings').then((r) => setHoldings(Object.fromEntries(r.holdings.map((h) => [h.id, h]))));
+    api<{ alerts: Alert[] }>('/alerts')
+      .then((r) => setAlerts(r.alerts))
+      .catch(() => {});
+    api<{ holdings: Holding[] }>('/holdings')
+      .then((r) => setHoldings(Object.fromEntries(r.holdings.map((h) => [h.id, h]))))
+      .catch(() => {});
   };
+
   useEffect(() => {
     load();
-    api<{ heirs: Heir[] }>('/heirs').then((r) => setHeirs(r.heirs));
+    api<{ heirs: Heir[] }>('/heirs')
+      .then((r) => setHeirs(r.heirs))
+      .catch(() => {});
   }, []);
 
   useLive((e) => {
@@ -36,146 +92,508 @@ export default function Alerts() {
       setAlerts((a) => [e.data, ...a.filter((x) => x.id !== e.data.id)]);
       setFlash(e.data.id);
       setTimeout(() => setFlash(null), 1500);
-      api<{ holdings: Holding[] }>('/holdings').then((r) => setHoldings(Object.fromEntries(r.holdings.map((h) => [h.id, h]))));
+      api<{ holdings: Holding[] }>('/holdings')
+        .then((r) => setHoldings(Object.fromEntries(r.holdings.map((h) => [h.id, h]))))
+        .catch(() => {});
     }
-    if (e.type === 'alert_resolved') setAlerts((a) => a.map((x) => (x.id === e.data.id ? e.data : x)));
+    if (e.type === 'alert_resolved') {
+      setAlerts((a) => a.map((x) => (x.id === e.data.id ? e.data : x)));
+    }
   });
 
   const reactivate = async (holdingId: string) => {
     await api(`/holdings/${holdingId}/reactivate`, { body: {} });
     load();
   };
+
   const dismiss = async (id: string) => {
     await api(`/alerts/${id}/resolve`, { body: {} });
     load();
   };
 
-  const list = alerts.filter((a) => (tab === 'open' ? !a.resolved : a.resolved));
-  const counts = { high: 0, medium: 0, low: 0 };
-  alerts.filter((a) => !a.resolved).forEach((a) => counts[a.severity]++);
+  // Metrics
+  const openAlerts = alerts.filter((a) => !a.resolved);
+  const resolvedAlerts = alerts.filter((a) => a.resolved);
+  const highCount = openAlerts.filter((a) => a.severity === 'high').length;
+  const medCount = openAlerts.filter((a) => a.severity === 'medium').length;
+  const lowCount = openAlerts.filter((a) => a.severity === 'low').length;
+
+  // Filtered List
+  const list = useMemo(() => {
+    if (filter === 'resolved') return resolvedAlerts;
+    if (filter === 'all') return openAlerts;
+    return openAlerts.filter((a) => a.severity === filter);
+  }, [openAlerts, resolvedAlerts, filter]);
 
   return (
-    <>
-      <PageHeader
-        step="Step 03 · Alert"
-        title="Nominee-gap alerts"
-        subtitle="Every gap here is something your family would otherwise discover only after it's too late to fix with a single form."
-        action={<div className="flex items-center gap-2 text-xs font-medium text-slate-500"><Radio className={cx('h-4 w-4', connected ? 'text-emerald-500' : 'text-slate-400')} />{connected ? 'Live' : 'Offline'}</div>}
-      />
-
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {(['open', 'resolved'] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={cx('cursor-pointer rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition', tab === t ? 'bg-ink text-surface' : 'bg-surface text-slate-600 ring-1 ring-slate-200')}>
-            {t} ({alerts.filter((a) => (t === 'open' ? !a.resolved : a.resolved)).length})
-          </button>
-        ))}
-        <div className="ml-auto flex gap-2 text-xs">
-          <Badge tone="red">{counts.high} high</Badge><Badge tone="amber">{counts.medium} medium</Badge><Badge>{counts.low} low</Badge>
+    <div className="space-y-6">
+      {/* STEP 2 — Header */}
+      <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+            STEP 03 / ALERTS
+          </div>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+            Alerts
+          </h1>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            Issues that need your attention.
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+          <span
+            className={cx(
+              'h-2 w-2 rounded-full',
+              connected ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
+            )}
+          />
+          <span>{connected ? 'Live AA sync' : 'Demo mode'}</span>
         </div>
       </div>
 
+      {/* STEP 3 — Compact Summary Metrics */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+        <button
+          type="button"
+          onClick={() => setFilter('all')}
+          className={cx(
+            'rounded-xl border p-3 text-left transition cursor-pointer',
+            filter === 'all'
+              ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 shadow-sm'
+              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-slate-300'
+          )}
+        >
+          <div
+            className={cx(
+              'text-[10px] uppercase font-mono font-semibold',
+              filter === 'all' ? 'text-slate-300 dark:text-slate-600' : 'text-slate-400'
+            )}
+          >
+            Open Alerts
+          </div>
+          <div className="text-xl font-bold tracking-tight mt-0.5 tabular-nums">
+            {openAlerts.length}
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilter('high')}
+          className={cx(
+            'rounded-xl border p-3 text-left transition cursor-pointer',
+            filter === 'high'
+              ? 'border-rose-600 bg-rose-600 text-white shadow-sm'
+              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-rose-300'
+          )}
+        >
+          <div
+            className={cx(
+              'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
+              filter === 'high' ? 'text-rose-100' : 'text-slate-400'
+            )}
+          >
+            <span
+              className={cx('h-1.5 w-1.5 rounded-full', filter === 'high' ? 'bg-white' : 'bg-rose-500')}
+            />
+            High
+          </div>
+          <div
+            className={cx(
+              'text-xl font-bold tracking-tight mt-0.5 tabular-nums',
+              filter === 'high' ? 'text-white' : 'text-rose-600 dark:text-rose-400'
+            )}
+          >
+            {highCount}
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilter('medium')}
+          className={cx(
+            'rounded-xl border p-3 text-left transition cursor-pointer',
+            filter === 'medium'
+              ? 'border-amber-600 bg-amber-600 text-white shadow-sm'
+              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-amber-300'
+          )}
+        >
+          <div
+            className={cx(
+              'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
+              filter === 'medium' ? 'text-amber-100' : 'text-slate-400'
+            )}
+          >
+            <span
+              className={cx(
+                'h-1.5 w-1.5 rounded-full',
+                filter === 'medium' ? 'bg-white' : 'bg-amber-500'
+              )}
+            />
+            Medium
+          </div>
+          <div
+            className={cx(
+              'text-xl font-bold tracking-tight mt-0.5 tabular-nums',
+              filter === 'medium' ? 'text-white' : 'text-amber-600 dark:text-amber-400'
+            )}
+          >
+            {medCount}
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilter('low')}
+          className={cx(
+            'rounded-xl border p-3 text-left transition cursor-pointer',
+            filter === 'low'
+              ? 'border-slate-700 bg-slate-700 text-white shadow-sm'
+              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-slate-300'
+          )}
+        >
+          <div
+            className={cx(
+              'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
+              filter === 'low' ? 'text-slate-200' : 'text-slate-400'
+            )}
+          >
+            <span
+              className={cx('h-1.5 w-1.5 rounded-full', filter === 'low' ? 'bg-white' : 'bg-slate-400')}
+            />
+            Low
+          </div>
+          <div className="text-xl font-bold tracking-tight mt-0.5 tabular-nums">
+            {lowCount}
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilter('resolved')}
+          className={cx(
+            'rounded-xl border p-3 text-left transition cursor-pointer col-span-2 sm:col-span-1',
+            filter === 'resolved'
+              ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
+              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-emerald-300'
+          )}
+        >
+          <div
+            className={cx(
+              'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
+              filter === 'resolved' ? 'text-emerald-100' : 'text-slate-400'
+            )}
+          >
+            <span
+              className={cx(
+                'h-1.5 w-1.5 rounded-full',
+                filter === 'resolved' ? 'bg-white' : 'bg-emerald-500'
+              )}
+            />
+            Resolved
+          </div>
+          <div
+            className={cx(
+              'text-xl font-bold tracking-tight mt-0.5 tabular-nums',
+              filter === 'resolved' ? 'text-white' : 'text-emerald-600 dark:text-emerald-400'
+            )}
+          >
+            {resolvedAlerts.length}
+          </div>
+        </button>
+      </div>
+
+      {/* STEP 4 — Filter Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+        {(['all', 'high', 'medium', 'low', 'resolved'] as const).map((f) => {
+          const label =
+            f === 'all'
+              ? `All open (${openAlerts.length})`
+              : f === 'high'
+                ? `High (${highCount})`
+                : f === 'medium'
+                  ? `Medium (${medCount})`
+                  : f === 'low'
+                    ? `Low (${lowCount})`
+                    : `Resolved (${resolvedAlerts.length})`;
+          return (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={cx(
+                'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
+                filter === f
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* STEP 5 & 6 — Alert List */}
       {list.length === 0 ? (
-        <Empty icon={tab === 'open' ? <CheckCircle2 /> : <BellOff />} title={tab === 'open' ? 'No open alerts' : 'Nothing resolved yet'} body={tab === 'open' ? 'Either everything is in order, or you haven\'t mapped holdings yet.' : 'Fix an alert and it will move here.'} />
+        <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900/40">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mb-2">
+            {filter === 'resolved' ? (
+              <BellOff className="h-5 w-5" />
+            ) : (
+              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+            )}
+          </div>
+          <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+            {filter === 'resolved'
+              ? 'No resolved alerts yet'
+              : filter === 'all'
+                ? 'No open alerts'
+                : `No ${filter}-severity alerts`}
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            {filter === 'resolved'
+              ? 'Resolve an alert above and it will be recorded here.'
+              : 'All holdings are compliant or no issues have been detected.'}
+          </p>
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm">
           {list.map((a) => {
             const h = holdings[a.holdingId];
             const isNominee = NOMINEE_KINDS.includes(a.kind);
             return (
-              <Card key={a.id} className={cx('p-4 transition', flash === a.id && 'ring-2 ring-brand-500', a.resolved && 'opacity-70')}>
-                <div className="flex flex-wrap items-start gap-3">
-                  <span className={cx('mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full', a.resolved ? 'bg-emerald-500' : a.severity === 'high' ? 'bg-rose-500' : a.severity === 'medium' ? 'bg-amber-500' : 'bg-slate-400')} />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-semibold text-ink">{a.title}</span>
+              <div
+                key={a.id}
+                className={cx(
+                  'p-4 sm:px-5 sm:py-3.5 transition-colors',
+                  flash === a.id && 'bg-brand-50/60 dark:bg-brand-950/30',
+                  a.resolved
+                    ? 'opacity-65 hover:opacity-100'
+                    : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/30'
+                )}
+              >
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 lg:gap-4">
+                  {/* Left Column: Details */}
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <SeverityChip severity={a.severity} resolved={a.resolved} />
+                      <span className="font-semibold text-sm text-slate-900 dark:text-white">
+                        {a.title}
+                      </span>
                       <RegChip code={a.regulator} />
-                      {!a.resolved && <Badge tone={a.severity === 'high' ? 'red' : a.severity === 'medium' ? 'amber' : 'slate'}>{a.severity}</Badge>}
                     </div>
-                    <p className="mt-1 text-sm text-slate-600">{a.detail}</p>
-                    {h && <p className="mt-1 text-xs text-slate-400">{h.type} · {inr(h.value)} · raised {time(a.createdAt)}</p>}
+
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {a.detail}
+                    </p>
+
+                    {h && (
+                      <div className="pt-0.5 text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-2 flex-wrap font-mono">
+                        <span>{h.institution}</span>
+                        <span>·</span>
+                        <span>{h.ref}</span>
+                        <span>·</span>
+                        <span className="font-sans font-medium text-slate-700 dark:text-slate-300">
+                          {h.type}
+                        </span>
+                        <span>·</span>
+                        <span className="font-sans font-semibold text-slate-900 dark:text-white tabular-nums">
+                          {inr(h.value)}
+                        </span>
+                        <span>·</span>
+                        <span className="font-sans">
+                          Raised {time(a.createdAt)}
+                        </span>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Right Column: Actions */}
                   {!a.resolved && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-800">
+                      {/* Primary Action */}
+                      {isNominee ? (
+                        <Button
+                          size="sm"
+                          onClick={() => setEditing(editing === a.id ? null : a.id)}
+                        >
+                          {editing === a.id
+                            ? 'Close'
+                            : a.kind === 'nominee_minor'
+                              ? 'Add guardian'
+                              : 'Update nominee'}
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => reactivate(a.holdingId)}
+                        >
+                          {a.kind === 'name_mismatch'
+                            ? 'Correct name'
+                            : 'Re-KYC & reactivate'}
+                        </Button>
+                      )}
+
+                      {/* Secondary Action: Ask AI */}
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => nav('/app/guide?q=' + encodeURIComponent(`How do I resolve this alert: ${a.title} on ${a.regulator}?`))}
-                        className="gap-1 text-xs"
+                        onClick={() =>
+                          nav(
+                            '/app/guide?q=' +
+                              encodeURIComponent(
+                                `How do I resolve this alert: ${a.title} on ${a.regulator}?`
+                              )
+                          )
+                        }
                       >
                         <BookOpen className="h-3.5 w-3.5" />
-                        Ask AI
+                        <span>Ask AI</span>
                       </Button>
-                      {isNominee ? (
-                        <Button size="sm" onClick={() => setEditing(editing === a.id ? null : a.id)}>{a.kind === 'nominee_minor' ? 'Add guardian' : 'Update nominee'}</Button>
-                      ) : (
-                        <Button size="sm" onClick={() => reactivate(a.holdingId)}>{a.kind === 'name_mismatch' ? 'Correct name' : 'Re-KYC & reactivate'}</Button>
-                      )}
-                      <Button size="sm" variant="ghost" onClick={() => dismiss(a.id)}>Dismiss</Button>
+
+                      {/* Tertiary Action: Dismiss */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => dismiss(a.id)}
+                        className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  )}
+
+                  {a.resolved && (
+                    <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium shrink-0 pt-1 lg:pt-0">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      <span>Resolved</span>
                     </div>
                   )}
                 </div>
-                {editing === a.id && h && <NomineeForm holding={h} heirs={heirs} minor={a.kind === 'nominee_minor'} onDone={() => { setEditing(null); load(); }} />}
-              </Card>
+
+                {/* Inline NomineeForm */}
+                {editing === a.id && h && (
+                  <NomineeForm
+                    holding={h}
+                    heirs={heirs}
+                    minor={a.kind === 'nominee_minor'}
+                    onDone={() => {
+                      setEditing(null);
+                      load();
+                    }}
+                  />
+                )}
+              </div>
             );
           })}
         </div>
       )}
 
-      {/* Connected Next-Step Journey Cards */}
-      <div className="mt-8 pt-6 border-t border-slate-200">
-        <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-3">Next Steps in Your Succession Journey</h3>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="p-4 flex flex-col justify-between hover:border-brand-400 transition">
-            <div>
-              <div className="inline-flex p-2 rounded-lg bg-brand-50 text-brand-700 mb-2">
-                <Compass className="h-4 w-4" />
+      {/* STEP 7 — Next Steps in Your Succession Journey */}
+      <div className="pt-6 border-t border-slate-200/60 dark:border-slate-800 space-y-3">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          Next Steps in Your Succession Journey
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 flex flex-col justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300">
+                  <Compass className="h-4 w-4" />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-900 dark:text-white">
+                  Plan Financial Life
+                </h4>
               </div>
-              <h4 className="font-semibold text-ink text-sm">Plan Financial Life</h4>
-              <p className="text-xs text-slate-500 mt-1">Run simulations for retirement, goals, and inheritance distributions.</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Simulate retirement, goals, and asset allocation across life stages.
+              </p>
             </div>
-            <Button size="sm" variant="secondary" onClick={() => nav('/app/plan')} className="mt-3 w-full justify-between">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => nav('/app/plan')}
+              className="w-full justify-between text-xs"
+            >
               <span>Open Life Plan</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ArrowRight className="h-3 w-3" />
             </Button>
-          </Card>
+          </div>
 
-          <Card className="p-4 flex flex-col justify-between hover:border-brand-400 transition">
-            <div>
-              <div className="inline-flex p-2 rounded-lg bg-emerald-50 text-emerald-700 mb-2">
-                <Users className="h-4 w-4" />
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 flex flex-col justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300">
+                  <Users className="h-4 w-4" />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-900 dark:text-white">
+                  Register Family Heirs
+                </h4>
               </div>
-              <h4 className="font-semibold text-ink text-sm">Register Family Heirs</h4>
-              <p className="text-xs text-slate-500 mt-1">Add legal heirs with PAN verification so they can claim your estate.</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Add legal heirs with PAN verification so they can claim your estate.
+              </p>
             </div>
-            <Button size="sm" variant="secondary" onClick={() => nav('/app/heirs')} className="mt-3 w-full justify-between">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => nav('/app/heirs')}
+              className="w-full justify-between text-xs"
+            >
               <span>Manage Heirs</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ArrowRight className="h-3 w-3" />
             </Button>
-          </Card>
+          </div>
 
-          <Card className="p-4 flex flex-col justify-between hover:border-brand-400 transition">
-            <div>
-              <div className="inline-flex p-2 rounded-lg bg-indigo-50 text-indigo-700 mb-2">
-                <HeartHandshake className="h-4 w-4" />
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 flex flex-col justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300">
+                  <HeartHandshake className="h-4 w-4" />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-900 dark:text-white">
+                  Simulate Succession
+                </h4>
               </div>
-              <h4 className="font-semibold text-ink text-sm">Simulate Succession</h4>
-              <p className="text-xs text-slate-500 mt-1">Test the Civil Registration System (CRS) death notification flow.</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Test the Civil Registration System (CRS) death notification flow.
+              </p>
             </div>
-            <Button size="sm" variant="secondary" onClick={() => nav('/app/reunite')} className="mt-3 w-full justify-between">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => nav('/app/reunite')}
+              className="w-full justify-between text-xs"
+            >
               <span>Go to Reunite (Step 04)</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ArrowRight className="h-3 w-3" />
             </Button>
-          </Card>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
-function NomineeForm({ holding, heirs, minor, onDone }: { holding: Holding; heirs: Heir[]; minor: boolean; onDone: () => void }) {
-  const [f, setF] = useState({ name: minor ? holding.nominee?.name || '' : '', relation: minor ? holding.nominee?.relation || 'Son' : 'Spouse', guardian: '' });
+function NomineeForm({
+  holding,
+  heirs,
+  minor,
+  onDone,
+}: {
+  holding: Holding;
+  heirs: Heir[];
+  minor: boolean;
+  onDone: () => void;
+}) {
+  const [f, setF] = useState({
+    name: minor ? holding.nominee?.name || '' : '',
+    relation: minor ? holding.nominee?.relation || 'Son' : 'Spouse',
+    guardian: '',
+  });
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
   const save = async () => {
     setBusy(true);
     setErr(null);
@@ -187,25 +605,61 @@ function NomineeForm({ holding, heirs, minor, onDone }: { holding: Holding; heir
       setBusy(false);
     }
   };
+
   return (
-    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+    <div className="mt-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-4 space-y-3">
       {heirs.length > 0 && !minor && (
-        <div className="mb-3 flex flex-wrap gap-2">
-          <span className="text-xs text-slate-500">Quick pick:</span>
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-slate-400 text-[11px]">Quick pick heir:</span>
           {heirs.map((h) => (
-            <button key={h.id} onClick={() => setF({ ...f, name: h.name, relation: h.relation })} className="cursor-pointer rounded-full bg-surface px-2.5 py-0.5 text-xs font-medium text-brand-700 ring-1 ring-brand-100 hover:bg-brand-50">{h.name}</button>
+            <button
+              key={h.id}
+              type="button"
+              onClick={() => setF({ ...f, name: h.name, relation: h.relation })}
+              className="cursor-pointer rounded-full bg-white dark:bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-brand-700 dark:text-brand-300 ring-1 ring-slate-200 dark:ring-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+            >
+              {h.name} ({h.relation})
+            </button>
           ))}
         </div>
       )}
       <div className="grid gap-3 sm:grid-cols-3">
-        <Input placeholder="Nominee name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-        <Select value={f.relation} onChange={(e) => setF({ ...f, relation: e.target.value })}>{RELATIONS.map((r) => <option key={r}>{r}</option>)}</Select>
-        {minor && <Input placeholder="Guardian / appointee name" value={f.guardian} onChange={(e) => setF({ ...f, guardian: e.target.value })} />}
+        <Input
+          placeholder="Nominee full name"
+          value={f.name}
+          onChange={(e) => setF({ ...f, name: e.target.value })}
+        />
+        <Select
+          value={f.relation}
+          onChange={(e) => setF({ ...f, relation: e.target.value })}
+        >
+          {RELATIONS.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </Select>
+        {minor && (
+          <Input
+            placeholder="Guardian / appointee name"
+            value={f.guardian}
+            onChange={(e) => setF({ ...f, guardian: e.target.value })}
+          />
+        )}
       </div>
       <ErrorNote msg={err} />
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="text-xs text-slate-500">Submits a nomination update request to {holding.institution}.</span>
-        <Button size="sm" loading={busy} disabled={!f.name || (minor && !f.guardian)} onClick={save}>Submit update</Button>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs pt-1">
+        <span className="text-slate-500 dark:text-slate-400 text-[11px]">
+          Submits a statutory nomination update request to {holding.institution}.
+        </span>
+        <Button
+          size="sm"
+          loading={busy}
+          disabled={!f.name || (minor && !f.guardian)}
+          onClick={save}
+        >
+          Submit nomination update
+        </Button>
       </div>
     </div>
   );
