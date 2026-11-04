@@ -7,8 +7,9 @@ import sys
 import re
 from pathlib import Path
 
-BACKEND_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(BACKEND_DIR))
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
 from fastapi.testclient import TestClient
 from app.main import app
@@ -16,7 +17,7 @@ from app.core.store import store
 from app.aggregation.personas import PERSONAS
 from app.aggregation.mock_generator import generate_portfolio_for_pan
 from app.aggregation.pipeline import discover_assets, process_pipeline
-from seed_mock_data import seed_persona
+from app.core.seeder import seed_persona
 
 client = TestClient(app)
 PAN_RE = re.compile(r"^[A-Z]{5}[0-9]{4}[A-Z]$")

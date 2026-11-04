@@ -1,0 +1,23 @@
+{
+  "name": "asset-bridge-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Asset Bridge - India-first statutory asset claiming and succession platform",
+  "scripts": {
+    "dev": "concurrently -n \"backend,frontend\" -c \"blue.bold,green.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "node scripts/run-python.js -m uvicorn app.main:app --app-dir fastapi-backend --host 127.0.0.1 --port 8000 --reload",
+    "dev:frontend": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "start": "npm run dev",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "node scripts/run-python.js -m pytest fastapi-backend -v",
+    "test:frontend": "npm --prefix client run build",
+    "seed": "node scripts/run-python.js fastapi-backend/scripts/seed_mock_data.py --persona all",
+    "seed:reset": "node scripts/run-python.js fastapi-backend/scripts/seed_mock_data.py --persona all --reset",
+    "seed:raghavan": "node scripts/run-python.js fastapi-backend/scripts/seed_mock_data.py --persona raghavan",
+    "seed:priya": "node scripts/run-python.js fastapi-backend/scripts/seed_mock_data.py --persona priya"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

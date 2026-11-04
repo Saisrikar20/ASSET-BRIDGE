@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "backend": "uv run --with fastapi --with uvicorn --with pydantic --with httpx uvicorn app.main:app --app-dir ../fastapi-backend --port 8000 --reload",
-    "test:backend": "uv run --with fastapi --with uvicorn --with pydantic --with httpx --with pytest python -m pytest ../fastapi-backend/test_module1.py ../fastapi-backend/test_pipeline.py -v",
+    "test:backend": "pytest ../fastapi-backend/tests -v",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },

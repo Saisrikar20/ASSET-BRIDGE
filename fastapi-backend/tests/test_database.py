@@ -8,8 +8,9 @@ import sys
 from pathlib import Path
 
 # Add fastapi-backend to path
-BACKEND_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(BACKEND_DIR))
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
 from app.core.db import get_connection, query_one, query_all, transaction, init_db
 from app.core.store import store, uid

@@ -6,7 +6,7 @@
 [![React](https://img.shields.io/badge/React-19.3.1-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4.3-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
-[![Tests](https://img.shields.io/badge/Tests-100%25%20Passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-16%2F16%20Passing%20(100%25)-brightgreen.svg)]()
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.14-blue.svg?logo=python&logoColor=white)](https://www.python.org)
 
 ---
@@ -25,48 +25,121 @@
 When a family member passes away, **nothing connects their death to their money**. Families are forced into a grueling, multi-month bureaucratic chase across courts, revenue offices, and institutions.
 
 **Asset Bridge** solves this through a **two-sided financial twin**:
-1. **While Alive**: Aggregates institutional holdings under ReBIT-style consent, normalizes multi-regulator data, audits for nominee gaps in real time, and runs stochastic life projections.
+1. **While Alive**: Aggregates institutional holdings under ReBIT-style consent, normalizes multi-regulator data, audits for nominee gaps in real time, generates publication-grade statutory claiming dossiers in PDF format, and runs stochastic life projections.
 2. **Upon Death**: Detects death events via the Civil Registration System (CRS), opens an automated succession case, alerts legal heirs, and generates state-specific legal claim roadmaps with an embedded AI legal assistant.
 
 ---
 
-## System Architecture
+## Project Structure
 
-Asset Bridge is built as a hardened, high-throughput full-stack system:
+The project is structured as a unified, production-grade monorepo:
 
 ```
-+------------------------------------------------------------------------+
-|                        React 19 + TypeScript Client                    |
-|   (Vite / Tailwind CSS v4 / Code-Split Chunks / Motion Animations)     |
-|   Port: 5173  (Proxies /api and /ws to Backend)                        |
-+-----------------------------------+-+----------------------------------+
-                                    | HTTP / WebSocket (/ws)
-                                    v
-+------------------------------------------------------------------------+
-|                   Unified Python FastAPI Backend (:4000)               |
-+------------------------------------------------------------------------+
-|  1. Core Layer (app/core)                                              |
-|     - HMAC-SHA256 Auth and JWT Dependency Injection                    |
-|     - Regulatory Metadata and Demographics Engine                      |
-|     - Real-time WebSocket Alert Dispatcher (/ws)                       |
-|     - Atomic Thread-Safe Store (data/db.json)                          |
-+------------------------------------------------------------------------+
-|  2. Aggregation and Pipeline Layer (app/aggregation)                   |
-|     - Deterministic 7-Step Asset Processing Pipeline                   |
-|     - Strict PAN Regex and ITD Entity Code Validator                   |
-|     - Confidence-Scored Identity Matching (Exact / Partial / Mismatch) |
-|     - Multi-Regulator Asset Discovery and Typed Normalization          |
-|     - Non-Destructive Duplicate Detection (Zero Double-Counting)       |
-|     - Real-time Nominee Gap Auditing and Risk Categorization           |
-|     - In-Process BM25 Legal Succession RAG Assistant                   |
-+------------------------------------------------------------------------+
-|  3. Wealth Simulation Layer (app/simulation)                           |
-|     - 19 Indian Investment Instruments Catalog                         |
-|     - Month-by-Month Compound Wealth Forecaster                        |
-|     - Stochastic Monte Carlo Life and Retirement Simulator (300 Runs)  |
-|     - Portfolio Allocation and Idle-Money Cost Analyzer                |
-+------------------------------------------------------------------------+
+dexathon2026/
+├── client/                           # React 19 + TypeScript + Vite Frontend (:5173)
+│   ├── public/                       # Static public assets
+│   ├── src/
+│   │   ├── components/               # Domain UI cards, dialogs, charts & visual widgets
+│   │   │   ├── aceternity/           # Visual effects & lamp hero components
+│   │   │   ├── kokonutui/            # Dial & avatar controls
+│   │   │   ├── landing/              # Landing page interactive showcases
+│   │   │   ├── CaseBody.tsx          # Estate claim workspace & PDF dossier viewer
+│   │   │   ├── ForecastChart.tsx     # Portfolio growth visualization
+│   │   │   ├── GuideChat.tsx         # Embedded AI statutory guide chat
+│   │   │   └── ui.tsx                # Design system primitives & badges
+│   │   ├── lib/                      # Typed API clients, WebSocket live sync, auth & formatters
+│   │   │   ├── api.ts                # API client with dossier PDF & vault helpers
+│   │   │   ├── auth.tsx              # JWT authentication context
+│   │   │   ├── format.ts             # INR currency & date formatting
+│   │   │   └── live.tsx              # Reactive WebSocket subscription hook
+│   │   ├── pages/                    # 14 Full route views (Verify, Aggregate, Alerts, Reunite, etc.)
+│   │   ├── App.tsx                   # Top-level router & state provider
+│   │   └── main.tsx                  # Client entrypoint
+│   ├── package.json                  # Client scripts & dependencies
+│   └── vite.config.ts                # Vite dev server with /api and /ws reverse proxies
+├── fastapi-backend/                  # High-Throughput Python REST & WebSocket API (:8000)
+│   ├── app/
+│   │   ├── core/                     # Authentication, SQLite engine, store, live WS, seeder
+│   │   │   ├── auth.py               # Password hashing & JWT token validation
+│   │   │   ├── db.py                 # SQLite WAL engine with FTS5 search
+│   │   │   ├── live.py               # WebSocket broadcast manager
+│   │   │   ├── routers.py            # Auth, identity & demo routes
+│   │   │   ├── seeder.py             # Multi-persona database seeder
+│   │   │   └── store.py              # Thread-safe persistent data store
+│   │   ├── aggregation/              # 7-step pipeline, RAG assistant, PDF engine & personas
+│   │   │   ├── assistant.py          # NVIDIA NIM / BM25 statutory legal guide
+│   │   │   ├── documents.py          # Document vault with chunking & FTS5 search
+│   │   │   ├── mock_generator.py     # Procedural portfolio generation for any PAN
+│   │   │   ├── models.py             # Pydantic schemas for multi-regulator assets
+│   │   │   ├── pdf_generator.py      # ReportLab official statutory claiming PDF engine
+│   │   │   ├── personas.py           # 5 Comprehensive Indian investor personas
+│   │   │   ├── pipeline.py           # Deterministic 7-step asset processing pipeline
+│   │   │   └── routers.py            # Holdings, consents, cases, docs & PDF endpoints
+│   │   ├── simulation/               # Monte Carlo wealth forecaster & retirement simulator
+│   │   │   ├── catalog.py            # 19 Indian investment instruments catalog
+│   │   │   ├── life_model.py         # 300-path stochastic life simulator
+│   │   │   └── routers.py            # Simulation & forecasting endpoints
+│   │   ├── config.py                 # Environment configurations & filesystem paths
+│   │   └── main.py                   # FastAPI app instance, CORS & exception handlers
+│   ├── data/                         # Persistent storage
+│   │   ├── asset_bridge.db           # SQLite database with WAL & FTS5 virtual tables
+│   │   ├── sample_documents/         # Statutory claim affidavits & statements
+│   │   └── uploads/                  # Ingested user evidence & generated dossiers
+│   ├── knowledge/                    # 8 Statutory regulatory guides (Markdown)
+│   ├── scripts/                      # Backend administrative scripts
+│   │   └── seed_mock_data.py         # Standalone CLI seeder
+│   ├── tests/                        # 16-suite automated test harness
+│   │   ├── conftest.py               # Pytest path and environment fixtures
+│   │   ├── test_core.py              # Core auth, security and JWT tests
+│   │   ├── test_database.py          # SQLite WAL, ACID rollback & FTS5 tests
+│   │   ├── test_document_rag.py      # Document vault & multi-source RAG tests
+│   │   ├── test_mock_data.py         # Persona integrity & procedural PAN tests
+│   │   ├── test_pdf_generator.py     # PDF dossier generation & indexing tests
+│   │   └── test_pipeline.py          # 7-step asset pipeline & arithmetic tests
+│   ├── pytest.ini                    # Pytest configuration
+│   └── requirements.txt              # Backend dependencies
+├── scripts/                          # Cross-platform monorepo runners
+│   └── run-python.js                 # Cross-platform .venv Python resolution
+├── package.json                      # Monorepo orchestration & single-command runners
+├── start-backend.ps1                 # PowerShell backend launcher
+├── start-frontend.ps1                # PowerShell frontend launcher
+└── README.md                         # Project documentation
 ```
+
+---
+
+## Quick Start (Monorepo Orchestration)
+
+### Prerequisites
+* **Node.js**: 20+ (with npm)
+* **Python**: 3.11+ (virtual environment configured in `.venv`)
+
+### 1. Single-Command Launch (Backend + Frontend)
+
+From the project root directory, run:
+
+```bash
+# Starts both FastAPI (:8000) and Vite React (:5173) concurrently
+npm run dev
+```
+
+* **Frontend Web App**: [http://localhost:5173](http://localhost:5173)
+* **Backend API Docs (Swagger UI)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+### 2. Available Monorepo Scripts
+
+| Command | Action |
+| :--- | :--- |
+| `npm run dev` | Launch both FastAPI backend and Vite frontend concurrently |
+| `npm run dev:backend` | Launch FastAPI backend with live reload on `http://127.0.0.1:8000` |
+| `npm run dev:frontend` | Launch Vite frontend on `http://localhost:5173` |
+| `npm run test` | Run complete backend pytest suite + frontend typecheck & build |
+| `npm run test:backend` | Run 16-suite backend test harness (`pytest fastapi-backend`) |
+| `npm run test:frontend` | Build and typecheck React frontend (`tsc -b && vite build`) |
+| `npm run seed` | Seed all 5 personas, estate cases, documents, and chat sessions |
+| `npm run seed:reset` | Reset SQLite tables and reseed all demo personas |
+| `npm run seed:raghavan` | Seed primary demo persona (Raghavan Sundaram) |
+| `npm run seed:priya` | Seed millennial tech employee persona (Priya Sharma) |
 
 ---
 
@@ -100,120 +173,35 @@ All financial records pass through a deterministic, auditable 7-step processing 
 ### Key Engineering Principles:
 * **Zero Double-Counting**: Potential duplicates are flagged (`isDuplicate=True`, `duplicateOf=primary.id`) rather than erased. The clean `verifiableTotal` excludes duplicate values while preserving a complete regulatory audit trail.
 * **Strict Identity Safeguard**: Partial name discrepancies (e.g., `R. Raghavan` vs `Raghavan`) receive a 0.65 confidence rating and are **never** elevated to verified status.
-* **In-Process BM25 RAG**: The legal succession assistant operates directly within the FastAPI process over 8 statutory knowledge guides, executing in **< 5ms** with zero network failure mode and offline fallback.
+* **Publication-Grade PDF Engine**: ReportLab-based vector PDF generator creates official succession claiming dossiers complete with legal heir entitlement breakdowns, statutory claim forms (Form 20, DA-2, Form A), and legal affidavits.
+* **In-Process BM25 & NVIDIA NIM RAG**: The legal succession assistant operates over both statutory knowledge guides and user-uploaded estate documents indexed into SQLite FTS5.
 
 ---
 
-## Key Modules and Endpoints
+## Key Pages and Endpoints
 
 | Category | Route | Purpose | Key Responsibilities |
 | :--- | :--- | :--- | :--- |
 | **Verify** | `/app/verify` | Multi-Regulator Identity Cross-Check | Cross-matches PAN, Name, and DOB against regulatory schemas; scores confidence and flags partial discrepancies. |
 | **Aggregate** | `/app/aggregate` | Account Aggregator Consent | ReBIT-style consent handle creation; multi-regulator asset discovery and automatic ingestion. |
-| **Alerts** | `/app/alerts` | Real-time Nominee Gap Auditing | WebSocket alerts for missing nominees, deceased nominees, minor nominees without appointed guardians, and dormant/inoperative accounts. |
+| **Alerts** | `/app/alerts` | Real-time Nominee Gap Auditing | WebSocket alerts for missing nominees, deceased nominees, minor nominees without appointed guardians, and dormant accounts. |
 | **Reunite** | `/app/reunite` | Civil Registration System (CRS) Link | Ingests death events, instantiates an estate succession case, and notifies legal heirs via SMS/Email. |
-| **Transfer** | `/app/cases/:id` | Estate Settlement Checklist | State-specific succession requirements (e.g., Tahsildar Legal Heir Certificate in TN vs. Civil Court Succession Certificate in MH) + AI Assistant. |
+| **Transfer** | `/app/cases/:id` | Estate Settlement Checklist | State-specific succession requirements (e.g., Tahsildar Legal Heir Certificate in TN vs. Succession Certificate in MH) + AI Assistant. |
+| **Claim Dossier** | `/api/reports/claiming-dossier/pdf` | Statutory Claiming Dossier (PDF) | Generates official claim packet with institution-by-institution forms and legal heir signature blocks. |
 | **Heir Portal** | `/heir` | Dedicated Claimant View | Secure access for legal heirs using Case ID + Heir PAN to track and tick off claim steps. |
 | **Forecast** | `/app/forecast` | Portfolio Projection | Month-by-month compound growth across asset classes with inflation adjustment and SIP step-up. |
-| **Invest** | `/app/invest` | Investment Catalog | Curated database of 19 Indian savings and investment instruments (PPF, VPF, NPS, SGBs, mutual funds). |
 | **Life Plan** | `/app/plan` | Monte Carlo Life Simulator | 300-path stochastic simulation calculating financial independence age, success probability, and multi-generational legacy. |
-
----
-
-## Quick Start and Running Locally
-
-### Prerequisites
-* **Python**: 3.11+ (tested on Python 3.11, 3.12, and 3.14)
-* **Node.js**: 20+ (with npm)
-* **PowerShell** (Windows) or **Bash** (Linux/macOS)
-
----
-
-### Option 1: One-Click Launch (Recommended for Windows)
-
-In two separate PowerShell terminals:
-
-```powershell
-# Terminal 1: Start FastAPI Backend (Port 4000)
-.\start-backend.ps1
-
-# Terminal 2: Start React Frontend (Port 5173)
-.\start-frontend.ps1
-```
-
----
-
-### Option 2: Manual Step-by-Step Launch
-
-#### 1. Start the FastAPI Unified Backend
-```bash
-# Navigate to the backend directory
-cd fastapi-backend
-
-# Create and activate virtual environment
-python -m venv .venv
-
-# Windows PowerShell:
-.\.venv\Scripts\Activate.ps1
-# Linux / macOS:
-source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Start FastAPI server on port 4000
-uvicorn app.main:app --host 127.0.0.1 --port 4000 --reload
-```
-
-#### 2. Start the React Frontend (New Terminal)
-```bash
-# Navigate to client directory
-cd client
-
-# Install packages
-npm install
-
-# Start Vite dev server on port 5173
-npm run dev
-```
-
-Open your browser at **http://localhost:5173**.
-
----
-
-## Automated Testing and Verification
-
-Asset Bridge includes an automated test harness covering validation edge cases, duplicate handling, financial arithmetic, and security:
-
-```bash
-# Run core foundation tests
-python fastapi-backend/test_core.py
-
-# Run complete 7-step pipeline and reliability tests
-python fastapi-backend/test_pipeline.py
-```
-
-### Test Coverage Highlights:
-* **Input Validation**: Valid/invalid PAN syntax, 4th-char entity validation, empty strings, case/whitespace sanitization.
-* **Identity Matching**: Exact matches, partial name discrepancies, complete mismatches, simulated provenance tagging.
-* **Asset Discovery and Normalization**: Multi-regulator retrieval across all 7 regulators, Pydantic enum validation.
-* **Duplicate Detection**: Exact reference and heuristic duplicate detection, verifying non-destructive preservation.
-* **Double-Counting Prevention**: Validating that `verifiableTotal` strictly excludes duplicate assets.
-* **Succession and AI RAG**: In-process BM25 statutory retrieval and extractive fallback.
-* **Security and Auth**: Unauthorized access rejection (`401`), malformed JSON payload handling (`400`).
-
-**Test Results:** **100% PASS RATE across 9 test suites.**
 
 ---
 
 ## 3-Minute Live Jury Demo Script
 
-1. **Verify (`/app/verify`)**: Click *"Fill demo identity"* for Raghavan (`ABCPI1234K`) -> Click *"Verify with all regulators"*. Notice Canara Bank highlights a partial name discrepancy (`R. Raghavan`) scored at 65% and isolated from confirmed identities.
-2. **Aggregate (`/app/aggregate`)**: Click *"Approve and fetch from 5 regulators"*. Watch holdings aggregate and real-time nominee alerts stream in via WebSockets.
+1. **Verify (`/app/verify`)**: Click *"Fill demo identity"* for Raghavan (`ABCPI1234K`) -> Click *"Verify with all regulators"*. Notice Canara Bank highlights a partial name discrepancy (`R. Raghavan`) scored at 65% and isolated from confirmed identities. Click *"Download Claim Dossier (PDF)"* to inspect the generated dossier.
+2. **Aggregate (`/app/aggregate`)**: Click *"Approve and fetch from 5 regulators"*. Watch holdings aggregate and real-time nominee alerts stream in via WebSockets. Click *"Export Claim Schedule (PDF)"*.
 3. **Alerts (`/app/alerts`)**: Navigate to Alerts -> Click *"Update nominee"* on Indian Bank FD -> Assign *"Meenakshi (Spouse)"* -> Watch the alert resolve live with instant net-worth recalculation.
 4. **Reunite (`/app/reunite`)**: Submit a Civil Registration System (CRS) death report -> Case `AB-XXXX` is created, and legal heirs (Meenakshi and Divya) receive notifications.
-5. **Transfer / Case View (`/app/cases/:id`)**: Review the Tamil Nadu legal heir roadmap: Legal Heir Certificate from Tahsildar, Form 20 EPF settlement, LIC Claim Form A. Query the integrated AI legal guide.
-6. **Heir Portal (`/heir`)**: Open `/heir` in a private window with Case ID and Heir PAN `ABCPI5678M` -> The heir securely logs in to view and tick off claim steps.
+5. **Transfer / Case View (`/app/cases/:id`)**: Review the Tamil Nadu legal heir roadmap: Legal Heir Certificate from Tahsildar, Form 20 EPF settlement, LIC Claim Form A. Click *"Download Claim Dossier (PDF)"* to generate the case-specific packet. Query the integrated AI legal guide.
+6. **Heir Portal (`/heir`)**: Open `/heir` with Case ID `AB-4581` and Heir PAN `ABCPI5678M` -> The heir securely logs in to view and tick off claim steps.
 7. **Forecast and Life Plan (`/app/plan`)**: Run the Monte Carlo simulation -> 84% success rate; adjust retirement levers to see financial independence age dynamically shift.
 
 ---

@@ -153,7 +153,7 @@ class SeedBody(BaseModel):
 @router.post("/demo/seed")
 def api_seed_demo(body: SeedBody):
     """Seed multi-persona mock data into SQLite database."""
-    from seed_mock_data import seed_persona
+    from app.core.seeder import seed_persona
     seed_persona(body.persona, reset=body.reset)
     return {"ok": True, "persona": body.persona, "message": f"Successfully seeded mock data for '{body.persona}'"}
 

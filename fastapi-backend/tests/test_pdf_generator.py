@@ -7,8 +7,9 @@ import sys
 from pathlib import Path
 from fastapi.testclient import TestClient
 
-BASE_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(BASE_DIR))
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
 from app.main import app
 from app.aggregation.personas import PERSONAS
@@ -83,3 +84,4 @@ if __name__ == "__main__":
     print("=" * 60)
     print("ALL PDF GENERATOR TESTS PASSED SUCCESSFULLY! (100%)")
     print("=" * 60)
+
