@@ -1,24 +1,36 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, ArrowRight, CheckCircle2, Circle, RotateCcw, ShieldAlert, Users, Wallet } from 'lucide-react';
-import { api, type Alert, type Heir, type Holding, type Summary } from '../lib/api';
+import { ArrowRight, CheckCircle2, RotateCcw } from 'lucide-react';
+import { api, type Alert, type Heir, type Holding, type Summary, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useLive } from '../lib/live';
-import { inrShort, REG_STYLE } from '../lib/format';
-import { Badge, Button, Card, GlowCard, PageHeader, RegChip, cx } from '../components/ui';
+import { inrShort } from '../lib/format';
+import { RegChip, cx } from '../components/ui';
+
+const REGULATOR_CATALOG: { code: Regulator; name: string; category: string }[] = [
+  { code: 'RBI', name: 'RBI', category: 'Bank deposits' },
+  { code: 'EPFO', name: 'EPFO', category: 'Provident fund & pension' },
+  { code: 'IRDAI', name: 'IRDAI', category: 'Private life insurance' },
+  { code: 'SEBI', name: 'SEBI', category: 'Mutual funds & demat' },
+  { code: 'LIC', name: 'LIC', category: 'LIC policies' },
+  { code: 'PFRDA', name: 'PFRDA', category: 'NPS & Atal Pension' },
+  { code: 'DOP', name: 'DOP', category: 'PPF, NSC & small savings' },
+];
 
 export default function Dashboard() {
-  const { user, meta, refresh } = useAuth();
+  const { user, refresh } = useAuth();
   const [data, setData] = useState<{ holdings: Holding[]; summary: Summary } | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [heirs, setHeirs] = useState<Heir[]>([]);
 
   const load = () => {
-    api<{ holdings: Holding[]; summary: Summary }>('/holdings').then(setData);
-    api<{ alerts: Alert[] }>('/alerts').then((r) => setAlerts(r.alerts));
-    api<{ heirs: Heir[] }>('/heirs').then((r) => setHeirs(r.heirs));
+    api<{ holdings: Holding[]; summary: Summary }>('/holdings').then(setData).catch(() => {});
+    api<{ alerts: Alert[] }>('/alerts').then((r) => setAlerts(r.alerts)).catch(() => {});
+    api<{ heirs: Heir[] }>('/heirs').then((r) => setHeirs(r.heirs)).catch(() => {});
   };
+
   useEffect(load, []);
+
   useLive((e) => {
     if (e.type === 'alert') setAlerts((a) => [...a.filter((x) => x.id !== e.data.id), e.data]);
     if (e.type === 'alert_resolved') load();
@@ -32,113 +44,275 @@ export default function Dashboard() {
   };
 
   const open = alerts.filter((a) => !a.resolved);
+
   const steps = [
     { done: !!user?.identity, label: 'Verify your identity with every regulator', to: '/app/verify' },
     { done: !!data?.holdings.length, label: 'Give consent to map your holdings', to: '/app/aggregate' },
     { done: !!data?.holdings.length && open.filter((a) => a.severity === 'high').length === 0, label: 'Fix high-priority nominee gaps', to: '/app/alerts' },
     { done: heirs.length > 0, label: 'Register the heirs who should be reunited', to: '/app/heirs' },
   ];
+
+  const completedCount = steps.filter((s) => s.done).length;
+  const nextStep = steps.find((s) => !s.done);
+
   const holdings = data?.holdings || [];
   const nominated = holdings.filter((h) => h.nominee?.status === 'valid').length;
   const coverage = holdings.length ? nominated / holdings.length : 0;
-  const max = Math.max(1, ...(data?.summary.byRegulator.map((r) => r.value) || [1]));
+
+  const firstName = user?.identity?.name
+    ? user.identity.name.split(' ')[0]
+    : user?.name
+      ? user.name.split(' ')[0]
+      : 'Raghavan';
 
   return (
-    <>
-      <PageHeader
-        title={`Namaste, ${user?.identity?.name.split(' ')[0] || user?.name.split(' ')[0]}`}
-        subtitle="Your financial twin — every holding across every regulator, and how ready your family is to claim it."
-        action={<Button variant="ghost" size="sm" onClick={reset}><RotateCcw className="h-4 w-4" /> Reset demo</Button>}
-      />
-
-      {user?.deceased && (
-        <Card className="mb-6 border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          A death registration was received for this twin ({user.deceased.registrationNo}). The estate case is under <Link to="/app/cases" className="font-semibold underline">Transfer</Link>.
-        </Card>
-      )}
-
-      {steps.some((s) => !s.done) && (
-        <Card className="mb-6 p-5">
-          <div className="mb-3 text-sm font-semibold text-ink">Set up your twin · {steps.filter((s) => s.done).length}/4</div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {steps.map((s) => (
-              <Link key={s.label} to={s.to} className={cx('flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm transition', s.done ? 'border-emerald-100 bg-emerald-50/50 text-slate-500' : 'border-slate-200 hover:border-brand-500 hover:bg-brand-50')}>
-                {s.done ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Circle className="h-4 w-4 text-slate-300" />}
-                <span className={cx('flex-1', s.done && 'line-through')}>{s.label}</span>
-                {!s.done && <ArrowRight className="h-4 w-4 text-slate-400" />}
-              </Link>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat icon={<Wallet className="h-5 w-5" />} label="Total mapped" value={inrShort(data?.summary.total || 0)} sub={`${data?.summary.count || 0} holdings`} />
-        <Stat icon={<ShieldAlert className="h-5 w-5" />} label="At risk of going unclaimed" value={inrShort(data?.summary.atRisk || 0)} sub="No valid nominee or inactive" tone="red" />
-        <Stat icon={<AlertTriangle className="h-5 w-5" />} label="Open alerts" value={String(open.length)} sub={`${open.filter((a) => a.severity === 'high').length} high priority`} tone="amber" />
-        <Stat icon={<Users className="h-5 w-5" />} label="Nominee coverage" value={`${Math.round(coverage * 100)}%`} sub={`${heirs.length} heirs registered`} />
+    <div className="space-y-6">
+      {/* A. Welcome header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200/60 dark:border-slate-800">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+            Namaste, {firstName}.
+          </h1>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            Your financial life, in one place.
+          </p>
+        </div>
+        <button
+          onClick={reset}
+          className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer self-start sm:self-center"
+          title="Reset demo data"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+          <span>Reset demo</span>
+        </button>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <Card className="p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-ink">Holdings by regulator</h2>
-            <Link to="/app/aggregate" className="text-sm font-semibold text-brand-700">All holdings →</Link>
+      {/* Deceased Estate Case Notice (if applicable) */}
+      {user?.deceased && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900 flex items-center justify-between">
+          <span>A death registration was received for this twin ({user.deceased.registrationNo}).</span>
+          <Link to="/app/cases" className="font-semibold underline ml-2">Transfer Case &rarr;</Link>
+        </div>
+      )}
+
+      {/* B. Compact Setup progress */}
+      {nextStep && (
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 transition-all">
+          <div className="flex items-center justify-between text-xs mb-2">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                SETUP YOUR TWIN
+              </span>
+              <span className="text-slate-300 dark:text-slate-700">·</span>
+              <span className="font-medium text-slate-700 dark:text-slate-300">
+                Step {completedCount + 1}: {nextStep.label}
+              </span>
+            </div>
+            <span className="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
+              {completedCount}/4
+            </span>
           </div>
-          <div className="space-y-4">
-            {(data?.summary.byRegulator || []).map((r) => (
-              <div key={r.regulator}>
-                <div className="mb-1.5 flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <RegChip code={r.regulator} />
-                    <span className="text-slate-600">{meta?.regulators[r.regulator].covers}</span>
+
+          <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 mb-3">
+            <div
+              className="h-full rounded-full bg-slate-900 dark:bg-brand-500 transition-all duration-500"
+              style={{ width: `${(completedCount / 4) * 100}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-end">
+            <Link
+              to={nextStep.to}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 transition-colors"
+            >
+              <span>Continue</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* C. Four Financial Metrics (Compact Single Row on Desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800/80 overflow-hidden">
+        {/* Total mapped */}
+        <div className="p-4 sm:p-5">
+          <div className="text-[11px] font-medium tracking-wide uppercase text-slate-400 dark:text-slate-500">
+            Total mapped
+          </div>
+          <div className="mt-1.5 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
+            {inrShort(data?.summary.total || 0)}
+          </div>
+          <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            {data?.summary.count || 0} holdings
+          </div>
+        </div>
+
+        {/* At risk */}
+        <div className="p-4 sm:p-5">
+          <div className="text-[11px] font-medium tracking-wide uppercase text-slate-400 dark:text-slate-500">
+            At risk
+          </div>
+          <div className="mt-1.5 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
+            {inrShort(data?.summary.atRisk || 0)}
+          </div>
+          <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            {(data?.summary.atRisk || 0) > 0 ? (
+              <span className="text-rose-600 dark:text-rose-400 font-medium">No valid nominee</span>
+            ) : (
+              'Protected'
+            )}
+          </div>
+        </div>
+
+        {/* Open alerts */}
+        <div className="p-4 sm:p-5">
+          <div className="text-[11px] font-medium tracking-wide uppercase text-slate-400 dark:text-slate-500">
+            Open alerts
+          </div>
+          <div className="mt-1.5 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
+            {open.length}
+          </div>
+          <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            {open.filter((a) => a.severity === 'high').length} high priority
+          </div>
+        </div>
+
+        {/* Nominee coverage */}
+        <div className="p-4 sm:p-5">
+          <div className="text-[11px] font-medium tracking-wide uppercase text-slate-400 dark:text-slate-500">
+            Nominee coverage
+          </div>
+          <div className="mt-1.5 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
+            {Math.round(coverage * 100)}%
+          </div>
+          <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            {heirs.length} registered heirs
+          </div>
+        </div>
+      </div>
+
+      {/* D & E. Holdings by Regulator + Needs Attention */}
+      <div className="grid gap-6 lg:grid-cols-12">
+        {/* D. Holdings by regulator (7 cols) */}
+        <div className="lg:col-span-7 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 sm:p-5">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Holdings by Regulator
+            </h2>
+            <Link
+              to="/app/aggregate"
+              className="text-xs font-medium text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+            >
+              All holdings &rarr;
+            </Link>
+          </div>
+
+          {!holdings.length ? (
+            <div className="py-8 text-center text-xs text-slate-400">
+              <p>Nothing mapped yet.</p>
+              <Link
+                to="/app/aggregate"
+                className="mt-2 inline-flex items-center gap-1 font-medium text-brand-700 dark:text-brand-400 hover:underline"
+              >
+                Map holdings under consent &rarr;
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+              {REGULATOR_CATALOG.map((reg) => {
+                const regData = (data?.summary.byRegulator || []).find((r) => r.regulator === reg.code);
+                const hasData = regData && regData.count > 0;
+                return (
+                  <div key={reg.code} className="flex items-center justify-between py-2 text-xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <RegChip code={reg.code} />
+                      <span className="truncate text-slate-600 dark:text-slate-400">{reg.category}</span>
+                    </div>
+                    <div className="text-right shrink-0 font-mono">
+                      {hasData ? (
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {inrShort(regData.value)}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300 dark:text-slate-600">—</span>
+                      )}
+                    </div>
                   </div>
-                  <span className="font-semibold text-ink">{r.count ? inrShort(r.value) : '—'}</span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* E. Needs attention (5 cols) */}
+        <div className="lg:col-span-5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 sm:p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Needs Attention
+              </h2>
+              <Link
+                to="/app/alerts"
+                className="text-xs font-medium text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+              >
+                View all ({open.length}) &rarr;
+              </Link>
+            </div>
+
+            {open.length === 0 ? (
+              <div className="py-8 text-center">
+                <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 mb-1.5">
+                  <CheckCircle2 className="h-4 w-4" />
                 </div>
-                <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                  <div className={cx('h-full rounded-full transition-all duration-700', REG_STYLE[r.regulator].bar)} style={{ width: `${(r.value / max) * 100}%` }} />
+                <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  You're all caught up.
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  Zero unresolved nominee gaps.
                 </div>
               </div>
-            ))}
-          </div>
-          {!holdings.length && <p className="mt-4 text-sm text-slate-500">Nothing mapped yet — give consent on the Aggregate step.</p>}
-        </Card>
-
-        <Card className="p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-ink">Needs attention</h2>
-            <Link to="/app/alerts" className="text-sm font-semibold text-brand-700">All alerts →</Link>
-          </div>
-          {open.length === 0 ? (
-            <p className="text-sm text-slate-500">{holdings.length ? 'All clear — every holding is ready to reach your family.' : 'Alerts appear here in real time once holdings are mapped.'}</p>
-          ) : (
-            <ul className="space-y-2.5">
-              {open.slice(0, 6).map((a) => (
-                <li key={a.id} className="flex items-start gap-3 rounded-lg bg-slate-50 p-3">
-                  <span className={cx('mt-1.5 h-2 w-2 shrink-0 rounded-full', a.severity === 'high' ? 'bg-rose-500' : a.severity === 'medium' ? 'bg-amber-500' : 'bg-slate-400')} />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-ink">{a.title}</div>
-                    <div className="mt-0.5"><RegChip code={a.regulator} /></div>
+            ) : (
+              <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                {open.slice(0, 3).map((a) => (
+                  <div key={a.id} className="py-2.5 flex items-start gap-2.5 text-xs">
+                    <span
+                      className={cx(
+                        'mt-1 h-1.5 w-1.5 shrink-0 rounded-full',
+                        a.severity === 'high'
+                          ? 'bg-rose-500'
+                          : a.severity === 'medium'
+                            ? 'bg-amber-500'
+                            : 'bg-slate-400'
+                      )}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-slate-800 dark:text-slate-200 truncate">
+                        {a.title}
+                      </div>
+                      <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-400">
+                        <span>{a.regulator}</span>
+                        <span>·</span>
+                        <span className="capitalize">{a.severity}</span>
+                      </div>
+                    </div>
                   </div>
-                  <Badge tone={a.severity === 'high' ? 'red' : a.severity === 'medium' ? 'amber' : 'slate'}>{a.severity}</Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
-    </>
-  );
-}
+                ))}
+              </div>
+            )}
+          </div>
 
-function Stat({ icon, label, value, sub, tone = 'teal' }: { icon: React.ReactNode; label: string; value: string; sub: string; tone?: 'teal' | 'red' | 'amber' }) {
-  const t = { teal: 'bg-brand-50 text-brand-700', red: 'bg-rose-50 text-rose-600', amber: 'bg-amber-50 text-amber-600' }[tone];
-  return (
-    <GlowCard>
-      <div className={cx('mb-3 inline-flex rounded-lg p-2', t)}>{icon}</div>
-      <div className="text-2xl font-bold tracking-tight text-ink">{value}</div>
-      <div className="mt-0.5 text-sm font-medium text-slate-700">{label}</div>
-      <div className="text-xs text-slate-500">{sub}</div>
-    </GlowCard>
+          {open.length > 3 && (
+            <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 mt-2 text-center">
+              <Link
+                to="/app/alerts"
+                className="text-[11px] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+              >
+                +{open.length - 3} more alerts in queue &rarr;
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
