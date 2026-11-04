@@ -1,17 +1,26 @@
 """
 Asset Bridge Email Dispatcher
 Delivers official statutory claiming dossiers (PDF) to claimants, legal heirs, and institutions.
-Supports SMTP (e.g. Mailshield AI, Google App Passwords) with graceful local outbox fallback.
+Powered by Twilio SendGrid Web API v3 with optional Twilio SMS alerts and local outbox fallback.
 """
 
 import os
+import base64
 import smtplib
 import datetime
 from email.message import EmailMessage
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import httpx
+
 from app.config import (
+    TWILIO_SENDGRID_API_KEY,
+    TWILIO_FROM_EMAIL,
+    TWILIO_FROM_NAME,
+    TWILIO_ACCOUNT_SID,
+    TWILIO_AUTH_TOKEN,
+    TWILIO_PHONE_NUMBER,
     SMTP_HOST,
     SMTP_PORT,
     SMTP_USER,
@@ -20,6 +29,8 @@ from app.config import (
     SMTP_FROM_NAME,
     SMTP_USE_TLS,
     OUTBOX_DIR,
+    is_twilio_configured,
+    is_twilio_sms_configured,
     is_smtp_configured
 )
 from app.core.store import store, uid
@@ -215,8 +226,8 @@ def build_mime_message(
     msg = EmailMessage()
     msg["Subject"] = subject
     
-    sender_name = SMTP_FROM_NAME or "Asset Bridge Succession Engine"
-    sender_addr = SMTP_FROM_EMAIL or "claims@assetbridge.in"
+    sender_name = TWILIO_FROM_NAME or SMTP_FROM_NAME or "Asset Bridge Succession Engine"
+    sender_addr = TWILIO_FROM_EMAIL or SMTP_FROM_EMAIL or "claims@assetbridge.in"
     msg["From"] = f"{sender_name} <{sender_addr}>"
     
     if recipient_name and recipient_name.strip():
@@ -239,6 +250,158 @@ def build_mime_message(
     )
     return msg
 
+def build_sendgrid_payload(
+    to_email: str,
+    subject: str,
+    body_html: str,
+    body_text: str,
+    pdf_bytes: bytes,
+    filename: str,
+    recipient_name: Optional[str] = None,
+    case_id: Optional[str] = None,
+    pan: Optional[str] = None,
+    tracking_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """Construct a Twilio SendGrid Web API v3 payload with base64 PDF attachment."""
+    to_entry: Dict[str, str] = {"email": to_email.strip()}
+    if recipient_name and recipient_name.strip():
+        to_entry["name"] = recipient_name.strip()
+
+    from_email = TWILIO_FROM_EMAIL or "claims@assetbridge.in"
+    from_name = TWILIO_FROM_NAME or "Asset Bridge Succession Engine"
+
+    encoded_pdf = base64.b64encode(pdf_bytes).decode("ascii")
+
+    payload: Dict[str, Any] = {
+        "personalizations": [
+            {
+                "to": [to_entry],
+                "subject": subject
+            }
+        ],
+        "from": {
+            "email": from_email,
+            "name": from_name
+        },
+        "content": [
+            {"type": "text/plain", "value": body_text},
+            {"type": "text/html", "value": body_html}
+        ],
+        "attachments": [
+            {
+                "content": encoded_pdf,
+                "filename": filename,
+                "type": "application/pdf",
+                "disposition": "attachment"
+            }
+        ],
+        "categories": ["statutory-claiming-dossier", "asset-bridge-succession"]
+    }
+
+    custom_args: Dict[str, str] = {}
+    if tracking_id:
+        custom_args["tracking_id"] = str(tracking_id)
+    if case_id:
+        custom_args["case_id"] = str(case_id)
+    if pan:
+        custom_args["pan"] = str(pan)
+    if custom_args:
+        payload["custom_args"] = custom_args
+
+    return payload
+
+def send_via_twilio_sendgrid(
+    payload: Dict[str, Any],
+    api_key: Optional[str] = None,
+    timeout: float = 20.0
+) -> Dict[str, Any]:
+    """
+    Deliver email via Twilio SendGrid v3 API (https://api.sendgrid.com/v3/mail/send).
+    Returns status dict with statusCode and messageId.
+    """
+    key = api_key or TWILIO_SENDGRID_API_KEY
+    if not key:
+        return {"ok": False, "error": "TWILIO_SENDGRID_API_KEY is not configured", "provider": "twilio_sendgrid"}
+
+    url = "https://api.sendgrid.com/v3/mail/send"
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            resp = client.post(url, json=payload, headers=headers)
+        
+        if resp.status_code in (200, 201, 202):
+            msg_id = resp.headers.get("X-Message-Id", "")
+            return {
+                "ok": True,
+                "statusCode": resp.status_code,
+                "messageId": msg_id,
+                "provider": "twilio_sendgrid"
+            }
+
+        # Error response parsing from SendGrid
+        err_msg = resp.text
+        try:
+            err_json = resp.json()
+            errors = err_json.get("errors", [])
+            if errors and isinstance(errors, list):
+                err_msg = "; ".join([e.get("message", "") for e in errors if isinstance(e, dict)])
+        except Exception:
+            pass
+
+        return {
+            "ok": False,
+            "statusCode": resp.status_code,
+            "error": err_msg or f"HTTP {resp.status_code}",
+            "provider": "twilio_sendgrid"
+        }
+    except Exception as e:
+        return {
+            "ok": False,
+            "error": f"Twilio SendGrid connection error: {str(e)}",
+            "provider": "twilio_sendgrid"
+        }
+
+def send_twilio_sms_alert(
+    to_phone: str,
+    person_name: str,
+    to_email: str,
+    tracking_id: str,
+    case_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Dispatch optional SMS delivery notification via Twilio REST API.
+    """
+    if not is_twilio_sms_configured():
+        return {"ok": False, "skipped": True, "reason": "Twilio SMS not configured"}
+
+    url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
+    body_text = (
+        f"Asset Bridge Notice: Official statutory claiming dossier for {person_name} "
+        f"has been dispatched to {to_email}. Tracking ID: {tracking_id}."
+    )
+    if case_id:
+        body_text += f" Case: {case_id}."
+
+    data = {
+        "From": TWILIO_PHONE_NUMBER,
+        "To": to_phone.strip(),
+        "Body": body_text
+    }
+
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            resp = client.post(url, data=data, auth=(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN))
+        if resp.status_code in (200, 201):
+            sid = resp.json().get("sid", "")
+            return {"ok": True, "smsId": sid}
+        return {"ok": False, "error": resp.text}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
 def send_claiming_dossier_email(
     to_email: str,
     pdf_bytes: bytes,
@@ -249,11 +412,12 @@ def send_claiming_dossier_email(
     holdings_count: int = 0,
     total_value_inr: float = 0.0,
     recipient_name: Optional[str] = None,
+    recipient_phone: Optional[str] = None,
     custom_note: Optional[str] = None,
     user_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Dispatch official statutory claiming dossier via SMTP or write to local outbox in mock mode.
+    Dispatch official statutory claiming dossier via Twilio SendGrid API, SMTP, or local outbox fallback.
     Audits the transmission into SQLite 'sent_emails' table.
     """
     tracking_id = uid("eml_")
@@ -288,10 +452,40 @@ def send_claiming_dossier_email(
         recipient_name=recipient_name
     )
 
-    is_mock = not is_smtp_configured()
+    is_mock = True
     status = "sent"
+    provider = "mock"
+    provider_msg_id = None
+    warning_note = None
 
-    if is_smtp_configured():
+    if is_twilio_configured():
+        provider = "twilio_sendgrid"
+        sendgrid_payload = build_sendgrid_payload(
+            to_email=to_email,
+            subject=subject,
+            body_html=body_html,
+            body_text=body_text,
+            pdf_bytes=pdf_bytes,
+            filename=filename,
+            recipient_name=recipient_name,
+            case_id=case_id,
+            pan=pan,
+            tracking_id=tracking_id
+        )
+        res = send_via_twilio_sendgrid(sendgrid_payload)
+        if res.get("ok"):
+            status = "sent"
+            is_mock = False
+            provider_msg_id = res.get("messageId")
+        else:
+            # Twilio SendGrid dispatch failed (e.g. unverified sender) -> fallback to outbox
+            warning_note = res.get("error", "Twilio SendGrid dispatch failed")
+            status = f"twilio_fallback_outbox: {warning_note[:120]}"
+            outbox_file = OUTBOX_DIR / f"{tracking_id}_{filename}.eml"
+            outbox_file.write_bytes(msg.as_bytes())
+            is_mock = True
+    elif is_smtp_configured():
+        provider = "smtp"
         try:
             if SMTP_PORT == 465:
                 # SSL Direct
@@ -308,17 +502,29 @@ def send_claiming_dossier_email(
             status = "sent"
             is_mock = False
         except Exception as e:
-            status = f"smtp_failed: {str(e)[:100]}"
-            # Fallback to local outbox so transmission is never lost
+            warning_note = str(e)
+            status = f"smtp_fallback: {str(e)[:120]}"
             outbox_file = OUTBOX_DIR / f"{tracking_id}_{filename}.eml"
             outbox_file.write_bytes(msg.as_bytes())
             is_mock = True
     else:
-        # Mock mode / Offline development: write to outbox
+        # Mock mode / Local Outbox
+        provider = "mock"
         outbox_file = OUTBOX_DIR / f"{tracking_id}_{filename}.eml"
         outbox_file.write_bytes(msg.as_bytes())
         status = "mock_delivered"
         is_mock = True
+
+    # Twilio SMS notification (optional)
+    sms_res = None
+    if recipient_phone and is_twilio_sms_configured():
+        sms_res = send_twilio_sms_alert(
+            to_phone=recipient_phone,
+            person_name=person_name,
+            to_email=to_email,
+            tracking_id=tracking_id,
+            case_id=case_id
+        )
 
     # Record transmission in SQLite audit table
     created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -328,9 +534,13 @@ def send_claiming_dossier_email(
         "caseId": case_id or "",
         "toEmail": to_email,
         "recipientName": recipient_name or "",
+        "recipientPhone": recipient_phone or "",
         "subject": subject,
         "filename": filename,
         "status": status,
+        "provider": provider,
+        "providerMessageId": provider_msg_id or "",
+        "smsSent": bool(sms_res and sms_res.get("ok")),
         "isMock": is_mock,
         "createdAt": created_at
     }
@@ -339,13 +549,29 @@ def send_claiming_dossier_email(
     except Exception as e:
         print(f"[WARN] Failed to insert sent_emails record into SQLite: {e}")
 
-    return {
+    message_str = "Dossier sent via Twilio SendGrid" if (provider == "twilio_sendgrid" and not is_mock) else (
+        "Dossier sent via SMTP" if (provider == "smtp" and not is_mock) else (
+            f"Dossier written to local outbox in mock mode ({tracking_id})"
+        )
+    )
+
+    out: Dict[str, Any] = {
         "ok": True,
         "trackingId": tracking_id,
         "status": status,
         "isMock": is_mock,
+        "provider": provider,
         "toEmail": to_email,
+        "recipientName": recipient_name or "",
+        "recipientPhone": recipient_phone or "",
         "filename": filename,
         "subject": subject,
-        "message": "Dossier sent via SMTP" if not is_mock else f"Dossier written to local outbox in mock mode ({tracking_id})"
+        "message": message_str
     }
+    if warning_note:
+        out["warning"] = warning_note
+    if provider_msg_id:
+        out["providerMessageId"] = provider_msg_id
+    if sms_res:
+        out["smsResult"] = sms_res
+    return out

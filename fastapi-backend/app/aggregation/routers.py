@@ -1480,6 +1480,8 @@ class SendDossierEmailIn(BaseModel):
 
     recipientName: Optional[str] = None
 
+    recipientPhone: Optional[str] = None
+
     pan: Optional[str] = None
 
     personaId: Optional[str] = None
@@ -1573,6 +1575,8 @@ def api_send_claiming_dossier_email(
         total_value_inr=total_val,
 
         recipient_name=body.recipientName,
+
+        recipient_phone=body.recipientPhone,
 
         custom_note=body.customNote,
 

@@ -278,16 +278,18 @@ export async function saveClaimingDossierToVault(params?: { pan?: string; person
   );
 }
 
-// ---------- Email Dispatch for Claiming Dossier ----------
+// ---------- Email Dispatch for Claiming Dossier (Twilio SendGrid) ----------
 export interface SentEmailRecord {
   id: string;
   userId?: string;
   caseId?: string;
   toEmail: string;
   recipientName?: string;
+  recipientPhone?: string;
   subject: string;
   filename: string;
   status: string;
+  provider?: string;
   isMock: boolean;
   createdAt: string;
 }
@@ -295,11 +297,23 @@ export interface SentEmailRecord {
 export async function sendClaimingDossierEmail(params: {
   toEmail: string;
   recipientName?: string;
+  recipientPhone?: string;
   pan?: string;
   personaId?: string;
   caseId?: string;
   customNote?: string;
-}): Promise<{ ok: boolean; message: string; trackingId: string; isMock: boolean; status: string; toEmail: string }> {
+}): Promise<{
+  ok: boolean;
+  message: string;
+  trackingId: string;
+  isMock: boolean;
+  status: string;
+  provider?: string;
+  toEmail: string;
+  recipientPhone?: string;
+  warning?: string;
+  providerMessageId?: string;
+}> {
   return api('/reports/claiming-dossier/email', {
     method: 'POST',
     body: params,

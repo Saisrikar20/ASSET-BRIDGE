@@ -1,10 +1,12 @@
 """
 Unit Test Suite for Statutory Claiming Dossier Email Dispatch Service
-Verifies: MIME construction, outbox mock delivery, API endpoints, and SQLite audit logs.
+Verifies: Twilio SendGrid v3 payload construction, mocked Twilio delivery, MIME construction,
+outbox fallback delivery, API endpoints, and SQLite audit logs.
 """
 
 import sys
 import email
+import base64
 from pathlib import Path
 from email.message import EmailMessage
 
@@ -21,6 +23,8 @@ from app.core.mailer import (
     build_email_html,
     build_email_text,
     build_mime_message,
+    build_sendgrid_payload,
+    send_via_twilio_sendgrid,
     send_claiming_dossier_email
 )
 from app.aggregation.pdf_generator import generate_claiming_dossier_pdf
@@ -69,8 +73,100 @@ def test_mime_message_construction():
     assert len(att.get_content()) == len(pdf_bytes)
     print("[PASS] MIME message assembled with valid PDF attachment.")
 
+def test_twilio_sendgrid_payload_construction():
+    print("--- 2. Testing Twilio SendGrid Payload Construction ---")
+    dummy_pdf = b"%PDF-1.4 Mock Claiming Dossier"
+    payload = build_sendgrid_payload(
+        to_email="heir@family.org",
+        subject="Statutory Claiming Dossier - Raghavan",
+        body_html="<p>Test HTML</p>",
+        body_text="Test Plain Text",
+        pdf_bytes=dummy_pdf,
+        filename="Test_Dossier.pdf",
+        recipient_name="Meenakshi Sundaram",
+        case_id="AB-4581",
+        pan="ABCPI1234K",
+        tracking_id="eml_test_123"
+    )
+
+    assert "personalizations" in payload
+    assert payload["personalizations"][0]["to"][0]["email"] == "heir@family.org"
+    assert payload["personalizations"][0]["to"][0]["name"] == "Meenakshi Sundaram"
+    assert payload["personalizations"][0]["subject"] == "Statutory Claiming Dossier - Raghavan"
+
+    # Check contents
+    contents = payload["content"]
+    assert len(contents) == 2
+    assert contents[0]["type"] == "text/plain"
+    assert contents[1]["type"] == "text/html"
+
+    # Check base64 PDF attachment
+    attachments = payload["attachments"]
+    assert len(attachments) == 1
+    att = attachments[0]
+    assert att["filename"] == "Test_Dossier.pdf"
+    assert att["type"] == "application/pdf"
+    assert att["disposition"] == "attachment"
+    decoded = base64.b64decode(att["content"])
+    assert decoded == dummy_pdf
+
+    # Check custom args
+    assert payload["custom_args"]["tracking_id"] == "eml_test_123"
+    assert payload["custom_args"]["case_id"] == "AB-4581"
+    assert payload["custom_args"]["pan"] == "ABCPI1234K"
+    print("[PASS] Twilio SendGrid v3 payload successfully formatted and validated.")
+
+def test_twilio_sendgrid_mocked_live_dispatch(monkeypatch):
+    print("--- 3. Testing Mocked Twilio SendGrid Live Transmission ---")
+    
+    class MockResponse:
+        status_code = 202
+        headers = {"X-Message-Id": "sg_mock_tracking_msg_987"}
+        text = ""
+        def json(self):
+            return {}
+
+    class MockClient:
+        def __init__(self, *args, **kwargs):
+            pass
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def post(self, url, json=None, headers=None, **kwargs):
+            assert "api.sendgrid.com" in url
+            assert headers["Authorization"].startswith("Bearer SG.")
+            return MockResponse()
+
+    import httpx
+    monkeypatch.setattr(httpx, "Client", MockClient)
+    monkeypatch.setattr(mailer_module, "is_twilio_configured", lambda: True)
+    monkeypatch.setattr(mailer_module, "TWILIO_SENDGRID_API_KEY", "SG.mock_test_key")
+
+    dummy_pdf = b"%PDF-1.4 Mock Dossier Buffer"
+    result = send_claiming_dossier_email(
+        to_email="test.claimant@example.com",
+        pdf_bytes=dummy_pdf,
+        filename="Test_Dossier.pdf",
+        person_name="Test Person",
+        pan="ABCDE1234F",
+        case_id="AB-9999",
+        holdings_count=3,
+        total_value_inr=500000.0,
+        custom_note="Priority settlement requested."
+    )
+
+    assert result["ok"] is True
+    assert result["isMock"] is False
+    assert result["status"] == "sent"
+    assert result["provider"] == "twilio_sendgrid"
+    assert result["providerMessageId"] == "sg_mock_tracking_msg_987"
+    assert "Twilio SendGrid" in result["message"]
+    print("[PASS] Mocked Twilio SendGrid live dispatch verified with 202 Accepted.")
+
 def test_outbox_fallback_mock_delivery(monkeypatch):
-    print("--- 2. Testing Outbox Mock Delivery Fallback ---")
+    print("--- 4. Testing Outbox Mock Delivery Fallback ---")
+    monkeypatch.setattr(mailer_module, "is_twilio_configured", lambda: False)
     monkeypatch.setattr(mailer_module, "is_smtp_configured", lambda: False)
 
     dummy_pdf = b"%PDF-1.4 Mock Dossier Buffer"
@@ -89,6 +185,7 @@ def test_outbox_fallback_mock_delivery(monkeypatch):
     assert result["ok"] is True
     assert result["isMock"] is True
     assert result["status"] == "mock_delivered"
+    assert result["provider"] == "mock"
     assert result["trackingId"].startswith("eml_")
 
     # Verify .eml file written to outbox
@@ -107,7 +204,8 @@ def test_outbox_fallback_mock_delivery(monkeypatch):
     print(f"[PASS] Mock delivery successfully stored and decoded in {eml_file.name} ({len(eml_content)} bytes).")
 
 def test_api_send_dossier_email_endpoint(monkeypatch):
-    print("--- 3. Testing POST /api/reports/claiming-dossier/email ---")
+    print("--- 5. Testing POST /api/reports/claiming-dossier/email ---")
+    monkeypatch.setattr(mailer_module, "is_twilio_configured", lambda: False)
     monkeypatch.setattr(mailer_module, "is_smtp_configured", lambda: False)
     
     # A. Validation check: Invalid email
@@ -121,6 +219,7 @@ def test_api_send_dossier_email_endpoint(monkeypatch):
     res = client.post("/api/reports/claiming-dossier/email", json={
         "toEmail": "priya.heir@family.org",
         "recipientName": "Ananya Sharma",
+        "recipientPhone": "+919876543210",
         "personaId": "priya",
         "customNote": "Please find attached the claiming dossier."
     })
@@ -132,7 +231,7 @@ def test_api_send_dossier_email_endpoint(monkeypatch):
     print(f"[PASS] API dispatch endpoint returned 200 OK with trackingId: {data['trackingId']}.")
 
 def test_audit_history_endpoint():
-    print("--- 4. Testing GET /api/reports/claiming-dossier/email/history ---")
+    print("--- 6. Testing GET /api/reports/claiming-dossier/email/history ---")
     res = client.get("/api/reports/claiming-dossier/email/history")
     assert res.status_code == 200
     data = res.json()

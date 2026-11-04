@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, X, AlertTriangle, CheckCircle2, Loader2, Send, Check, Download, Info } from 'lucide-react';
+import { Mail, X, AlertTriangle, CheckCircle2, Loader2, Send, Check, Download, Info, Smartphone } from 'lucide-react';
 import { sendClaimingDossierEmail } from '../lib/api';
 import { Button, cx } from './ui';
 
@@ -37,6 +37,7 @@ export default function EmailDossierModal({
 }: EmailDossierModalProps) {
   const [toEmail, setToEmail] = useState(defaultEmail);
   const [recipientName, setRecipientName] = useState(defaultName);
+  const [recipientPhone, setRecipientPhone] = useState('');
   const [customNote, setCustomNote] = useState('');
   const [touched, setTouched] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
@@ -46,12 +47,15 @@ export default function EmailDossierModal({
     isMock: boolean;
     trackingId: string;
     toEmail: string;
+    provider?: string;
+    warning?: string;
   } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setToEmail(defaultEmail);
       setRecipientName(defaultName);
+      setRecipientPhone('');
       setCustomNote('');
       setTouched(false);
       setEmailSuccess(null);
@@ -92,6 +96,7 @@ export default function EmailDossierModal({
       const res = await sendClaimingDossierEmail({
         toEmail: trimmedEmail,
         recipientName: recipientName.trim() || undefined,
+        recipientPhone: recipientPhone.trim() || undefined,
         caseId,
         pan,
         personaId,
@@ -102,15 +107,18 @@ export default function EmailDossierModal({
         isMock: Boolean(res.isMock),
         trackingId: res.trackingId,
         toEmail: trimmedEmail,
+        provider: res.provider,
+        warning: res.warning,
       });
 
       if (res.isMock) {
         setEmailSuccess(`Dossier generated in Mock Mode (Tracking ID: ${res.trackingId})`);
       } else {
-        setEmailSuccess(`Claiming dossier successfully dispatched to ${trimmedEmail} via live SMTP (Tracking ID: ${res.trackingId})`);
+        const providerName = res.provider === 'twilio_sendgrid' ? 'Twilio SendGrid' : 'live transmission';
+        setEmailSuccess(`Claiming dossier successfully dispatched to ${trimmedEmail} via ${providerName} (Tracking ID: ${res.trackingId})`);
         setTimeout(() => {
           onClose();
-        }, 3000);
+        }, 3500);
       }
     } catch (err: any) {
       setEmailError(err.message || 'Failed to dispatch email. Please check your network and recipient address.');
@@ -133,7 +141,7 @@ export default function EmailDossierModal({
                 {title}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {subtitle || (caseId ? `Case Reference: ${caseId} · Official PDF Attached` : 'Official Statutory PDF Dossier Attached')}
+                {subtitle || (caseId ? `Case Reference: ${caseId} · Twilio SendGrid Email Service` : 'Twilio SendGrid Email Service · Statutory PDF Attached')}
               </p>
             </div>
           </div>
@@ -146,7 +154,7 @@ export default function EmailDossierModal({
           </button>
         </div>
 
-        <form onSubmit={handleSend} className="space-y-4">
+        <form onSubmit={handleSend} className="space-y-3.5">
           {/* Quick Select from Registered Heirs (if provided) */}
           {heirs && heirs.length > 0 && (
             <div>
@@ -221,18 +229,35 @@ export default function EmailDossierModal({
             )}
           </div>
 
-          {/* Recipient Name Field */}
-          <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Recipient Name (Optional)
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Meenakshi Sundaram"
-              value={recipientName}
-              onChange={(e) => setRecipientName(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Recipient Name Field */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Recipient Name (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Meenakshi Sundaram"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              />
+            </div>
+
+            {/* Recipient Mobile Phone (Optional Twilio SMS) */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                <Smartphone className="h-3.5 w-3.5 text-slate-400" />
+                <span>Twilio SMS Alert (Optional)</span>
+              </label>
+              <input
+                type="tel"
+                placeholder="e.g. +91 98765 43210"
+                value={recipientPhone}
+                onChange={(e) => setRecipientPhone(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              />
+            </div>
           </div>
 
           {/* Optional Message Notes */}
@@ -241,7 +266,7 @@ export default function EmailDossierModal({
               Personal Message / Filing Instructions (Optional)
             </label>
             <textarea
-              rows={3}
+              rows={2}
               placeholder="Add filing instructions or notes for the legal heir, bank nodal officer, or advocate..."
               value={customNote}
               onChange={(e) => setCustomNote(e.target.value)}
@@ -256,15 +281,20 @@ export default function EmailDossierModal({
                 <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <div className="font-semibold text-amber-950 dark:text-amber-100">
-                    Mock Mode Active (Local Outbox Delivery)
+                    Twilio SendGrid Mock Mode Active (Local Outbox Delivery)
                   </div>
                   <p className="mt-1 text-amber-800 dark:text-amber-300 leading-relaxed">
-                    Live SMTP credentials are not yet configured in your <code className="font-mono bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded">.env</code> file (<code className="font-mono">SMTP_ENABLED=false</code>).
-                    To protect developer privacy and prevent delivery failures, the complete RFC 822 email with the attached PDF was stored safely in the local server outbox:
+                    Twilio SendGrid API key is not yet configured in your <code className="font-mono bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded">.env</code> file (<code className="font-mono">TWILIO_SENDGRID_API_KEY</code>).
+                    To prevent loss of documents, the complete RFC 822 email packet with the attached statutory PDF was generated and stored in the local server outbox:
                   </p>
                   <p className="mt-1 font-mono text-[11px] text-amber-700 dark:text-amber-400 break-all">
                     Tracking ID: {dispatchResult.trackingId}
                   </p>
+                  {dispatchResult.warning && (
+                    <p className="mt-1 text-[11px] text-rose-700 dark:text-rose-400 font-medium">
+                      Note: {dispatchResult.warning}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -286,12 +316,14 @@ export default function EmailDossierModal({
             </div>
           )}
 
-          {/* Live SMTP Success Banner */}
+          {/* Live Dispatch Success Banner */}
           {dispatchResult && !dispatchResult.isMock && emailSuccess && (
             <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 p-3 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2 animate-in fade-in duration-150">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold">Live Email Dispatched via SMTP</div>
+                <div className="font-semibold">
+                  {dispatchResult.provider === 'twilio_sendgrid' ? 'Live Email Dispatched via Twilio SendGrid' : 'Live Email Dispatched'}
+                </div>
                 <div className="mt-0.5">{emailSuccess}</div>
                 <div className="mt-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-400">
                   Please check your inbox (or spam folder) for the statutory packet.
@@ -330,7 +362,7 @@ export default function EmailDossierModal({
                 {emailSending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Dispatching Email...</span>
+                    <span>Dispatching via Twilio...</span>
                   </>
                 ) : (
                   <>
