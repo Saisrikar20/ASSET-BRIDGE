@@ -570,7 +570,7 @@ export default function CaseBody({
                     className={cx(
                       'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
                       filterReg === 'all'
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
+                        ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                     )}
                   >
@@ -586,7 +586,7 @@ export default function CaseBody({
                         className={cx(
                           'px-2 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer',
                           filterReg === r
-                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
+                            ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                         )}
                       >

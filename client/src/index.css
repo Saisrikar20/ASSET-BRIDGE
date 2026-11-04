@@ -51,24 +51,36 @@
   color-scheme: light;
 }
 
-/* Dark theme: remap tokens instead of adding dark: variants to every class.
-   Slate is inverted, surfaces darken, tinted backgrounds become deep washes and
-   their -700/-800 text steps lighten. Chart series use the palette's dark steps. */
+/* Dark theme: tuned tokens for maximum readability, contrast, and premium dark mode.
+   Slate tokens provide crisp light text on deep dark surfaces, subtle dark borders,
+   and vibrant readable accents. */
 .dark {
   color-scheme: dark;
-  --color-ink: #ecebe8;
-  --color-surface: #18191c;
-  --color-slate-50: #0f1012;
-  --color-slate-100: #1e2023;
-  --color-slate-200: #2a2c30;
-  --color-slate-300: #3a3c41;
-  --color-slate-400: #6b6f76;
-  --color-slate-500: #8f939a;
-  --color-slate-600: #b0b3b8;
-  --color-slate-700: #c9c8c4;
-  --color-slate-800: #dddcd8;
-  --color-slate-900: #ecebe8;
-  --color-slate-950: #f5f4f2;
+  --color-ink: #f8fafc;
+  --color-surface: #141619;
+  --color-night: #0e2747;
+
+  /* Crisp, high-contrast Slate tokens tuned for dark mode readability:
+     - 50: deep page background (#0c0d10)
+     - 100: dark elevated surface / dividers (#181a1e)
+     - 800: subtle, crisp dark borders (#272a30)
+     - 900: dark card surface (#141619)
+     - 950: true deep black (#0a0b0d)
+     - 200, 300: bright, crisp primary & secondary text (#e2e8f0, #cbd5e1)
+     - 400, 500: bright, legible silvery slate for labels, metadata, subtext (>7:1 contrast) (#94a3b8, #cbd5e1)
+     - 600, 700: high-contrast text (#e2e8f0, #f1f5f9)
+  */
+  --color-slate-50: #0c0d10;
+  --color-slate-100: #181a1e;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #cbd5e1;
+  --color-slate-600: #e2e8f0;
+  --color-slate-700: #f1f5f9;
+  --color-slate-800: #272a30;
+  --color-slate-900: #141619;
+  --color-slate-950: #0a0b0d;
   --color-brand-50: #3a2117;
   --color-brand-100: #4a2a1c;
   --color-brand-500: #f0652f;
@@ -81,16 +93,19 @@
   --color-rose-200: color-mix(in oklab, var(--color-rose-500) 34%, #18191c);
   --color-rose-700: color-mix(in oklab, var(--color-rose-500) 62%, white);
   --color-rose-800: color-mix(in oklab, var(--color-rose-500) 48%, white);
+  --color-rose-900: #fecdd3;
   --color-emerald-50: color-mix(in oklab, var(--color-emerald-500) 14%, #18191c);
   --color-emerald-100: color-mix(in oklab, var(--color-emerald-500) 22%, #18191c);
   --color-emerald-200: color-mix(in oklab, var(--color-emerald-500) 34%, #18191c);
   --color-emerald-700: color-mix(in oklab, var(--color-emerald-500) 62%, white);
   --color-emerald-800: color-mix(in oklab, var(--color-emerald-500) 48%, white);
+  --color-emerald-900: #a7f3d0;
   --color-amber-50: color-mix(in oklab, var(--color-amber-500) 14%, #18191c);
   --color-amber-100: color-mix(in oklab, var(--color-amber-500) 22%, #18191c);
   --color-amber-200: color-mix(in oklab, var(--color-amber-500) 34%, #18191c);
   --color-amber-700: color-mix(in oklab, var(--color-amber-500) 62%, white);
   --color-amber-800: color-mix(in oklab, var(--color-amber-500) 48%, white);
+  --color-amber-900: #fde68a;
   --color-sky-50: color-mix(in oklab, var(--color-sky-500) 14%, #18191c);
   --color-sky-100: color-mix(in oklab, var(--color-sky-500) 22%, #18191c);
   --color-sky-200: color-mix(in oklab, var(--color-sky-500) 34%, #18191c);
@@ -133,6 +148,11 @@
 
 body {
   @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+.dark body {
+  background-color: var(--color-slate-50);
+  color: var(--color-slate-200);
 }
 
 .prose-answer p { margin: 0.4rem 0; }

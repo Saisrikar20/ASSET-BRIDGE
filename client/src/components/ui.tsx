@@ -35,8 +35,8 @@ type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' 
 export function Button({ variant = 'primary', loading, size = 'md', className, children, disabled, ...rest }: BtnProps) {
   const styles = {
     primary: 'bg-brand-700 text-white hover:bg-brand-800 shadow-sm',
-    secondary: 'bg-surface text-slate-700 border border-slate-200 hover:bg-slate-50',
-    ghost: 'text-slate-600 hover:bg-slate-100',
+    secondary: 'bg-surface text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm',
+    ghost: 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
     danger: 'bg-rose-600 text-white hover:bg-rose-700',
   }[variant];
   return (
@@ -62,7 +62,7 @@ export function GlowCard({ className, children }: { className?: string; children
 }
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cx('rounded-2xl border border-slate-200 bg-surface shadow-sm', className)}>{children}</div>;
+  return <div className={cx('rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface shadow-sm', className)}>{children}</div>;
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
@@ -75,18 +75,18 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
   );
 }
 
-const inputCls = 'w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-100';
+const inputCls = 'w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-surface text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-900/30';
 export const Input = (p: InputHTMLAttributes<HTMLInputElement>) => <input {...p} className={cx(inputCls, p.className)} />;
 export const Select = (p: SelectHTMLAttributes<HTMLSelectElement>) => <select {...p} className={cx(inputCls, p.className)} />;
 
 export function Badge({ tone = 'slate', children }: { tone?: 'slate' | 'green' | 'amber' | 'red' | 'teal' | 'blue'; children: ReactNode }) {
   const t = {
-    slate: 'bg-slate-100 text-slate-700',
-    green: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    amber: 'bg-amber-50 text-amber-700 ring-amber-200',
-    red: 'bg-rose-50 text-rose-700 ring-rose-200',
-    teal: 'bg-brand-50 text-brand-700 ring-brand-100',
-    blue: 'bg-sky-50 text-sky-700 ring-sky-200',
+    slate: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300',
+    green: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-emerald-200 dark:ring-emerald-800/40',
+    amber: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 ring-amber-200 dark:ring-amber-800/40',
+    red: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 ring-rose-200 dark:ring-rose-800/40',
+    teal: 'bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 ring-brand-100 dark:ring-brand-800/40',
+    blue: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 ring-sky-200 dark:ring-sky-800/40',
   }[tone];
   return <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ring-transparent', t)}>{children}</span>;
 }

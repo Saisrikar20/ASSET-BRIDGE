@@ -159,14 +159,14 @@ export default function Alerts() {
           className={cx(
             'rounded-xl border p-3 text-left transition cursor-pointer',
             filter === 'all'
-              ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 shadow-sm'
+              ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-black shadow-sm'
               : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-slate-300'
           )}
         >
           <div
             className={cx(
               'text-[10px] uppercase font-mono font-semibold',
-              filter === 'all' ? 'text-slate-300 dark:text-slate-600' : 'text-slate-400'
+              filter === 'all' ? 'text-slate-300 dark:text-black/60' : 'text-slate-400'
             )}
           >
             Open Alerts
@@ -323,7 +323,7 @@ export default function Alerts() {
               className={cx(
                 'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
                 filter === f
-                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               )}
             >

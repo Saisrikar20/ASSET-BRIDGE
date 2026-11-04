@@ -99,9 +99,9 @@ export default function Dashboard() {
 
       {/* Deceased Estate Case Notice (if applicable) */}
       {user?.deceased && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900 flex items-center justify-between">
+        <div className="rounded-lg border border-amber-300/80 dark:border-amber-700/60 bg-amber-50/90 dark:bg-amber-950/40 p-3 text-xs text-amber-900 dark:text-amber-200 flex items-center justify-between">
           <span>A death registration was received for this twin ({user.deceased.registrationNo}).</span>
-          <Link to="/app/cases" className="font-semibold underline ml-2">Transfer Case &rarr;</Link>
+          <Link to="/app/cases" className="font-semibold underline ml-2 text-amber-950 dark:text-amber-100 hover:text-amber-700 dark:hover:text-white">Transfer Case &rarr;</Link>
         </div>
       )}
 

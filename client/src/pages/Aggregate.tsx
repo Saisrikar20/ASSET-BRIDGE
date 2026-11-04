@@ -452,7 +452,7 @@ export default function Aggregate() {
                   className={cx(
                     'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
                     reg === 'all'
-                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                   )}
                 >
@@ -468,7 +468,7 @@ export default function Aggregate() {
                       className={cx(
                         'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
                         reg === r
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
+                          ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                       )}
                     >
@@ -478,7 +478,7 @@ export default function Aggregate() {
                           className={cx(
                             'text-[10px] tabular-nums px-1.5 py-0.2 rounded-full font-mono',
                             reg === r
-                              ? 'bg-slate-800 text-slate-200 dark:bg-slate-200 dark:text-slate-800'
+                              ? 'bg-slate-800 text-slate-200 dark:bg-black/10 dark:text-black'
                               : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                           )}
                         >
