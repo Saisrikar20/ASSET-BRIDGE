@@ -1,63 +1,31 @@
-# Roadmap: Asset Bridge (Dexathon 2026)
+# Roadmap: Asset Bridge (Dexathon 2026 - Round 2)
 
 ## Overview
 
-Transforming the Asset Bridge financial twin prototype into a database-backed, upload-capable, demo-hardened MVP ready for live evaluation at Dexathon 2026.
+Transforming Asset Bridge into a hardened, production-grade financial twin backend. Round 2 establishes the core 7-step asset processing pipeline, Python FastAPI migration, comprehensive automated verification, security hardening, and jury evidence.
 
 ## Phases
 
-- [ ] **Phase 1: Persistence & Statement Ingestion** - Dual-mode Supabase/PostgreSQL adapter, SQL migration schema, and CAMS/KFintech CAS statement upload parser.
-- [ ] **Phase 2: Mobile PWA & Experience Polish** - PWA manifest, mobile touch dials, and dropzone UI on the aggregation dashboard.
-- [ ] **Phase 3: Automated Verification & Demo Rehearsal** - End-to-end integration test suite, live WebSocket alert verification, and rehearsal check.
+- [x] **Phase 1: Module 1 Core Backend & Auth Migration** - Unified Python FastAPI service, JWT auth, identity verification, and in-memory/JSON store.
+- [ ] **Phase 2: Core Asset Processing Pipeline & System Integration** - 7-step pipeline (Input validation, Identity matching, Asset discovery, Normalization, Deduplication, Financial analysis, Consolidated report), Pydantic contracts, and API integration.
+- [ ] **Phase 3: Reliability, Security Hardening & Jury Verification** - Comprehensive automated test suite, security risk mitigation, efficiency optimization, and jury preparation.
 
 ## Phase Details
 
-### Phase 1: Persistence & Statement Ingestion
+### Phase 2: Core Asset Processing Pipeline & System Integration
 
-**Goal**: Establish relational persistence with Supabase/PostgreSQL schema while preserving zero-config offline fallback, and add CAS statement upload parsing.
-**Depends on**: Nothing (first phase)
-**Requirements**: REQ-02, REQ-03, REQ-09, REQ-11
-**Success Criteria**:
-
-  1. `server/data/schema.sql` defines complete relational tables with foreign keys and indexes.
-  2. Server connects to Supabase when environment variables exist, or defaults to local JSON store without crashing.
-  3. Upload endpoint `/api/upload/cas` successfully parses statement records, persists holdings, and recalculates live nominee gap alerts.
-
-**Plans**: 0/1 plans executed
-
-Plans:
-
-- [ ] 01-01-PLAN.md
-- [ ] 01-01: Dual-mode Supabase persistence adapter, schema definition, and CAS statement upload parser.
-
-### Phase 2: Mobile PWA & Experience Polish
-
-**Goal**: Implement PWA manifest, service worker registration, and upload UI dropzone for live mobile demonstration.
+**Goal**: Implement the deterministic 7-step Asset Processing Pipeline in Python FastAPI (`app/module2_aggregation`), define clean Pydantic contracts, connect API endpoints, and integrate in-process AI succession guidance.
 **Depends on**: Phase 1
-**Requirements**: REQ-03, REQ-10
+**Requirements**: REQ-01, REQ-02, REQ-04, REQ-06, REQ-11
 **Success Criteria**:
-
-  1. Web app is installable as a standalone PWA on mobile browsers.
-  2. Aggregate page features an interactive CAS statement file upload dropzone.
+  1. `validate_input` enforces strict PAN regex and entity code checks.
+  2. `normalize_assets` standardizes heterogeneous records across all 7 regulators into `NormalizedAsset` schema.
+  3. `detect_duplicates` flags potential duplicates without deleting records.
+  4. `analyze_financials` calculates verifiable totals excluding duplicates and generates nominee-gap alerts.
+  5. `generate_consolidated_report` outputs structured frontend-ready payload with findings, limitations, and next steps.
+  6. Automated test suite passes 100% of pipeline tests.
 
 **Plans**: 1 plan
 
 Plans:
-
-- [ ] 02-01: PWA manifest, standalone mobile styling, and Aggregate page statement dropzone.
-
-### Phase 3: Automated Verification & Demo Rehearsal
-
-**Goal**: Execute comprehensive automated test suite and validate end-to-end demo flow.
-**Depends on**: Phase 2
-**Requirements**: REQ-01, REQ-04, REQ-05, REQ-07, REQ-08, REQ-11
-**Success Criteria**:
-
-  1. Automated test script passes all API sanity checks.
-  2. Demo PAN `ABCPI1234K` executes full verify-aggregate-alert-reunite loop flawlessly.
-
-**Plans**: 1 plan
-
-Plans:
-
-- [ ] 03-01: Automated test suite and end-to-end verification.
+- [x] 02-01: Implement Core Asset Processing Pipeline, Pydantic schemas, and FastAPI routers.

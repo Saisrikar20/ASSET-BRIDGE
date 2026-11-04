@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
 from app.module1_core.routers import router as module1_router
+from app.module2_aggregation.routers import router as module2_router
+from app.module3_simulation.routers import router as module3_router
 from app.module1_core.live import live_manager
 from app.module1_core.auth import verify_token
 
@@ -27,6 +29,8 @@ async def validation_exception_handler(request, exc):
     return JSONResponse(status_code=400, content={"error": msg})
 
 app.include_router(module1_router)
+app.include_router(module2_router)
+app.include_router(module3_router)
 
 @app.get("/")
 def root():
@@ -34,7 +38,7 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"ok": True, "service": "asset-bridge-fastapi-module-1"}
+    return {"ok": True, "service": "asset-bridge-fastapi-unified"}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
