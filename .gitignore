@@ -7,6 +7,8 @@ server/data/
 fastapi-backend/data/*
 !fastapi-backend/data/sample_documents/
 .env
+fastapi-backend/.env
+*.env
 .DS_Store
 .idea/
 *.tsbuildinfo

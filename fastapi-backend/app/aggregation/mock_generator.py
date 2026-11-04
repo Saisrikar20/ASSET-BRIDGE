@@ -180,3 +180,4 @@ def generate_portfolio_for_pan(pan: str, name: str, dob: str = "1985-05-15", sta
             target_h["registeredName"] = f"R. {name}"
 
     return holdings
+

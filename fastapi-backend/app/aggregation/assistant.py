@@ -8,12 +8,16 @@ from typing import List, Dict, Any, Optional
 import httpx
 from pydantic import BaseModel
 
-from app.config import KNOWLEDGE_DIR, GEMINI_KEY, OPENAI_KEY
+from app.config import (
+    KNOWLEDGE_DIR, GEMINI_KEY, OPENAI_KEY, 
+    NVIDIA_KEY, NVIDIA_BASE_URL, NVIDIA_MODEL
+)
 from app.core.store import store, uid
 from app.aggregation.documents import search_user_documents
 
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
 
 STOP = set(
     "a an the of to and or in on for is are be by with as at it this that from if i my me we our "
@@ -142,6 +146,27 @@ def build_multisource_prompt(
     
     return f"Jurisdiction/State: {state or 'Not specified'}\n\n{ctx}{user_src}Statutory Regulations:\n{stat_src}\n\n{hist}User: {question}"
 
+async def call_nvidia(prompt: str) -> str:
+    async with httpx.AsyncClient(timeout=45) as client:
+        r = await client.post(
+            f"{NVIDIA_BASE_URL.rstrip('/')}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {NVIDIA_KEY}",
+                "Accept": "application/json"
+            },
+            json={
+                "model": NVIDIA_MODEL,
+                "temperature": 0.2,
+                "max_tokens": 1024,
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ]
+            },
+        )
+        r.raise_for_status()
+        return r.json()["choices"][0]["message"]["content"]
+
 async def call_gemini(prompt: str) -> str:
     async with httpx.AsyncClient(timeout=40) as client:
         r = await client.post(
@@ -165,6 +190,7 @@ async def call_openai(prompt: str) -> str:
         )
         r.raise_for_status()
         return r.json()["choices"][0]["message"]["content"]
+
 
 def sentences(text: str) -> List[str]:
     return [s.strip() for s in re.split(r"(?<=[.!?])\s+(?=[A-Z])", text) if s.strip()]
@@ -258,15 +284,23 @@ async def answer_question(body: GuideIn) -> Dict[str, Any]:
 
     engine = "extractive"
     answer = None
-    if (statutory_chunks or user_doc_chunks) and (GEMINI_KEY or OPENAI_KEY):
+    if (statutory_chunks or user_doc_chunks) and (NVIDIA_KEY or GEMINI_KEY or OPENAI_KEY):
         prompt = build_multisource_prompt(
             body.question, body.state, ctx, body.history, statutory_chunks, user_doc_chunks
         )
         try:
-            answer = await (call_gemini(prompt) if GEMINI_KEY else call_openai(prompt))
-            engine = "gemini" if GEMINI_KEY else "openai"
+            if NVIDIA_KEY:
+                answer = await call_nvidia(prompt)
+                engine = "nvidia-nim"
+            elif GEMINI_KEY:
+                answer = await call_gemini(prompt)
+                engine = "gemini"
+            else:
+                answer = await call_openai(prompt)
+                engine = "openai"
         except Exception:
             pass
+
 
     if answer is None:
         answer = extractive_multisource(body.question, statutory_chunks, user_doc_chunks, ctx)
