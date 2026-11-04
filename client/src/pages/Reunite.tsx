@@ -83,21 +83,21 @@ export default function Reunite() {
                 </ul>
               )}
               <p className="text-sm text-slate-600">Heirs can open it at <span className="font-mono font-semibold">/heir/{existing}</span> with this ID and their PAN.</p>
-              
+
               <div className="mt-2 flex flex-col gap-2 w-full">
                 <Button onClick={() => nav(`/app/cases/${existing}`)} className="w-full justify-between">
                   <span>Open transfer workflow (Step 05)</span>
                   <ArrowRight className="h-4 w-4" />
                 </Button>
-                
+
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={() => nav(`/heir/${existing}`)} className="flex-1 gap-1.5 text-xs">
                     <ExternalLink className="h-3.5 w-3.5" />
                     Preview Heir Portal
                   </Button>
-                  <Button 
-                    variant="secondary" 
-                    onClick={() => nav('/app/guide?caseId=' + existing + '&q=' + encodeURIComponent('What are the estate succession requirements for case ' + existing + '?'))} 
+                  <Button
+                    variant="secondary"
+                    onClick={() => nav('/app/guide?caseId=' + existing + '&q=' + encodeURIComponent('What are the estate succession requirements for case ' + existing + '?'))}
                     className="flex-1 gap-1.5 text-xs"
                   >
                     <BookOpen className="h-3.5 w-3.5" />
