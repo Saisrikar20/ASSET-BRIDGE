@@ -7,6 +7,7 @@ import { api, type Alert } from '../lib/api';
 import { Logo, cx } from './ui';
 import { AvatarFace } from './kokonutui/avatar-picker';
 import { ThemeToggle } from '../lib/theme';
+import { isRouteVisible } from '../lib/features';
 
 const NAV = [
   { to: '/app', label: 'Financial twin', icon: LayoutDashboard, end: true },
@@ -54,7 +55,7 @@ export default function Layout() {
       <div className="mb-6 px-2 pt-1">
         <Logo light tagline onClick={() => setOpen(false)} />
       </div>
-      {NAV.map(({ to, label, step, icon: Icon, end }) => (
+      {NAV.filter(({ to }) => isRouteVisible(to)).map(({ to, label, step, icon: Icon, end }) => (
         <NavLink
           key={to}
           to={to}
