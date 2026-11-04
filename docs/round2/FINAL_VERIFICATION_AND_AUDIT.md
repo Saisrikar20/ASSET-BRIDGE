@@ -220,3 +220,4 @@ npm run dev --prefix client
 - **Asvand Kanakaraj (50%):** Frontend architecture in React 19 / TypeScript, lazy route code-splitting, Web Crypto SHA-256 duplicate suppression, statutory name advisory and printable Claim Dossier, Git consolidation to `main`, and comprehensive audit documentation (Tasks 00–22).
 - **Sai (40%):** Unified FastAPI backend architecture on port 8000, 7-step core asset pipeline, non-destructive deduplication logic, in-process BM25 statutory succession RAG assistant, Monte Carlo simulation engine, and automated test harness.
 - **Shajith (10%):** Visual Draw.io and SVG architecture diagrams, round evolution analysis, technology evaluation, security risk register, and testing matrix documentation.
+

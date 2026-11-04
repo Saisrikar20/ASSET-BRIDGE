@@ -19,7 +19,35 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
     setBusy(kind);
     try {
       await open(async () => {
-        const r = await api<{ token: string; user: User }>(path, { body });
+        let r: { token: string; user: User };
+        try {
+          r = await api<{ token: string; user: User }>(path, { body });
+        } catch (apiErr) {
+          if (kind === 'demo') {
+            console.warn('Backend unavailable, using fallback demo session:', apiErr);
+            r = {
+              token: 'demo-session-token-' + Date.now(),
+              user: {
+                id: 'u_demo_raghavan',
+                email: 'raghavan@assetbridge.in',
+                name: 'Raghavan',
+                identity: {
+                  name: 'Raghavan',
+                  pan: 'ABCPI1234K',
+                  dob: '1970-01-01',
+                  aadhaarLast4: '4417',
+                  mobile: '9876543210',
+                  state: 'Karnataka',
+                },
+                verification: null,
+                deceased: null,
+                avatar: { displayName: 'Raghavan', variant: 1, seed: 'raghavan' },
+              },
+            };
+          } else {
+            throw apiErr;
+          }
+        }
         setSession(r.token, r.user);
         return !r.user.avatar ? `/app/avatar?next=${r.user.identity ? '/app' : '/app/verify'}` : r.user.identity ? '/app' : '/app/verify';
       });
