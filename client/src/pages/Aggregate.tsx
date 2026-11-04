@@ -1,12 +1,61 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, Search, ShieldAlert, FileDown } from 'lucide-react';
+import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown } from 'lucide-react';
 import { api, downloadClaimingDossierPdf, type Consent, type Holding, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date, inr } from '../lib/format';
 import { Badge, Button, ErrorNote, Input, RegChip, Select, cx } from '../components/ui';
 
 const ALL: Regulator[] = ['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC', 'PFRDA', 'DOP'];
+
+function NomineeIndicator({ nominee }: { nominee: Holding['nominee'] }) {
+  if (!nominee) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />
+        <span>No nominee registered</span>
+      </span>
+    );
+  }
+
+  if (nominee.status === 'deceased') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />
+        <span>
+          Nominee deceased · {nominee.name} ({nominee.relation})
+        </span>
+      </span>
+    );
+  }
+
+  if (nominee.status === 'minor') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+        <span>
+          Minor nominee · {nominee.name} ({nominee.relation})
+          {nominee.guardian ? ` · Guardian: ${nominee.guardian}` : ''}
+        </span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+      <span>
+        Nominee:{' '}
+        <span className="font-medium text-slate-800 dark:text-slate-200">
+          {nominee.name}
+        </span>{' '}
+        <span className="text-slate-400 dark:text-slate-500">
+          ({nominee.relation})
+        </span>
+      </span>
+    </span>
+  );
+}
 
 export default function Aggregate() {
   const { user, meta } = useAuth();
@@ -15,25 +64,42 @@ export default function Aggregate() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [picked, setPicked] = useState<Regulator[]>(ALL);
   const [months, setMonths] = useState(12);
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [q, setQ] = useState('');
   const [reg, setReg] = useState<string>('all');
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
 
-  const load = () => {
-    api<{ consents: Consent[] }>('/consents').then((r) => setConsents(r.consents)).catch(() => {});
-    api<{ holdings: Holding[] }>('/holdings').then((r) => setHoldings(r.holdings)).catch(() => {});
+  const load = async () => {
+    try {
+      const [cRes, hRes] = await Promise.all([
+        api<{ consents: Consent[] }>('/consents'),
+        api<{ holdings: Holding[] }>('/holdings'),
+      ]);
+      setConsents(cRes.consents);
+      setHoldings(hRes.holdings);
+    } catch {
+      // Keep existing data on network error
+    } finally {
+      setLoading(false);
+    }
   };
-  useEffect(load, []);
+
+  useEffect(() => {
+    load();
+  }, []);
 
   const active = consents.find((c) => c.status === 'ACTIVE');
+  const currentConsent = active || (consents.length > 0 ? consents[0] : null);
 
   const approve = async () => {
     setErr(null);
     setBusy(true);
     try {
       await api('/consents', { body: { regulators: picked, months } });
-      load();
+      await load();
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -41,24 +107,56 @@ export default function Aggregate() {
     }
   };
 
+  const handleRefresh = async () => {
+    setErr(null);
+    setRefreshing(true);
+    try {
+      if (active) {
+        await api('/consents', {
+          body: { regulators: active.regulators, months },
+        });
+      }
+      await load();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const revoke = async (id: string) => {
-    if (!confirm('Revoke consent? Mapped holdings and alerts will be deleted.')) return;
-    await api(`/consents/${id}/revoke`, { body: {} });
-    load();
+    setErr(null);
+    setBusy(true);
+    try {
+      await api(`/consents/${id}/revoke`, { body: {} });
+      setConfirmRevoke(false);
+      await load();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const shown = useMemo(
     () =>
-      holdings.filter(
-        (h) =>
-          (reg === 'all' || h.regulator === reg) &&
-          `${h.institution} ${h.type} ${h.ref}`.toLowerCase().includes(q.toLowerCase())
-      ),
+      holdings.filter((h) => {
+        const matchesReg = reg === 'all' || h.regulator === reg;
+        const query = q.trim().toLowerCase();
+        if (!query) return matchesReg;
+        const matchesQuery =
+          `${h.institution} ${h.type} ${h.ref} ${h.registeredName || ''} ${h.nominee?.name || ''}`
+            .toLowerCase()
+            .includes(query);
+        return matchesReg && matchesQuery;
+      }),
     [holdings, q, reg]
   );
 
   const totalValue = holdings.reduce((s, h) => s + h.value, 0);
-  const gapCount = holdings.filter((h) => !h.nominee || h.nominee.status !== 'valid').length;
+  const gapCount = holdings.filter(
+    (h) => !h.nominee || h.nominee.status !== 'valid'
+  ).length;
 
   if (!user?.identity) {
     return (
@@ -103,42 +201,110 @@ export default function Aggregate() {
         </p>
       </div>
 
-      {/* Active Consent Bar (when consent is already approved) */}
-      {active && (
-        <div className="rounded-xl border border-emerald-200/80 dark:border-emerald-800/60 bg-emerald-50/40 dark:bg-emerald-950/20 p-3.5 sm:px-4 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <Badge tone="green">ACTIVE</Badge>
-            <span className="font-mono text-slate-500">{active.id}</span>
-            <span className="text-slate-300 dark:text-slate-700">·</span>
-            <span className="text-slate-600 dark:text-slate-400">
-              {active.regulators.length} regulators · expires {date(active.expiresAt)}
-            </span>
+      {/* STEP 3 — Compact Consent Status Header */}
+      {currentConsent && (
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 sm:px-5 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <Badge
+                tone={
+                  currentConsent.status === 'ACTIVE'
+                    ? 'green'
+                    : currentConsent.status === 'REVOKED'
+                      ? 'red'
+                      : 'amber'
+                }
+              >
+                {currentConsent.status}
+              </Badge>
+              <span className="font-mono text-slate-500 dark:text-slate-400">
+                {currentConsent.id}
+              </span>
+              <span className="text-slate-300 dark:text-slate-700">·</span>
+              <span className="text-slate-600 dark:text-slate-400">
+                {currentConsent.regulators?.length || ALL.length} regulators
+              </span>
+              <span className="text-slate-300 dark:text-slate-700">·</span>
+              <span className="text-slate-600 dark:text-slate-400">
+                {currentConsent.status === 'REVOKED'
+                  ? 'Consent revoked'
+                  : currentConsent.status === 'EXPIRED'
+                    ? `Expired ${date(currentConsent.expiresAt)}`
+                    : `Expires ${date(currentConsent.expiresAt)}`}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                loading={refreshing}
+                onClick={handleRefresh}
+              >
+                <RotateCcw className="h-3 w-3 mr-1" />
+                Refresh data
+              </Button>
+              {currentConsent.status === 'ACTIVE' && !confirmRevoke && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-rose-600 hover:text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                  onClick={() => setConfirmRevoke(true)}
+                >
+                  Revoke
+                </Button>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="secondary" loading={busy} onClick={approve}>
-              Refresh data
-            </Button>
-            <button
-              onClick={() => revoke(active.id)}
-              className="text-xs text-rose-600 hover:text-rose-700 dark:text-rose-400 hover:underline px-2 py-1 cursor-pointer"
-            >
-              Revoke
-            </button>
-          </div>
+
+          {/* Revocation Confirmation Protection */}
+          {confirmRevoke && (
+            <div className="p-3 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/30 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-rose-800 dark:text-rose-300">
+                <ShieldAlert className="h-4 w-4 shrink-0 text-rose-600" />
+                <span>
+                  Are you sure you want to revoke consent? Mapped holdings and active monitoring will be stopped.
+                </span>
+              </div>
+              <div className="flex items-center gap-2 ml-auto">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={busy}
+                  onClick={() => setConfirmRevoke(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  loading={busy}
+                  onClick={() => revoke(currentConsent.id)}
+                >
+                  Confirm revocation
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Consent Configuration Box (when not active or refreshing) */}
+      {/* Consent Configuration Box (when no active consent exists) */}
       {!active && (
         <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 sm:p-6 space-y-5">
-          {/* STEP 4 — Compact Consent Request Row */}
           <div className="flex flex-wrap items-center justify-between gap-2 p-3 sm:px-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 text-xs border border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-              <span className="text-slate-400 uppercase font-mono text-[10px]">From:</span>
-              <span className="font-medium text-slate-800 dark:text-slate-200">Asset Bridge (FIU)</span>
+              <span className="text-slate-400 uppercase font-mono text-[10px]">
+                From:
+              </span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">
+                Asset Bridge (FIU)
+              </span>
             </div>
             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-              <span className="text-slate-400 uppercase font-mono text-[10px]">To:</span>
+              <span className="text-slate-400 uppercase font-mono text-[10px]">
+                To:
+              </span>
               <span className="font-medium text-slate-800 dark:text-slate-200 font-mono">
                 {user.identity.mobile || user.identity.pan || 'you'}@assetbridge-aa
               </span>
@@ -146,7 +312,6 @@ export default function Aggregate() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-12 items-start">
-            {/* STEP 5 — Information to fetch (7 regulators list) */}
             <div className="lg:col-span-7 space-y-2">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                 Information to fetch ({picked.length} of 7)
@@ -171,8 +336,11 @@ export default function Aggregate() {
                         className="accent-brand-700 h-3.5 w-3.5 rounded"
                         checked={isChecked}
                         onChange={(e) =>
-                          setPicked(e.target.checked ? [...picked, r] : picked.filter((x) => x !== r))
-                        }
+                          setPicked(
+                            e.target.checked
+                              ? [...picked, r]
+                              : picked.filter((x) => x !== r)
+                          )}
                       />
                       <RegChip code={r} />
                       <span className="text-slate-700 dark:text-slate-300 font-medium">
@@ -187,7 +355,6 @@ export default function Aggregate() {
               </div>
             </div>
 
-            {/* STEP 6 & 7 — Consent details & Primary action */}
             <div className="lg:col-span-5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 p-4 sm:p-5 text-xs space-y-3.5">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pb-2 border-b border-slate-200/60 dark:border-slate-800">
                 Consent Parameters
@@ -243,115 +410,174 @@ export default function Aggregate() {
                 disabled={!picked.length}
                 onClick={approve}
               >
-                Approve & fetch from {picked.length} regulator{picked.length === 1 ? '' : 's'}
+                Approve & fetch from {picked.length} regulator
+                {picked.length === 1 ? '' : 's'}
               </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Holdings Listing (when holdings exist) */}
+      {/* STEP 4 & 5 & 6 — Holdings Section (Post-Fetch) */}
       {holdings.length > 0 && (
         <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-slate-100 dark:border-slate-800">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Mapped Holdings ({holdings.length})
-              </h2>
-
-              <div className="flex items-center gap-2 ml-auto">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-                  <Input
-                    className="w-48 sm:w-56 pl-8 py-1.5 text-xs"
-                    placeholder="Search holdings…"
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                  />
-                </div>
-                <Select
-                  className="w-28 py-1.5 text-xs"
-                  value={reg}
-                  onChange={(e) => setReg(e.target.value)}
-                >
-                  <option value="all">All</option>
-                  {ALL.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </Select>
+          {/* STEP 4 — Holdings Summary & Step 5 — Filters */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+                  Mapped Holdings
+                </h2>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {shown.length} {shown.length === 1 ? 'holding' : 'holdings'}
+                  {shown.length !== holdings.length && ` (filtered from ${holdings.length})`}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-slate-500 dark:text-slate-400 mr-1.5">
+                  Total mapped asset value:
+                </span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">
+                  {inr(totalValue)}
+                </span>
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-800/40 text-left text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100 dark:border-slate-800">
-                  <tr>
-                    <th className="px-4 py-2.5">Holding</th>
-                    <th className="px-4 py-2.5">Value</th>
-                    <th className="px-4 py-2.5">Status</th>
-                    <th className="px-4 py-2.5">Nominee</th>
-                    <th className="px-4 py-2.5">Last activity</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                  {shown.map((h) => (
-                    <tr
-                      key={h.id}
-                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors"
+            {/* STEP 5 — Regulator Horizontal Filter Tabs + Search */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1">
+                <button
+                  type="button"
+                  onClick={() => setReg('all')}
+                  className={cx(
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
+                    reg === 'all'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                  )}
+                >
+                  All ({holdings.length})
+                </button>
+                {ALL.map((r) => {
+                  const count = holdings.filter((h) => h.regulator === r).length;
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setReg(r)}
+                      className={cx(
+                        'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
+                        reg === r
+                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                      )}
                     >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <RegChip code={h.regulator} />
-                          <span className="font-medium text-slate-800 dark:text-slate-200">
-                            {h.type}
-                          </span>
-                        </div>
-                        <div className="mt-0.5 text-[11px] text-slate-400 font-mono">
-                          {h.institution} · {h.ref}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white tabular-nums">
-                        {inr(h.value)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge
-                          tone={
-                            h.status === 'active'
-                              ? 'green'
-                              : h.status === 'inoperative'
-                                ? 'amber'
-                                : 'red'
-                          }
+                      <span>{r}</span>
+                      {count > 0 && (
+                        <span
+                          className={cx(
+                            'text-[10px] tabular-nums px-1.5 py-0.2 rounded-full font-mono',
+                            reg === r
+                              ? 'bg-slate-800 text-slate-200 dark:bg-slate-200 dark:text-slate-800'
+                              : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                          )}
                         >
-                          {h.status}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        {!h.nominee ? (
-                          <Badge tone="red">none</Badge>
-                        ) : h.nominee.status === 'valid' ? (
-                          <span className="text-slate-700 dark:text-slate-300">
-                            {h.nominee.name}{' '}
-                            <span className="text-[11px] text-slate-400">
-                              ({h.nominee.relation})
-                            </span>
-                          </span>
-                        ) : (
-                          <Badge tone="amber">
-                            {h.nominee.name} · {h.nominee.status}
+                          {count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="relative shrink-0">
+                <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <Input
+                  className="w-full sm:w-60 pl-8 py-1.5 text-xs"
+                  placeholder="Search institution, type, ID…"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* STEP 6 & 7 — Minimal Holdings List */}
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm">
+            {shown.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+                No holdings found matching {reg !== 'all' ? `regulator "${reg}"` : ''}{' '}
+                {q ? `query "${q}"` : ''}.
+                <div className="mt-2">
+                  <button
+                    onClick={() => {
+                      setReg('all');
+                      setQ('');
+                    }}
+                    className="text-xs text-brand-600 hover:text-brand-700 underline cursor-pointer"
+                  >
+                    Reset filters
+                  </button>
+                </div>
+              </div>
+            ) : (
+              shown.map((h) => (
+                <div
+                  key={h.id}
+                  className="p-4 sm:px-5 sm:py-3.5 hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+                    {/* Left Column: Details */}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      {/* Top line: Regulator & Holding Name */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <RegChip code={h.regulator} />
+                        <span className="font-semibold text-sm text-slate-900 dark:text-white">
+                          {h.type}
+                        </span>
+                        {h.status !== 'active' && (
+                          <Badge tone={h.status === 'inoperative' ? 'amber' : 'red'}>
+                            {h.status}
                           </Badge>
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400 tabular-nums">
-                        {date(h.lastActivity)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+
+                      {/* Second line: Institution · Masked ID */}
+                      <div className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5 flex-wrap">
+                        <span>{h.institution}</span>
+                        <span className="text-slate-300 dark:text-slate-700">·</span>
+                        <span>{h.ref}</span>
+                        {h.registeredName && (
+                          <>
+                            <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">
+                              ·
+                            </span>
+                            <span className="text-slate-400 text-[11px] font-sans hidden sm:inline">
+                              Name: {h.registeredName}
+                            </span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Third line: Nominee status (Critical Succession Information) */}
+                      <div className="pt-0.5">
+                        <NomineeIndicator nominee={h.nominee} />
+                      </div>
+                    </div>
+
+                    {/* Right Column: Asset value & Last activity */}
+                    <div className="flex sm:flex-col items-baseline sm:items-end justify-between sm:justify-start gap-1 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60">
+                      <div className="text-base sm:text-sm font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
+                        {inr(h.value)}
+                      </div>
+                      <div className="text-[11px] text-slate-400 dark:text-slate-500 tabular-nums">
+                        Last activity: {date(h.lastActivity)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Connected Next-Step Action Banner */}
@@ -406,6 +632,13 @@ export default function Aggregate() {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Loading state indicator */}
+      {loading && holdings.length === 0 && (
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-8 text-center text-xs text-slate-400">
+          Loading mapped holdings…
         </div>
       )}
     </div>
