@@ -1,0 +1,314 @@
+{
+  "health": {
+    "ok": true,
+    "service": "asset-bridge-fastapi-module-1"
+  },
+  "meta": {
+    "regulators": {
+      "RBI": {
+        "name": "Reserve Bank of India",
+        "covers": "Bank deposits",
+        "fiType": "DEPOSIT"
+      },
+      "EPFO": {
+        "name": "Employees' Provident Fund Organisation",
+        "covers": "Provident fund & pension",
+        "fiType": "EPF"
+      },
+      "IRDAI": {
+        "name": "Insurance Regulatory and Development Authority",
+        "covers": "Private life insurance",
+        "fiType": "INSURANCE_POLICIES"
+      },
+      "SEBI": {
+        "name": "Securities and Exchange Board of India",
+        "covers": "Mutual funds & demat",
+        "fiType": "MUTUAL_FUNDS"
+      },
+      "LIC": {
+        "name": "Life Insurance Corporation of India",
+        "covers": "LIC policies",
+        "fiType": "LIC_POLICIES"
+      },
+      "PFRDA": {
+        "name": "Pension Fund Regulatory and Development Authority",
+        "covers": "NPS & Atal Pension",
+        "fiType": "NPS"
+      },
+      "DOP": {
+        "name": "India Post (Department of Posts)",
+        "covers": "PPF, NSC & small savings",
+        "fiType": "RECURRING_DEPOSIT"
+      }
+    },
+    "states": [
+      "Tamil Nadu",
+      "Kerala",
+      "Karnataka",
+      "Andhra Pradesh",
+      "Telangana",
+      "Maharashtra",
+      "Delhi",
+      "Uttar Pradesh",
+      "West Bengal",
+      "Gujarat"
+    ],
+    "heirDocs": {
+      "Tamil Nadu": {
+        "doc": "Legal Heir Certificate",
+        "authority": "Tahsildar (apply via TN e-Sevai)",
+        "days": "15\u201330 days"
+      },
+      "Kerala": {
+        "doc": "Legal Heirship Certificate",
+        "authority": "Village Officer / Tahsildar",
+        "days": "15\u201330 days"
+      },
+      "Karnataka": {
+        "doc": "Family Tree / Survival Certificate",
+        "authority": "Tahsildar via Nadakacheri (Atalji Janasnehi Kendra)",
+        "days": "7\u201321 days"
+      },
+      "Andhra Pradesh": {
+        "doc": "Family Member Certificate",
+        "authority": "Tahsildar via MeeSeva",
+        "days": "7\u201330 days"
+      },
+      "Telangana": {
+        "doc": "Family Member Certificate",
+        "authority": "Tahsildar via MeeSeva",
+        "days": "7\u201330 days"
+      },
+      "Maharashtra": {
+        "doc": "Heirship / Succession Certificate",
+        "authority": "Civil Court (district)",
+        "days": "3\u20136 months"
+      },
+      "Delhi": {
+        "doc": "Legal Heir Certificate",
+        "authority": "SDM / Revenue Department via e-District Delhi",
+        "days": "15\u201330 days"
+      },
+      "Uttar Pradesh": {
+        "doc": "Varisan Praman Patra (Heirship Certificate)",
+        "authority": "Tehsil via e-District UP",
+        "days": "15\u201330 days"
+      },
+      "West Bengal": {
+        "doc": "Succession Certificate",
+        "authority": "District Court",
+        "days": "3\u20136 months"
+      },
+      "Gujarat": {
+        "doc": "Heirship Certificate",
+        "authority": "Mamlatdar / Civil Court",
+        "days": "1\u20133 months"
+      }
+    },
+    "demoIdentity": {
+      "name": "Raghavan",
+      "pan": "ABCPI1234K",
+      "dob": "1984-03-14",
+      "aadhaarLast4": "4821",
+      "mobile": "9840012345",
+      "state": "Tamil Nadu"
+    },
+    "nationalStats": [
+      {
+        "label": "Unclaimed bank deposits",
+        "value": 67004,
+        "regulator": "RBI"
+      },
+      {
+        "label": "Inoperative EPF accounts",
+        "value": 9330,
+        "regulator": "EPFO"
+      },
+      {
+        "label": "Unclaimed LIC funds",
+        "value": 5564,
+        "regulator": "LIC"
+      },
+      {
+        "label": "Unclaimed mutual funds",
+        "value": 3749,
+        "regulator": "SEBI"
+      }
+    ]
+  },
+  "showcase": {
+    "persona": {
+      "name": "Raghavan",
+      "state": "Tamil Nadu",
+      "age": 42
+    },
+    "sources": 7,
+    "regulators": [
+      {
+        "code": "RBI",
+        "covers": "Bank deposits"
+      },
+      {
+        "code": "EPFO",
+        "covers": "Provident fund & pension"
+      },
+      {
+        "code": "IRDAI",
+        "covers": "Private life insurance"
+      },
+      {
+        "code": "SEBI",
+        "covers": "Mutual funds & demat"
+      },
+      {
+        "code": "LIC",
+        "covers": "LIC policies"
+      },
+      {
+        "code": "PFRDA",
+        "covers": "NPS & Atal Pension"
+      },
+      {
+        "code": "DOP",
+        "covers": "PPF, NSC & small savings"
+      }
+    ],
+    "summary": {
+      "total": 15675230,
+      "atRisk": 9430730,
+      "count": 16,
+      "byRegulator": [
+        {
+          "regulator": "RBI",
+          "count": 4,
+          "value": 1487730
+        },
+        {
+          "regulator": "EPFO",
+          "count": 2,
+          "value": 2384400
+        },
+        {
+          "regulator": "IRDAI",
+          "count": 2,
+          "value": 5500000
+        },
+        {
+          "regulator": "SEBI",
+          "count": 3,
+          "value": 2489100
+        },
+        {
+          "regulator": "LIC",
+          "count": 2,
+          "value": 1287000
+        },
+        {
+          "regulator": "PFRDA",
+          "count": 1,
+          "value": 1640000
+        },
+        {
+          "regulator": "DOP",
+          "count": 2,
+          "value": 887000
+        }
+      ]
+    },
+    "holdings": 16,
+    "verify": [
+      {
+        "regulator": "RBI",
+        "status": "partial",
+        "records": 4
+      },
+      {
+        "regulator": "EPFO",
+        "status": "verified",
+        "records": 2
+      },
+      {
+        "regulator": "IRDAI",
+        "status": "verified",
+        "records": 2
+      },
+      {
+        "regulator": "SEBI",
+        "status": "verified",
+        "records": 3
+      },
+      {
+        "regulator": "LIC",
+        "status": "verified",
+        "records": 2
+      },
+      {
+        "regulator": "PFRDA",
+        "status": "verified",
+        "records": 1
+      },
+      {
+        "regulator": "DOP",
+        "status": "verified",
+        "records": 2
+      }
+    ],
+    "alerts": {
+      "total": 8,
+      "bySeverity": {
+        "high": 4,
+        "medium": 3,
+        "low": 1
+      },
+      "byKind": {
+        "nominee_missing": 4,
+        "nominee_deceased": 2,
+        "nominee_minor": 1,
+        "inoperative": 2,
+        "unclaimed": 3,
+        "name_mismatch": 1,
+        "kyc_stale": 2
+      },
+      "examples": [
+        {
+          "title": "No nominee on Fixed deposit",
+          "regulator": "RBI"
+        }
+      ]
+    },
+    "nominees": {
+      "coverage": 0.42,
+      "missing": 5
+    },
+    "idle": 1845000,
+    "transfer": {
+      "steps": 12,
+      "forms": 8,
+      "state": "Tamil Nadu"
+    },
+    "life": {
+      "successRate": 76,
+      "runs": 600,
+      "retireAge": 57,
+      "retireMedian": 28400000,
+      "fiAge": 52,
+      "legacyToday": 14200000,
+      "milestones": 3
+    }
+  },
+  "demo_auth": {
+    "token": "eyJzdWIiOiAidV8xYTFhNjczYjBiMDk5OSIsICJpYXQiOiAxNzkzNzk0Mjg5OTI0fQ.5eff6838f7f8e0a329d1860f1111722364c2141d32d594ade709462482369ad1",
+    "user": {
+      "id": "u_1a1a673b0b0999",
+      "email": "demo@assetbridge.in",
+      "name": "Raghavan",
+      "identity": null,
+      "verification": null,
+      "deceased": null,
+      "createdAt": "2026-11-04T12:06:02.160861+00:00",
+      "plan": null,
+      "lifePlan": null,
+      "baseline": null
+    }
+  }
+}

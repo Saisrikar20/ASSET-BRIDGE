@@ -1,0 +1,80 @@
+<mxfile host="Electron" modified="2026-11-04T12:00:00.000Z" agent="AssetBridge" version="21.6.8" type="device">
+  <diagram id="proposed-architecture" name="Asset Bridge Proposed Target Architecture">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Layer 1: Client & Presentation -->
+        <mxCell id="box_client" value="CLIENT &amp; ACCESSIBILITY LAYER (React 19 + TypeScript + PWA)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#0e2747;fontStyle=1;fontSize=14;fontColor=#0e2747;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="340" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="c_senior" value="Senior-First Design System&#xa;• WCAG AAA High Contrast Theme&#xa;• Step-by-Step 'Family Passbook' UI&#xa;• Stepper Inputs (+/-) over drag dials&#xa;• Emergency PDF Dossier Generator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#d97706;fontColor=#92400e;fontSize=11;fontStyle=1;" vertex="1" parent="box_client">
+          <mxGeometry x="20" y="45" width="300" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="c_views" value="Progressive Web App (PWA)&#xa;• Service Worker (Offline cached docs)&#xa;• Manifest.json &amp; Mobile Responsive&#xa;• CAS Statement Drag &amp; Drop Dropzone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#a3a6ac;fontSize=11;" vertex="1" parent="box_client">
+          <mxGeometry x="20" y="145" width="300" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="c_state" value="Client State &amp; Live Feeds&#xa;• TanStack Query (Server State Cache)&#xa;• WebSocket Reconnect &amp; Heartbeat&#xa;• Auth Session &amp; Protected Routes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#a3a6ac;fontSize=11;" vertex="1" parent="box_client">
+          <mxGeometry x="20" y="235" width="300" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="c_proxy" value="Vite Dev Server &amp; Gateway Client&#xa;Port 5173 ➔ Forward to :8000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=11;fontStyle=1;" vertex="1" parent="box_client">
+          <mxGeometry x="20" y="325" width="300" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 2: API Gateway & Application Server -->
+        <mxCell id="box_api" value="UNIFIED PYTHON FASTAPI BACKEND (Port 8000)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#1baf7a;fontStyle=1;fontSize=14;fontColor=#0e2747;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="420" y="60" width="460" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="api_core" value="Module 1: Identity &amp; Auth (Existing)&#xa;• JWT with Argon2id Password Hashing&#xa;• Deterministic &amp; Synthetic PAN Engine&#xa;• 7-Regulator Verification Broker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1baf7a;fontSize=11;" vertex="1" parent="box_api">
+          <mxGeometry x="20" y="45" width="420" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="api_holdings" value="Module 2: Holdings &amp; Succession (Target)&#xa;• Account Aggregator ReBIT Consent Flow&#xa;• Nominee-Gap Evaluator (Missing / Deceased / Minor)&#xa;• CRS Death Event Hook &amp; State Succession Checklists" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1baf7a;fontSize=11;" vertex="1" parent="box_api">
+          <mxGeometry x="20" y="120" width="420" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="api_sim" value="Module 3: Life Simulator &amp; Forecast (Target)&#xa;• 1,000-Path Monte Carlo Engine (NumPy/Pandas)&#xa;• FY 2025-26 Indian Income Tax Regime Slabs&#xa;• Sequential Drawdown: Cash ➔ Debt ➔ Gold ➔ Equity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1baf7a;fontSize=11;" vertex="1" parent="box_api">
+          <mxGeometry x="20" y="205" width="420" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="api_ingest" value="Phase 1: CAS Statement Parser Service&#xa;• CAMS / KFintech PDF &amp; Excel Parser&#xa;• Password-protected PDF Unlocking (PAN-based)&#xa;• Automated Portfolio Extraction &amp; Gap Alerts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1baf7a;fontSize=11;" vertex="1" parent="box_api">
+          <mxGeometry x="20" y="290" width="420" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="api_ws" value="Asynchronous Live Manager &amp; Pub/Sub&#xa;• WebSocket Broadcaster with Heartbeat&#xa;• Redis Pub/Sub for Multi-Worker Sync" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1baf7a;fontSize=11;" vertex="1" parent="box_api">
+          <mxGeometry x="20" y="375" width="420" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 3: AI & Knowledge Engine -->
+        <mxCell id="box_ai" value="AI &amp; RAG ENGINE (Hybrid Router)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#2a78d6;fontStyle=1;fontSize=14;fontColor=#0e2747;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="920" y="60" width="440" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_rag" value="Succession RAG Pipeline&#xa;• 8 Structured Domain Manuals (EPF, IRDAI, SEBI)&#xa;• Vector Embeddings (MiniLM / text-embedding-004)&#xa;• ChromaDB / PGVector Store" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2a78d6;fontSize=11;" vertex="1" parent="box_ai">
+          <mxGeometry x="20" y="45" width="400" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_router" value="Intelligent Model Router&#xa;• Primary: Google Gemini 1.5 Pro / Flash&#xa;• Secondary: OpenAI GPT-4o-mini&#xa;• Zero-API Offline Fallback: Extractive BM25 Retriever" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2a78d6;fontSize=11;" vertex="1" parent="box_ai">
+          <mxGeometry x="20" y="125" width="400" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 4: Storage & Integrations -->
+        <mxCell id="box_data" value="PERSISTENCE &amp; FUTURE INTEGRATIONS" style="swimlane;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#9333ea;fontStyle=1;fontSize=14;fontColor=#0e2747;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="920" y="310" width="440" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="db_pg" value="Dual-Mode Persistence Adapter&#xa;• Cloud: Supabase (PostgreSQL with RLS &amp; Indexes)&#xa;• Local Demo: File-backed JSON store (db.json)&#xa;• Automated Migration &amp; Seeding Harness" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9333ea;fontSize=11;" vertex="1" parent="box_data">
+          <mxGeometry x="20" y="45" width="400" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="db_ext" value="Future Institutional Integrations&#xa;• ReBIT AA Consent Gateway (Sahamati FIP/FIU)&#xa;• Civil Registration System (CRS) Death Event API&#xa;• DigiLocker Verified Document Exchange" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9333ea;fontSize=11;" vertex="1" parent="box_data">
+          <mxGeometry x="20" y="130" width="400" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="flow1" value="REST &amp; WS (Port 8000)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1baf7a;strokeWidth=2;fontSize=10;fontColor=#1baf7a;" edge="1" parent="1" source="box_client" target="box_api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow2" value="RAG Query &amp; Grounding" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2a78d6;strokeWidth=2;fontSize=10;fontColor=#2a78d6;" edge="1" parent="1" source="box_api" target="box_ai">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow3" value="Async SQL &amp; Vector Ops" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#9333ea;strokeWidth=2;fontSize=10;fontColor=#9333ea;" edge="1" parent="1" source="box_api" target="box_data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

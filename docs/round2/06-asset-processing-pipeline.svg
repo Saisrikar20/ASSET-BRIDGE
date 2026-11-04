@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1260 480" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; font-weight: bold; }
+      .text { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #2a2c30; }
+      .text-sm { font-family: system-ui, -apple-system, sans-serif; font-size: 10px; fill: #55595f; }
+    </style>
+  </defs>
+
+  <rect width="1260" height="480" fill="#f8f9fa" rx="12" />
+
+  <text x="30" y="38" class="title" font-size="18" fill="#0e2747">Asset Bridge – End-to-End Asset Processing Pipeline Flow</text>
+  <text x="30" y="58" class="text-sm">From PAN Ingestion &amp; Regulatory Discovery to Risk Alerting, Life Planning, and Estate Transmission</text>
+
+  <!-- Stage 1 -->
+  <g transform="translate(30, 90)">
+    <rect width="270" height="130" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5" />
+    <text x="15" y="25" class="title" fill="#1d4ed8">STAGE 1: IDENTITY &amp; PAN INGESTION</text>
+    <text x="15" y="48" class="text">• Strict Regex: ^[A-Z]{5}[0-9]{4}[A-Z]$</text>
+    <text x="15" y="66" class="text">• Aadhaar Last-4 Masking (UIDAI rules)</text>
+    <text x="15" y="84" class="text">• DOB &amp; Domicile State Normalization</text>
+    <text x="15" y="102" class="text">• Generates Canonical User Identity</text>
+  </g>
+
+  <!-- Arrow 1 -> 2 -->
+  <path d="M 300 155 L 340 155" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)" fill="none" />
+
+  <!-- Stage 2 -->
+  <g transform="translate(340, 90)">
+    <rect width="270" height="130" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" />
+    <text x="15" y="25" class="title" fill="#15803d">STAGE 2: MULTI-REGULATOR BROKER</text>
+    <text x="15" y="48" class="text">• 7 Institutional checks (RBI, EPFO...)</text>
+    <text x="15" y="66" class="text">• Deterministic &amp; Partial Name matching</text>
+    <text x="15" y="84" class="text">• Mismatch Flags (e.g. Canara Bank)</text>
+    <text x="15" y="102" class="text">• Issues Verification Token Audit</text>
+  </g>
+
+  <!-- Arrow 2 -> 3 -->
+  <path d="M 610 155 L 650 155" stroke="#22c55e" stroke-width="2" fill="none" />
+
+  <!-- Stage 3 -->
+  <g transform="translate(650, 90)">
+    <rect width="270" height="130" rx="8" fill="#faf5ff" stroke="#a855f7" stroke-width="1.5" />
+    <text x="15" y="25" class="title" fill="#7e22ce">STAGE 3: ASSET INGESTION &amp; CONSENT</text>
+    <text x="15" y="48" class="text">• ReBIT AA Consent Artefact Handshake</text>
+    <text x="15" y="66" class="text">• CAS Statement Parser (CAMS/KFintech)</text>
+    <text x="15" y="84" class="text">• Asset Classification (Cash/Equity/PF)</text>
+    <text x="15" y="102" class="text">• Maps ₹1.27 Cr Multi-Regulator Twin</text>
+  </g>
+
+  <!-- Arrow 3 -> 4 -->
+  <path d="M 920 155 L 960 155" stroke="#a855f7" stroke-width="2" fill="none" />
+
+  <!-- Stage 4 -->
+  <g transform="translate(960, 90)">
+    <rect width="270" height="130" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5" />
+    <text x="15" y="25" class="title" fill="#b91c1c">STAGE 4: NOMINEE-GAP EVALUATOR</text>
+    <text x="15" y="48" class="text">• Missing Nominee (High friction alert)</text>
+    <text x="15" y="66" class="text">• Deceased / Minor Nominee warnings</text>
+    <text x="15" y="84" class="text">• Inoperative &amp; DEA Fund Risk Detector</text>
+    <text x="15" y="102" class="text">• Dispatches real-time alerts via /ws</text>
+  </g>
+
+  <!-- Connecting Line Down to Stage 5 -->
+  <path d="M 1095 220 L 1095 270 L 610 270 L 610 300" stroke="#f59e0b" stroke-width="2" fill="none" />
+
+  <!-- Stage 5 -->
+  <g transform="translate(475, 300)">
+    <rect width="270" height="130" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5" />
+    <text x="15" y="25" class="title" fill="#b45309">STAGE 5: LIFE SIMULATION &amp; PLAN</text>
+    <text x="15" y="48" class="text">• 1,000-Path Monte Carlo Simulation</text>
+    <text x="15" y="66" class="text">• Sequential Drawdown (Cash ➔ Equity)</text>
+    <text x="15" y="84" class="text">• Indian Income Tax FY 2025-26 Slabs</text>
+    <text x="15" y="102" class="text">• Calculates Legacy &amp; FI Readiness</text>
+  </g>
+
+  <!-- Arrow 5 -> 6 -->
+  <path d="M 745 365 L 785 365" stroke="#f59e0b" stroke-width="2" fill="none" />
+
+  <!-- Stage 6 -->
+  <g transform="translate(785, 300)">
+    <rect width="445" height="130" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5" />
+    <text x="15" y="25" class="title" fill="#1f2937">STAGE 6: ESTATE CASE &amp; SUCCESSION TRANSMISSION</text>
+    <text x="15" y="48" class="text">• Civil Registration System (CRS) Death Event Trigger via PAN</text>
+    <text x="15" y="66" class="text">• State-Specific Checklist (e.g. Tahsildar in TN vs Court in MH)</text>
+    <text x="15" y="84" class="text">• Generates Claim Packets: EPFO Form 20/10D/5(IF), LIC Claim A</text>
+    <text x="15" y="102" class="text">• Heir Portal (/heir) Synchronized for Joint Step Check-off</text>
+  </g>
+</svg>
