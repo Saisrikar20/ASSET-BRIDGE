@@ -83,7 +83,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-2.5 self-start sm:self-center">
           <button
             onClick={() => setShowEmailModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-sm transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer"
             title="Email statutory claiming dossier with PDF attachment"
           >
             <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
@@ -101,13 +101,13 @@ export default function Dashboard() {
               }
             }}
             disabled={downloadingPdf}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-sm transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-            title="Download statutory asset claiming dossier"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            title="Download statutory asset claiming dossier PDF"
           >
             {downloadingPdf ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-600 dark:text-brand-400" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-400 dark:text-brand-600" />
             ) : (
-              <FileDown className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+              <FileDown className="h-3.5 w-3.5 text-brand-400 dark:text-brand-600" />
             )}
             <span>{downloadingPdf ? 'Generating…' : 'Download Claim Dossier (PDF)'}</span>
           </button>

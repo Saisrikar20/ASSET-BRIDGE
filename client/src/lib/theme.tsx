@@ -48,15 +48,16 @@ export function ThemeToggle({ onDark = false, className }: { onDark?: boolean; c
     <button
       onClick={toggle}
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={dark ? 'Light mode' : 'Dark mode'}
+      title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
       className={cx(
-        'inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition',
-        onDark ? 'text-white/90 hover:bg-white/10 hover:text-white' : 'text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100',
+        'inline-flex cursor-pointer items-center justify-center rounded-lg p-2 text-xs font-medium transition',
+        onDark
+          ? 'text-white/90 hover:bg-white/10 hover:text-white'
+          : 'text-slate-600 dark:text-slate-300 ring-1 ring-slate-200 dark:ring-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800',
         className,
       )}
     >
-      {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-      <span className={onDark ? undefined : 'hidden sm:inline'}>{dark ? 'Light' : 'Dark'}</span>
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>
   );
 }

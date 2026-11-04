@@ -5,7 +5,7 @@
 
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Cormorant Garamond', 'Cormorant', Georgia, serif;
+  --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
   /* LedgerLens colours: warm greys, a burnt-orange accent (500/600) and navy
      (800/900) for the dark panels and gradients. */
   --color-brand-50: #fdeee7;
@@ -17,17 +17,17 @@
   --color-brand-900: #081629;
   --color-ink: #17181a;
   /* Warm grey neutrals. */
-  --color-slate-50: #efeeec;
-  --color-slate-100: #f3f2f0;
-  --color-slate-200: #ebeae7;
-  --color-slate-300: #d9d7d3;
-  --color-slate-400: #a3a6ac;
-  --color-slate-500: #6b6f76;
-  --color-slate-600: #55595f;
-  --color-slate-700: #3c3f44;
-  --color-slate-800: #2a2c30;
-  --color-slate-900: #17181a;
-  --color-slate-950: #0f1012;
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
   /* Card / panel background, and a fixed navy for gradients that stay dark in both themes. */
   --color-surface: #ffffff;
   --color-night: #0e2747;
@@ -70,17 +70,17 @@
      - 400, 500: bright, legible silvery slate for labels, metadata, subtext (>7:1 contrast) (#94a3b8, #cbd5e1)
      - 600, 700: high-contrast text (#e2e8f0, #f1f5f9)
   */
-  --color-slate-50: #0c0d10;
-  --color-slate-100: #181a1e;
-  --color-slate-200: #e2e8f0;
+  --color-slate-50: #090d16;
+  --color-slate-100: #111726;
+  --color-slate-200: #1c263a;
   --color-slate-300: #cbd5e1;
   --color-slate-400: #94a3b8;
-  --color-slate-500: #cbd5e1;
-  --color-slate-600: #e2e8f0;
-  --color-slate-700: #f1f5f9;
-  --color-slate-800: #272a30;
-  --color-slate-900: #141619;
-  --color-slate-950: #0a0b0d;
+  --color-slate-500: #94a3b8;
+  --color-slate-600: #cbd5e1;
+  --color-slate-700: #e2e8f0;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #111726;
+  --color-slate-950: #090d16;
   --color-brand-50: #3a2117;
   --color-brand-100: #4a2a1c;
   --color-brand-500: #f0652f;
@@ -152,7 +152,7 @@ body {
 
 .dark body {
   background-color: var(--color-slate-50);
-  color: var(--color-slate-200);
+  color: #f1f5f9;
 }
 
 .prose-answer p { margin: 0.4rem 0; }
@@ -179,38 +179,13 @@ html {
   50% { transform: translate(6px, -8px); opacity: 1; }
 }
 
-/* Home → dashboard: circuit-board transition (ported from LedgerLens). */
-.cb {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  display: grid;
-  place-items: center;
-  background-color: var(--color-slate-50);
-  color: var(--color-ink);
-  background-image: radial-gradient(color-mix(in srgb, var(--color-ink) 16%, transparent) 1px, transparent 1.2px);
-  background-size: 22px 22px;
-  animation: cbIn 0.25s ease both;
+/* Keyframes for Asset Bridge Transition */
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
-.cb.out { animation: cbOut 0.45s ease forwards; pointer-events: none; }
-@keyframes cbIn { from { opacity: 0; } }
-@keyframes cbOut { to { opacity: 0; transform: scale(1.04); filter: blur(4px); } }
-.cb svg { width: min(820px, 94vw); height: auto; overflow: visible; }
-.cb .tr { fill: none; stroke: color-mix(in srgb, var(--color-ink) 28%, transparent); stroke-width: 2; stroke-linejoin: round; }
-.cb .pl { fill: none; stroke: var(--color-brand-500); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; filter: url(#cbGlow); }
-.cb .jn { fill: var(--color-brand-500); }
-.cb .nd rect { fill: var(--color-surface); stroke: color-mix(in srgb, var(--color-ink) 30%, transparent); stroke-width: 1.5; transition: stroke 0.3s, fill 0.3s; }
-.cb .nd .ic { color: color-mix(in srgb, var(--color-ink) 55%, transparent); transition: color 0.3s; }
-.cb .nd text { fill: var(--color-slate-500); font: 500 13px Inter, system-ui, sans-serif; text-anchor: middle; transition: fill 0.3s; }
-.cb .nd.on rect { stroke: var(--color-brand-500); fill: var(--color-brand-50); }
-.cb .nd.on .ic { color: var(--color-brand-600); }
-.cb .lotus { fill: color-mix(in srgb, var(--color-ink) 55%, transparent); transition: fill 0.3s; }
-.cb .nd.on .lotus { fill: var(--color-brand-500); }
-.cb .nd.on text { fill: var(--color-ink); }
-.cb .halo { fill: none !important; stroke: var(--color-brand-500) !important; stroke-width: 1; opacity: 0; transition: opacity 0.3s; filter: url(#cbGlow); }
-.cb .nd.on .halo { opacity: 1; }
-.cb-cap { position: absolute; bottom: 12vh; left: 0; right: 0; text-align: center; font: 500 14px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-slate-500); letter-spacing: 0.04em; }
-.cb-cap b { color: var(--color-brand-600); font-weight: 600; }
+
 /* ==========================================================================
    Print-Optimized Stylesheet (@media print) (future.md §1.5)
    ========================================================================== */

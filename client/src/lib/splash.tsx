@@ -1,13 +1,13 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CircuitTransition, { CIRCUIT_MS } from '../components/CircuitTransition';
+import BridgeTransition, { BRIDGE_TRANSITION_MS } from '../components/BridgeTransition';
 
-/** Open the app through the circuit-board transition: runs `task` (which returns where to go) while the circuit plays, shows the destination underneath, then lifts the overlay. */
+/** Open the app through the Asset Bridge transition: runs `task` (which returns destination route) while the bridge animation plays, navigates, then lifts the overlay. */
 type Go = (task: () => Promise<string>) => Promise<void>;
 const Ctx = createContext<Go>(async () => {});
 
-const MIN_MS = CIRCUIT_MS; // the circuit finishes, then the destination renders underneath
-const FADE_MS = 600; // scale-and-blur out, plus a beat
+const MIN_MS = BRIDGE_TRANSITION_MS;
+const FADE_MS = 400;
 
 export function SplashProvider({ children }: { children: ReactNode }) {
   const nav = useNavigate();
@@ -17,8 +17,9 @@ export function SplashProvider({ children }: { children: ReactNode }) {
   const go = useCallback<Go>(
     async (task) => {
       if (running.current) return;
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        nav(await task());
+      if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const to = await task();
+        nav(to);
         return;
       }
       running.current = true;
@@ -26,10 +27,12 @@ export function SplashProvider({ children }: { children: ReactNode }) {
       const started = performance.now();
       try {
         const to = await task();
-        await new Promise((r) => setTimeout(r, Math.max(0, MIN_MS - (performance.now() - started))));
+        const elapsed = performance.now() - started;
+        if (elapsed < MIN_MS) {
+          await new Promise((r) => setTimeout(r, MIN_MS - elapsed));
+        }
         nav(to);
       } finally {
-        // Lift the overlay off whatever is now on screen (or the page it started on, on error).
         setPhase('leaving');
         setTimeout(() => {
           setPhase('idle');
@@ -43,7 +46,7 @@ export function SplashProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={go}>
       {children}
-      {phase !== 'idle' && <CircuitTransition leaving={phase === 'leaving'} />}
+      {phase !== 'idle' && <BridgeTransition leaving={phase === 'leaving'} />}
     </Ctx.Provider>
   );
 }

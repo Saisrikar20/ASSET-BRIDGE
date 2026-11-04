@@ -319,19 +319,19 @@ export default function Alerts() {
           className={cx(
             'rounded-xl border p-3 text-left transition cursor-pointer',
             filter === 'all'
-              ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-black shadow-sm'
+              ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 shadow-sm'
               : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-slate-300'
           )}
         >
           <div
             className={cx(
               'text-[10px] uppercase font-mono font-semibold',
-              filter === 'all' ? 'text-slate-300 dark:text-slate-700' : 'text-slate-500 dark:text-slate-400'
+              filter === 'all' ? 'text-slate-300 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'
             )}
           >
             Open Alerts
           </div>
-          <div className="text-xl font-bold tracking-tight mt-0.5 tabular-nums">
+          <div className={cx("text-xl font-bold tracking-tight mt-0.5 tabular-nums", filter === 'all' ? 'text-white dark:text-slate-900' : 'text-slate-900 dark:text-white')}>
             {openAlerts.length}
           </div>
         </button>
@@ -422,7 +422,7 @@ export default function Alerts() {
             />
             Low
           </div>
-          <div className="text-xl font-bold tracking-tight mt-0.5 tabular-nums">
+          <div className={cx("text-xl font-bold tracking-tight mt-0.5 tabular-nums", filter === 'low' ? 'text-white' : 'text-slate-900 dark:text-white')}>
             {lowCount}
           </div>
         </button>

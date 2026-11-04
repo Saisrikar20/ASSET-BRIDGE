@@ -21,12 +21,12 @@ export function Logo({ light = false, size = 'md', tagline = size === 'lg', onCl
         if (pathname === '/') window.scrollTo({ top: 0, behavior: 'smooth' });
         onClick?.();
       }}
-      className="flex shrink-0 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+      className="flex shrink-0 items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
     >
-      <LogoMark onDark={light} className={cx('shrink-0', lg ? 'h-12 w-[65px]' : 'h-8 w-[43px]')} />
+      <LogoMark onDark={light} className={cx('shrink-0', lg ? 'h-9 w-9' : 'h-6 w-6')} />
       <div className="leading-none">
-        <div className={cx('font-display font-bold whitespace-nowrap', lg ? 'text-[1.9rem] tracking-[0.06em]' : 'text-[1.12rem] tracking-[0.04em]', light ? 'text-white' : 'text-[#17181a] dark:text-ink')}>ASSET BRIDGE</div>
-        {tagline && <div className={cx('mt-1 font-medium whitespace-nowrap', lg ? 'text-[10.5px] tracking-[0.28em]' : 'text-[8px] tracking-[0.2em]', light ? 'text-[#b9d3f5]' : 'text-[#17181a]/80 dark:text-slate-500')}>RECOVERING FAMILY LEGACY</div>}
+        <div className={cx('font-sans font-bold whitespace-nowrap', lg ? 'text-xl tracking-tight' : 'text-sm tracking-tight', light ? 'text-white' : 'text-slate-900 dark:text-white')}>ASSET BRIDGE</div>
+        {tagline && <div className={cx('mt-0.5 font-mono font-semibold whitespace-nowrap uppercase', lg ? 'text-[9.5px] tracking-[0.22em]' : 'text-[7.5px] tracking-[0.18em]', light ? 'text-sky-300' : 'text-slate-500 dark:text-slate-400')}>RECOVERING FAMILY LEGACY</div>}
       </div>
     </Link>
   );
