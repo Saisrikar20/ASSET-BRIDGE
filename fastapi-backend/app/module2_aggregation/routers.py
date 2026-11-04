@@ -1,0 +1,434 @@
+import datetime, re, random
+from typing import List, Dict, Any, Optional
+from fastapi import APIRouter, Depends, HTTPException, Header, status
+from pydantic import BaseModel
+
+from app.module1_core.store import store, uid
+from app.module1_core.auth import get_current_user, public_user, verify_token
+from app.module1_core.live import live_manager
+from app.module1_core.identity import REGULATORS, STATES, STATE_HEIR_DOC, DEMO_IDENTITY, DEMO_RECORDS
+from app.module2_aggregation.models import (
+    PANValidationRequest, PANValidationResponse, PipelineProcessRequest,
+    ConsolidatedReport
+)
+from app.module2_aggregation.pipeline import (
+    validate_input, process_pipeline, discover_assets, normalize_assets,
+    detect_duplicates, analyze_financials, generate_consolidated_report
+)
+from app.module2_aggregation.assistant import answer_question, GuideIn
+
+router = APIRouter(prefix="/api")
+
+# --- Succession helper ---
+def build_succession_tasks(holdings: list, state: str) -> list:
+    heir_doc_info = STATE_HEIR_DOC.get(state, {
+        "doc": "Legal Heir / Succession Certificate",
+        "authority": "Local revenue office or District Court",
+        "days": "1–6 months"
+    })
+    needs_heir_doc = any(not h.get("nominee") or (h.get("nominee") and h.get("nominee").get("status") != "valid") for h in holdings)
+    
+    n = 0
+    def tid():
+        nonlocal n
+        n += 1
+        return f"t{n}"
+
+    tasks = [
+        {
+            "id": tid(),
+            "title": "Obtain death certificate",
+            "detail": "Issued by the local registrar under the Civil Registration System. Get several certified copies.",
+            "docs": ["Form 2 death report", "ID of informant"],
+            "authority": "Municipal / Panchayat registrar",
+            "holdingId": None,
+            "done": False
+        }
+    ]
+    if needs_heir_doc:
+        tasks.append({
+            "id": tid(),
+            "title": f"Get {heir_doc_info['doc']}",
+            "detail": f"Needed wherever there is no valid nominee. In {state or 'your state'}, this comes from {heir_doc_info['authority']} — typically {heir_doc_info['days']}.",
+            "docs": ["Death certificate", "ID & address proof of all heirs", "Relationship proof"],
+            "authority": heir_doc_info["authority"],
+            "holdingId": None,
+            "done": False
+        })
+
+    for h in holdings:
+        reg = h.get("regulator")
+        inst = h.get("institution", "Institution")
+        nom = h.get("nominee") and h.get("nominee").get("status") == "valid"
+        htype = h.get("type", "Asset")
+        hid = h.get("id")
+
+        if reg == "RBI":
+            if "Gold Bond" in htype:
+                tasks.append({
+                    "id": tid(), "title": "Transmit Sovereign Gold Bond",
+                    "detail": f"Submit transmission request for {h.get('ref')}.",
+                    "docs": ["SGB transmission form", "Death certificate", "Claimant KYC"],
+                    "authority": inst, "holdingId": hid, "done": False
+                })
+            else:
+                title = f"Submit nominee claim at {inst}" if nom else f"Submit legal-heir claim at {inst}"
+                tasks.append({
+                    "id": tid(), "title": title,
+                    "detail": f"Settle deposit claim with {inst}.",
+                    "docs": ["Bank claim form", "Death certificate", "KYC"],
+                    "authority": inst, "holdingId": hid, "done": False
+                })
+        elif reg == "EPFO":
+            tasks.append({
+                "id": tid(), "title": "File Form 20 (PF settlement)",
+                "detail": f"Claim PF balance for {inst}.",
+                "docs": ["Form 20", "Death certificate", "Cancelled cheque"],
+                "authority": "EPFO regional office", "holdingId": hid, "done": False
+            })
+        elif reg in ["IRDAI", "LIC"]:
+            tasks.append({
+                "id": tid(), "title": f"Submit insurance death claim to {inst}",
+                "detail": f"Intimate death claim for policy {h.get('ref')}.",
+                "docs": ["Claim form", "Death certificate", "Policy document", "Bank mandate"],
+                "authority": inst, "holdingId": hid, "done": False
+            })
+        elif reg == "SEBI":
+            tasks.append({
+                "id": tid(), "title": f"Transmit securities via {inst}",
+                "detail": f"Move securities or mutual funds for {h.get('ref')} to claimant.",
+                "docs": ["Transmission request form", "Death certificate", "Client Master List"],
+                "authority": inst, "holdingId": hid, "done": False
+            })
+        else:
+            tasks.append({
+                "id": tid(), "title": f"Claim {htype} at {inst}",
+                "detail": f"Submit title and death paperwork for {h.get('ref')}.",
+                "docs": ["Claim form", "Death certificate", "ID proof"],
+                "authority": inst, "holdingId": hid, "done": False
+            })
+
+    return tasks
+
+# -------------------------------------------------------------
+# TASK 4: CORE PIPELINE ENDPOINTS
+# -------------------------------------------------------------
+@router.post("/pipeline/validate-pan", response_model=PANValidationResponse)
+def api_validate_pan(body: PANValidationRequest):
+    """Step 1 Input Validation endpoint."""
+    valid, msg, entity_type = validate_input(body.pan)
+    if not valid:
+        raise HTTPException(status_code=400, detail=msg)
+    return PANValidationResponse(
+        valid=True,
+        pan=body.pan.strip().upper(),
+        entityType=entity_type,
+        message=f"Valid {entity_type} PAN."
+    )
+
+@router.post("/pipeline/process", response_model=ConsolidatedReport)
+def api_process_pipeline(body: PipelineProcessRequest, user: dict = Depends(get_current_user)):
+    """Executes the deterministic 7-step Core Asset Processing Pipeline."""
+    identity_dict = {
+        "pan": body.pan.strip().upper(),
+        "name": body.name.strip(),
+        "dob": body.dob.strip(),
+        "state": body.state.strip(),
+        "aadhaarLast4": body.aadhaarLast4,
+        "mobile": body.mobile
+    }
+    try:
+        report = process_pipeline(identity_dict, body.regulators)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+        
+    # Cache latest report in user record
+    store.update("users", lambda u: u.get("id") == user["id"], {"latestReport": report.model_dump()})
+    return report
+
+@router.get("/reports/consolidated")
+def api_get_consolidated_report(user: dict = Depends(get_current_user)):
+    """Retrieves the latest consolidated report or generates one from current identity."""
+    existing = user.get("latestReport")
+    if existing:
+        return existing
+        
+    identity = user.get("identity")
+    if not identity:
+        identity = DEMO_IDENTITY
+        
+    report = process_pipeline(identity)
+    return report.model_dump()
+
+# -------------------------------------------------------------
+# FRONTEND INTEGRATION: Consents & Aggregation
+# -------------------------------------------------------------
+class ConsentCreateBody(BaseModel):
+    regulators: List[str]
+    months: Optional[int] = 12
+
+@router.get("/consents")
+def get_consents(user: dict = Depends(get_current_user)):
+    uid_val = user["id"]
+    return {"consents": store.all("consents", lambda c: c.get("userId") == uid_val)}
+
+@router.post("/consents")
+async def create_consent(body: ConsentCreateBody, user: dict = Depends(get_current_user)):
+    uid_val = user["id"]
+    identity = user.get("identity") or DEMO_IDENTITY
+    
+    # Store consent artefact
+    c_id = uid("c_")
+    now = datetime.datetime.now(datetime.timezone.utc)
+    expires = now + datetime.timedelta(days=body.months * 30)
+    
+    consent = store.insert("consents", {
+        "id": c_id,
+        "userId": uid_val,
+        "handle": f"consent-{uid()[:8]}@onemoney",
+        "purpose": "Aggregated wealth and succession twin audit",
+        "fiTypes": [REGULATORS[r]["fiType"] for r in body.regulators if r in REGULATORS],
+        "regulators": body.regulators,
+        "status": "ACTIVE",
+        "createdAt": now.isoformat(),
+        "expiresAt": expires.isoformat(),
+        "fetchType": "ONETIME",
+        "dataLife": f"{body.months} months"
+    })
+    
+    # Step 3 & 4: Discover & Normalize
+    raw_records = discover_assets(identity, body.regulators)
+    normalized = normalize_assets(raw_records, identity)
+    deduped_assets, duplicates = detect_duplicates(normalized)
+    
+    # Persist holdings
+    store.remove("holdings", lambda h: h.get("userId") == uid_val)
+    created_holdings = []
+    for a in deduped_assets:
+        h_dict = a.model_dump()
+        h_dict["userId"] = uid_val
+        h_dict["consentId"] = c_id
+        store.insert("holdings", h_dict)
+        created_holdings.append(h_dict)
+        
+    # Step 6: Financial Analysis & Alerts
+    analysis = analyze_financials(deduped_assets, identity)
+    store.remove("alerts", lambda al: al.get("userId") == uid_val)
+    for al in analysis.alerts:
+        al_dict = al.model_dump()
+        al_dict["userId"] = uid_val
+        store.insert("alerts", al_dict)
+        await live_manager.push(uid_val, "alert", al_dict)
+        
+    return {"consent": consent, "holdingsCount": len(created_holdings)}
+
+@router.post("/consents/{consent_id}/revoke")
+def revoke_consent(consent_id: str, user: dict = Depends(get_current_user)):
+    c = store.find("consents", lambda c: c.get("id") == consent_id and c.get("userId") == user["id"])
+    if not c:
+        raise HTTPException(status_code=404, detail="Consent not found")
+    store.update("consents", lambda item: item.get("id") == consent_id, {"status": "REVOKED"})
+    return {"ok": True}
+
+# -------------------------------------------------------------
+# FRONTEND INTEGRATION: Holdings & Alerts
+# -------------------------------------------------------------
+@router.get("/holdings")
+def get_holdings(user: dict = Depends(get_current_user)):
+    uid_val = user["id"]
+    holdings = store.all("holdings", lambda h: h.get("userId") == uid_val)
+    
+    # Calculate summary
+    total = sum(h.get("value", 0) for h in holdings if not h.get("isDuplicate"))
+    at_risk = sum(h.get("value", 0) for h in holdings if not h.get("isDuplicate") and (not h.get("nominee") or h.get("recordStatus") != "active" or (h.get("nominee") and h.get("nominee").get("status") != "valid")))
+    
+    by_reg = []
+    for code in REGULATORS.keys():
+        hs = [h for h in holdings if h.get("regulator") == code and not h.get("isDuplicate")]
+        by_reg.append({
+            "regulator": code,
+            "count": len(hs),
+            "value": sum(h.get("value", 0) for h in hs)
+        })
+        
+    return {
+        "holdings": holdings,
+        "summary": {
+            "total": total,
+            "atRisk": at_risk,
+            "count": len([h for h in holdings if not h.get("isDuplicate")]),
+            "byRegulator": by_reg
+        }
+    }
+
+class NomineeUpdateBody(BaseModel):
+    name: str
+    relation: str
+
+@router.patch("/holdings/{holding_id}/nominee")
+async def update_nominee(holding_id: str, body: NomineeUpdateBody, user: dict = Depends(get_current_user)):
+    h = store.find("holdings", lambda item: item.get("id") == holding_id and item.get("userId") == user["id"])
+    if not h:
+        raise HTTPException(status_code=404, detail="Holding not found")
+    new_nominee = {"name": body.name.strip(), "relation": body.relation.strip(), "status": "valid"}
+    updated = store.update("holdings", lambda item: item.get("id") == holding_id, {"nominee": new_nominee})
+    
+    # Auto-resolve nominee_missing alert
+    store.update("alerts", lambda a: a.get("holdingId") == holding_id and a.get("kind") == "nominee_missing", {"resolved": True})
+    await live_manager.push(user["id"], "alert_resolved", {"holdingId": holding_id})
+    return {"holding": updated}
+
+@router.post("/holdings/{holding_id}/reactivate")
+async def reactivate_holding(holding_id: str, user: dict = Depends(get_current_user)):
+    h = store.find("holdings", lambda item: item.get("id") == holding_id and item.get("userId") == user["id"])
+    if not h:
+        raise HTTPException(status_code=404, detail="Holding not found")
+    updated = store.update("holdings", lambda item: item.get("id") == holding_id, {"recordStatus": "active", "status": "active"})
+    store.update("alerts", lambda a: a.get("holdingId") == holding_id and a.get("kind") in ["inoperative", "unclaimed"], {"resolved": True})
+    await live_manager.push(user["id"], "holding_updated", {"id": holding_id, "status": "active"})
+    return {"holding": updated}
+
+@router.get("/alerts")
+def get_alerts(user: dict = Depends(get_current_user)):
+    uid_val = user["id"]
+    return {"alerts": store.all("alerts", lambda a: a.get("userId") == uid_val)}
+
+@router.post("/alerts/{alert_id}/resolve")
+def resolve_alert(alert_id: str, user: dict = Depends(get_current_user)):
+    a = store.find("alerts", lambda item: item.get("id") == alert_id and item.get("userId") == user["id"])
+    if not a:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    store.update("alerts", lambda item: item.get("id") == alert_id, {"resolved": True})
+    return {"ok": True}
+
+# -------------------------------------------------------------
+# FRONTEND INTEGRATION: Heirs & Estate Cases
+# -------------------------------------------------------------
+class HeirCreateBody(BaseModel):
+    name: str
+    relation: str
+    pan: str
+    mobile: Optional[str] = ""
+    email: Optional[str] = ""
+    share: float
+
+@router.get("/heirs")
+def get_heirs(user: dict = Depends(get_current_user)):
+    uid_val = user["id"]
+    return {"heirs": store.all("heirs", lambda h: h.get("userId") == uid_val)}
+
+@router.post("/heirs")
+def add_heir(body: HeirCreateBody, user: dict = Depends(get_current_user)):
+    heir = store.insert("heirs", {
+        "id": uid("k_"),
+        "userId": user["id"],
+        "name": body.name.strip(),
+        "relation": body.relation.strip(),
+        "pan": body.pan.strip().upper(),
+        "mobile": body.mobile or "",
+        "email": body.email or "",
+        "share": body.share
+    })
+    return {"heir": heir}
+
+@router.delete("/heirs/{heir_id}")
+def delete_heir(heir_id: str, user: dict = Depends(get_current_user)):
+    store.remove("heirs", lambda h: h.get("id") == heir_id and h.get("userId") == user["id"])
+    return {"ok": True}
+
+class DeathNoticeBody(BaseModel):
+    pan: str
+    dateOfDeath: str
+    registrationNo: Optional[str] = None
+    place: Optional[str] = None
+
+@router.post("/crs/death")
+async def crs_death_notification(body: DeathNoticeBody, user: dict = Depends(get_current_user)):
+    uid_val = user["id"]
+    holdings = store.all("holdings", lambda h: h.get("userId") == uid_val)
+    heirs = store.all("heirs", lambda h: h.get("userId") == uid_val)
+    state = (user.get("identity") or {}).get("state", "Tamil Nadu")
+    
+    deceased = {
+        "dateOfDeath": body.dateOfDeath,
+        "registrationNo": body.registrationNo or f"CRS/{datetime.date.today().year}/{random.randint(100000, 999999)}",
+        "place": body.place or state
+    }
+    store.update("users", lambda u: u.get("id") == uid_val, {"deceased": deceased})
+    
+    case_tasks = build_succession_tasks(holdings, state)
+    case_row = store.insert("cases", {
+        "id": f"AB-{uid()[:4].upper()}{random.randint(10, 99)}",
+        "ownerId": uid_val,
+        "deceasedName": (user.get("identity") or {}).get("name", user["name"]),
+        "deceasedPan": body.pan.strip().upper(),
+        "state": state,
+        "deceased": deceased,
+        "holdings": holdings,
+        "heirs": heirs,
+        "tasks": case_tasks,
+        "timeline": [
+            {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "text": f"Death registration {deceased['registrationNo']} received via CRS"},
+            {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "text": f"Matched to PAN {body.pan} — {len(holdings)} holdings aggregated"},
+            {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "text": f"{len(heirs)} legal heir(s) notified"}
+        ],
+        "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
+    })
+    
+    await live_manager.push(uid_val, "case", {"id": case_row["id"]})
+    return {"case": case_row, "notified": [{"name": h["name"], "via": ["SMS", "Email"]} for h in heirs]}
+
+@router.get("/cases")
+def get_cases(user: dict = Depends(get_current_user)):
+    uid_val = user["id"]
+    pan = (user.get("identity") or {}).get("pan")
+    cases = store.all("cases", lambda c: c.get("ownerId") == uid_val or (pan and any(h.get("pan") == pan for h in c.get("heirs", []))))
+    return {
+        "cases": [
+            {
+                "id": c["id"],
+                "deceasedName": c["deceasedName"],
+                "createdAt": c["createdAt"],
+                "progress": len([t for t in c.get("tasks", []) if t.get("done")]) / max(len(c.get("tasks", [])), 1)
+            } for c in cases
+        ]
+    }
+
+@router.get("/cases/{case_id}")
+def get_case_detail(case_id: str, user: dict = Depends(get_current_user)):
+    c = store.find("cases", lambda item: item.get("id") == case_id.upper())
+    if not c:
+        raise HTTPException(status_code=404, detail="Case not found")
+    return {"case": c, "actor": "owner"}
+
+class TaskUpdateBody(BaseModel):
+    done: bool
+
+@router.patch("/cases/{case_id}/tasks/{task_id}")
+async def update_case_task(case_id: str, task_id: str, body: TaskUpdateBody, user: dict = Depends(get_current_user)):
+    c = store.find("cases", lambda item: item.get("id") == case_id.upper())
+    if not c:
+        raise HTTPException(status_code=404, detail="Case not found")
+    t = next((task for task in c.get("tasks", []) if task.get("id") == task_id), None)
+    if not t:
+        raise HTTPException(status_code=404, detail="Task not found")
+    t["done"] = body.done
+    c.setdefault("timeline", []).append({
+        "at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "text": f"Family {'completed' if body.done else 'reopened'}: {t.get('title')}"
+    })
+    store.update("cases", lambda item: item.get("id") == case_id.upper(), c)
+    await live_manager.push(c.get("ownerId", ""), "case_update", {"id": c["id"]})
+    return {"case": c}
+
+# -------------------------------------------------------------
+# TASK 3: IN-PROCESS AI SUCCESSION GUIDE
+# -------------------------------------------------------------
+@router.post("/assistant")
+async def api_assistant(body: GuideIn):
+    """Integrated AI succession guide with BM25 retrieval and extractive fallback."""
+    if not body.question.strip():
+        raise HTTPException(status_code=400, detail="Ask a question")
+    result = await answer_question(body)
+    return result
+

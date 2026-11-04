@@ -60,17 +60,22 @@ DEMO_RECORDS = [
     {'regulator': 'LIC', 'type': 'Matured policy (unpaid)', 'institution': 'LIC of India · Jeevan Saral', 'ref': 'POL 6630XX55', 'value': 287000, 'status': 'unclaimed', 'lastActivity': '2019-12-20', 'nominee': {'name': 'Lakshmi', 'relation': 'Mother', 'status': 'deceased'}, 'kycUpdated': '2004-06-30'},
 ]
 
-def norm(s: str) -> str:
-    return re.sub(r'\s+', ' ', re.sub(r'[^a-z ]', ' ', s.lower())).strip()
+def clean_name(s: str) -> str:
+    return re.sub(r'\s+', ' ', re.sub(r'[^a-z ]', ' ', (s or '').lower())).strip()
 
-def name_match(given: str, registered: str) -> str:
-    a, b = norm(given), norm(registered)
+def match_name_logic(given: str, registered: str) -> tuple[str, float]:
+    a, b = clean_name(given), clean_name(registered)
+    if not a or not b:
+        return 'mismatch', 0.0
     if a == b:
-        return 'exact'
+        return 'exact', 1.0
     ap, bp = a.split(' '), b.split(' ')
     if ap[-1] == bp[-1] and ap[0][0] == bp[0][0]:
-        return 'partial'
-    return 'mismatch'
+        return 'partial', 0.65
+    return 'mismatch', 0.0
+
+def name_match(given: str, registered: str) -> str:
+    return match_name_logic(given, registered)[0]
 
 def query_regulator(regulator: str, identity: dict) -> list:
     is_demo = identity.get('pan', '').upper() == DEMO_IDENTITY['pan']
