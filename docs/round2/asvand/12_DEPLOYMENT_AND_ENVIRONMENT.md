@@ -110,3 +110,4 @@ VITE_API_URL=http://localhost:8000
 
 1. **Uninstalled Workspace Dependencies:** Neither `client/node_modules` nor `fastapi-backend/.venv` are currently installed in the active folder. Installing them is the immediate prerequisite to building and testing.
 2. **Missing Ported Modules (FastAPI):** As established in `DOC-SYNC-00`, routes for Aggregation, LifeSim, Cases, and AI Guide must be ported to `fastapi-backend` so production builds on Render or Vercel succeed without runtime 404 errors.
+

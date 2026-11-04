@@ -155,3 +155,4 @@
 - `OPT-02`: OCR Computer Vision model for Death Certificate image parsing (Defer to Round 3).
 - `OPT-03`: Mobile PWA standalone service worker caching (Defer to Round 3).
 - `OPT-04`: Live Sahamati Account Aggregator mTLS connection (Requires RBI License - Out of Scope).
+

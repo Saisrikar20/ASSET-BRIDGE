@@ -33,3 +33,4 @@
 | **PERF-03** | WebSocket Connection | Multiple open browser tabs for the same user open duplicate WebSocket connections. | Broadcast alerts through a shared `BroadcastChannel` in browser, keeping only 1 active WS connection. | Reduces open socket file descriptors on server by 60%. | 4/10 | **LOW** |
 | **PERF-04** | Document Hashing | Uploading a 5MB PDF could block the main UI thread during SHA-256 calculation. | Use Web Crypto API (`window.crypto.subtle.digest`) which executes asynchronously on browser background worker threads. | Zero UI frame drops during document verification. | 2/10 | **HIGH** |
 | **PERF-05** | Image & SVG Assets | Unoptimized SVG icons and animated paths in `LampHero.tsx`. | Add CSS `will-change: transform` and hardware acceleration hints. | Smooth 60 FPS transitions on mobile and low-powered laptops. | 1/10 | **MEDIUM** |
+

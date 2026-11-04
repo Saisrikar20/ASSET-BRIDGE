@@ -45,3 +45,4 @@ Under India's **Digital Personal Data Protection Act 2023**, financial data proc
    - *Status:* **Non-Compliant in Prototype**. Financial records currently reside in plaintext on disk. We must implement transparent AES-256-GCM encryption in `store.py` before live production deployment.
 4. **Data Minimization:**
    - *Status:* **Compliant**. We collect only the last 4 digits of Aadhaar (never storing the full 12-digit Aadhaar number, avoiding Aadhaar Act violations).
+

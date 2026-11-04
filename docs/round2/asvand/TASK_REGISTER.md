@@ -24,3 +24,4 @@
 | **OPT-01** | Live Supabase PostgreSQL Migration with RLS | Sai | Low | 8 | API-02 | Deferred | [13_IMPLEMENTATION_ROADMAP.md](13_IMPLEMENTATION_ROADMAP.md) |
 | **OPT-02** | OCR Computer Vision Model for Death Certificates | Sai | Low | 8 | FE-01 | Deferred | [13_IMPLEMENTATION_ROADMAP.md](13_IMPLEMENTATION_ROADMAP.md) |
 | **OPT-03** | Standalone Mobile PWA Manifest & Service Worker Cache | Asvand | Low | 4 | None | Deferred | [13_IMPLEMENTATION_ROADMAP.md](13_IMPLEMENTATION_ROADMAP.md) |
+

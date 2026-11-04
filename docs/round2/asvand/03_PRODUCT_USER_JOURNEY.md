@@ -154,3 +154,4 @@ flowchart LR
 1. **Eliminated Separate "Forecast" and "Invest" Nav Pages:** These 2 pages have been consolidated as sub-tabs under Life Plan, reducing sidebar clutter from 12 links down to 6 core links.
 2. **Automated Name Discrepancy Handling:** Rather than blocking the user when a name varies (e.g., initial only), the system automatically adds the necessary Indemnity Bond requirement to the final claim packet without manual intervention.
 3. **Automated Multi-Regulator Aggregation:** In one single consent authorization, all 7 institution classes are queried simultaneously rather than asking the user to connect each institution individually.
+

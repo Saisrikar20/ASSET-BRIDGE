@@ -49,3 +49,4 @@ Safe verification commands were executed directly on the local repository:
    - If a user inputs a PAN with zero matching records, `Dashboard.tsx` correctly renders an empty state illustration: *"No unclaimed assets found across 7 regulators under this PAN. Try linking family members."*
 3. **Network Disconnection During Live Demo:**
    - WebSocket client (`live.tsx`) implements exponential backoff reconnection (retrying at 1s, 2s, 4s, up to 10s intervals) without locking the UI.
+

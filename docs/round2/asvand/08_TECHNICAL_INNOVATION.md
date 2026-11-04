@@ -49,3 +49,4 @@ Unlike superficial hackathon demonstrations that merely style static mock cards,
 The single most impactful innovation to deliver for Round 2 is **The "Verified Claim Dossier Engine"**:
 - **Why:** Industrial mentors consistently penalize hackathon projects that stop at "showing a list of problems". By taking the user from discovery $\to$ audit $\to$ **actionable pre-filled PDF claim dossier**, Asset Bridge becomes a complete solution that solves the real-world operational bottleneck.
 - **Implementation Strategy:** Keep it 100% client-side (no heavy external PDF rendering services, zero network failure risk during evaluation).
+

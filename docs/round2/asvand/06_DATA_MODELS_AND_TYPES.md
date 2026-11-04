@@ -233,3 +233,4 @@ export interface Case {
 1. **Aadhaar Field Naming:** Backend `IdentityBody` expects `aadhaarLast4` (camelCase) while certain forms in the frontend used `aadhaar_last4` (snake_case). **Fix:** Standardized on `aadhaarLast4` across all models.
 2. **Missing `uploadedFiles` Array in Task Interface:** Current frontend `Task` interface does not account for user document attachments. **Fix:** Added optional `uploadedFiles` array to support the new document upload engine.
 3. **Pydantic Validation Strictness:** In `fastapi-backend/app/module1_core/routers.py`, optional fields on `IdentityBody` (`aadhaarLast4`, `mobile`) defaulted to `None` which caused `re.match` type errors. **Fix:** Defaulted to empty string `""` with union typing `str | None`.
+

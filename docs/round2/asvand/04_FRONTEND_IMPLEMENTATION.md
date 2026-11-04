@@ -133,3 +133,4 @@ client/src/
 - **Acceptance Criteria:** Selecting an heir resolves the alert immediately; WebSocket sends updated alert count; sidebar badge updates without page reload.
 - **Priority:** **MEDIUM**
 - **Status:** **Planned**
+

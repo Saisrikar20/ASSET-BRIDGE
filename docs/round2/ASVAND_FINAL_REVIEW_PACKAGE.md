@@ -121,3 +121,4 @@ flowchart TD
 - **Critical Blocker:** Inability to run beyond `/app/verify` until Sai completes `API-01` and `API-02`.
 - **Top Differentiator:** Delivering the "Verified Claim Dossier Engine" (`FE-01` + `FE-02`) transforms Asset Bridge from a dashboard into an operational problem solver.
 - **Industrial Mentor Preparedness:** With these specifications, our team can answer every architecture, security, scaling, and regulatory question with deep technical defense grounded in the actual codebase.
+

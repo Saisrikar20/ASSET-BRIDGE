@@ -84,3 +84,4 @@ Client (React 19, TS, Vite 8 :5173) ──► Unified FastAPI Backend (Python :8
 3. **Storage Security (Fintech Requirement):** Plaintext storage in `db.json` must be hardened with AES-256-GCM field encryption for PANs and financial balances to withstand industrial scrutiny.
 
 *All subsequent sections of this specification are broken down into individual sub-documents.*
+

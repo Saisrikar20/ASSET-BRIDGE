@@ -142,3 +142,4 @@ flowchart TD
 - **Output:** Comprehensive `Task[]` array attached to the estate case `AB-XXXX##`.
 - **Component Responsible:** `server/src/data/succession.js` (`buildTasks()`); porting to Python required.
 - **Current Status:** **Implemented in Node**; pending Python port.
+

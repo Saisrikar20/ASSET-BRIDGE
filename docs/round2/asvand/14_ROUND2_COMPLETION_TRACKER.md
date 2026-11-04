@@ -28,3 +28,4 @@
 | **OPT-02** | Computer Vision / OCR Model for Death Certificates | AI | Sai | Low | **Deferred** | Scheduled for Round 3/4. |
 | **OPT-03** | Mobile PWA Service Worker Offline Caching | Client | Asvand | Low | **Deferred** | Scheduled for Round 3. |
 | **OPT-04** | Live Sahamati Account Aggregator mTLS Connection | Regulatory | All | Low | **Deferred** | Requires RBI institutional license. |
+

@@ -87,3 +87,4 @@ Step 5: Estate Resolution / Guided Next Steps (Document Upload & Claim Packet PD
 2. **Simplify & Group:** Merge `/app/aggregate` and `/app/alerts` directly into the Consolidated Dashboard so the user sees asset aggregation and risk analysis in one unified view.
 3. **Build the Missing Core:** Implement the file upload dropzone in `CaseBody.tsx`, validate documents client-side, and add a single **"Generate Pre-Filled Claim Dossier"** button that exports an official PDF claim packet.
 4. **Coordinate with Sai:** Ensure Sai ports the missing endpoints from `server/src/routes/api.js` (commit `6142819`) to `fastapi-backend/app/module2_...` immediately.
+

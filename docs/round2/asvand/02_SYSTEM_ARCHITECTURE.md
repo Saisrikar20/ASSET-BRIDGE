@@ -156,3 +156,4 @@ sequenceDiagram
     User->>FE: Clicks "Generate Pre-Filled Claim Dossier"
     FE->>FE: Compiles & Downloads Unified Claim Packet PDF
 ```
+
