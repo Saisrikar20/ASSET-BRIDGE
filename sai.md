@@ -254,3 +254,4 @@ ALL TEST SUITES PASSED SUCCESSFULLY! (100% PASS RATE)
 
 10. **Which integrations are real and which are simulated?**  
     The 7-step asset processing pipeline, duplicate detection, financial aggregation, nominee gap risk analysis, WebSocket alerts, and BM25 legal RAG guidance are **100% real, functional code running live**. The external institutional data feeds (RBI, EPFO, SEBI, IRDAI) are **simulated sandbox feeds** adhering to official Account Aggregator (RBI-AA) schemas to ensure reproducible, private demo execution.
+

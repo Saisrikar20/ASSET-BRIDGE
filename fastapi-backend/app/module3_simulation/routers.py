@@ -349,3 +349,4 @@ def set_baseline(user: dict = Depends(get_current_user)):
     baseline = {"createdAt": today.isoformat(), "points": points}
     store.update("users", lambda u: u.get("id") == user["id"], {"baseline": baseline})
     return {"baseline": baseline}
+
