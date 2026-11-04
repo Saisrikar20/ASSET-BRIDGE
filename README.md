@@ -1,12 +1,12 @@
 # Asset Bridge
 ### The Unified Financial Twin and Autonomous Succession Engine for Indian Families
-**Dexathon 2026 -- Round 2**
+**Dexathon 2026 -- Production Engineering Architecture**
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.162.0-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19.3.1-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4.3-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
-[![Tests](https://img.shields.io/badge/Tests-16%2F16%20Passing%20(100%25)-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-31%2F31%20Passing%20(100%25)-brightgreen.svg)]()
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.14-blue.svg?logo=python&logoColor=white)](https://www.python.org)
 
 ---
@@ -15,14 +15,14 @@
 
 **Rs. 94,000+ crore** of Indian families' hard-earned wealth currently lies dormant and unclaimed across banking deposits, provident funds, life insurance policies, mutual fund folios, and post office schemes. Today, this wealth is trapped across disparate statutory silos:
 * **RBI** (Unclaimed Bank Deposits and DEA Fund)
-* **EPFO** (Inoperative EPF Accounts and Pension Funds)
-* **IRDAI** (Private Insurer Unclaimed Balances)
-* **LIC** (Unpaid Matured Policies)
-* **SEBI** (Unclaimed Mutual Fund Folios, CDSL/NSDL Demat and IEPF)
+* **EPFO** (Inoperative EPF Accounts, Pension Funds and EDLI Insurance)
+* **IRDAI** (Private Insurer Unclaimed Balances and 30-Day Claim Mandates)
+* **LIC** (Unpaid Matured Policies and Death Claims)
+* **SEBI** (Unclaimed Mutual Fund Folios, CDSL/NSDL Demat, and IEPF)
 * **PFRDA** (National Pension System Tier-I / Tier-II Corpi)
 * **DOP** (India Post Small Savings: PPF, NSC, KVP, POMIS)
 
-When a family member passes away, **nothing connects their death to their money**. Families are forced into a grueling, multi-month bureaucratic chase across courts, revenue offices, and institutions.
+When a family member passes away, **nothing connects their death to their money**. Families are forced into a grueling, multi-month bureaucratic chase across courts, revenue offices, and financial institutions.
 
 **Asset Bridge** solves this through a **two-sided financial twin**:
 1. **While Alive**: Aggregates institutional holdings under ReBIT-style consent, normalizes multi-regulator data, audits for nominee gaps in real time, generates publication-grade statutory claiming dossiers in PDF format, and runs stochastic life projections.
@@ -30,81 +30,116 @@ When a family member passes away, **nothing connects their death to their money*
 
 ---
 
-## Project Structure
+## Modular Repository Architecture
 
-The project is structured as a unified, production-grade monorepo:
+The monorepo is cleanly separated into decoupled, dedicated sub-systems:
 
 ```
 dexathon2026/
-├── client/                           # React 19 + TypeScript + Vite Frontend (:5173)
-│   ├── public/                       # Static public assets
+├── client/                           # React 19 + TypeScript + Vite + PWA Frontend (:5173)
+│   ├── public/                       # Manifest, service worker & static icons
 │   ├── src/
-│   │   ├── components/               # Domain UI cards, dialogs, charts & visual widgets
-│   │   │   ├── aceternity/           # Visual effects & lamp hero components
-│   │   │   ├── kokonutui/            # Dial & avatar controls
-│   │   │   ├── landing/              # Landing page interactive showcases
+│   │   ├── components/               # Domain UI cards, dialogs, charts & modals
 │   │   │   ├── CaseBody.tsx          # Estate claim workspace & PDF dossier viewer
-│   │   │   ├── ForecastChart.tsx     # Portfolio growth visualization
-│   │   │   ├── GuideChat.tsx         # Embedded AI statutory guide chat
-│   │   │   └── ui.tsx                # Design system primitives & badges
+│   │   │   ├── EmailDossierModal.tsx # Statutory claiming dossier email dispatch modal
+│   │   │   ├── GuideChat.tsx         # Embedded AI statutory guide chat interface
+│   │   │   └── ui.tsx                # Design system primitives, toasts & badges
 │   │   ├── lib/                      # Typed API clients, WebSocket live sync, auth & formatters
-│   │   │   ├── api.ts                # API client with dossier PDF & vault helpers
-│   │   │   ├── auth.tsx              # JWT authentication context
-│   │   │   ├── format.ts             # INR currency & date formatting
-│   │   │   └── live.tsx              # Reactive WebSocket subscription hook
-│   │   ├── pages/                    # 14 Full route views (Verify, Aggregate, Alerts, Reunite, etc.)
-│   │   ├── App.tsx                   # Top-level router & state provider
-│   │   └── main.tsx                  # Client entrypoint
-│   ├── package.json                  # Client scripts & dependencies
+│   │   │   ├── api.ts                # API client with dossier PDF & regulatory feed helpers
+│   │   │   └── auth.tsx              # JWT authentication context
+│   │   └── pages/                    # 14 Full route views (Verify, Aggregate, Alerts, Reunite, etc.)
 │   └── vite.config.ts                # Vite dev server with /api and /ws reverse proxies
+│
 ├── fastapi-backend/                  # High-Throughput Python REST & WebSocket API (:8000)
 │   ├── app/
-│   │   ├── core/                     # Authentication, SQLite engine, store, live WS, seeder
+│   │   ├── ai_bot/                   # Dedicated AI Legal Assistant & Knowledge RAG Engine
+│   │   │   ├── assistant.py          # NVIDIA NIM / Nemotron & Gemini succession advisors
+│   │   │   ├── rag.py                # Dual-corpus BM25 retriever & SQLite FTS5 search
+│   │   │   └── __init__.py           # Clean package facade
+│   │   ├── email_sender/             # Dedicated Email Dispatch Service
+│   │   │   ├── dispatcher.py         # Google App Password SMTP, Twilio Comms & SendGrid APIs
+│   │   │   ├── templates.py          # Corporate HTML templates & Indian Rupee formatting
+│   │   │   └── __init__.py           # Clean package facade
+│   │   ├── pdf_generator/            # Dedicated ReportLab Dossier PDF Engine
+│   │   │   ├── generator.py          # Publication-grade legal claiming dossier generator
+│   │   │   └── __init__.py           # Clean package facade
+│   │   ├── core/                     # Core system infrastructure
 │   │   │   ├── auth.py               # Password hashing & JWT token validation
-│   │   │   ├── db.py                 # SQLite WAL engine with FTS5 search
-│   │   │   ├── live.py               # WebSocket broadcast manager
-│   │   │   ├── routers.py            # Auth, identity & demo routes
-│   │   │   ├── seeder.py             # Multi-persona database seeder
-│   │   │   └── store.py              # Thread-safe persistent data store
-│   │   ├── aggregation/              # 7-step pipeline, RAG assistant, PDF engine & personas
-│   │   │   ├── assistant.py          # NVIDIA NIM / BM25 statutory legal guide
-│   │   │   ├── documents.py          # Document vault with chunking & FTS5 search
-│   │   │   ├── mock_generator.py     # Procedural portfolio generation for any PAN
-│   │   │   ├── models.py             # Pydantic schemas for multi-regulator assets
-│   │   │   ├── pdf_generator.py      # ReportLab official statutory claiming PDF engine
-│   │   │   ├── personas.py           # 5 Comprehensive Indian investor personas
-│   │   │   ├── pipeline.py           # Deterministic 7-step asset processing pipeline
-│   │   │   └── routers.py            # Holdings, consents, cases, docs & PDF endpoints
+│   │   │   ├── db.py                 # SQLite WAL engine, PRAGMA tuning & backup hooks
+│   │   │   ├── identity.py           # Strict PAN validation & fuzzy matching
+│   │   │   ├── live.py               # Real-time WebSocket broadcasting
+│   │   │   └── store.py              # Thread-safe persistent SQLite data store
+│   │   ├── aggregation/              # 7-Step asset pipeline & backward-compatibility bridges
 │   │   ├── simulation/               # Monte Carlo wealth forecaster & retirement simulator
-│   │   │   ├── catalog.py            # 19 Indian investment instruments catalog
-│   │   │   ├── life_model.py         # 300-path stochastic life simulator
-│   │   │   └── routers.py            # Simulation & forecasting endpoints
-│   │   ├── config.py                 # Environment configurations & filesystem paths
-│   │   └── main.py                   # FastAPI app instance, CORS & exception handlers
-│   ├── data/                         # Persistent storage
-│   │   ├── asset_bridge.db           # SQLite database with WAL & FTS5 virtual tables
-│   │   ├── sample_documents/         # Statutory claim affidavits & statements
-│   │   └── uploads/                  # Ingested user evidence & generated dossiers
-│   ├── knowledge/                    # 8 Statutory regulatory guides (Markdown)
-│   ├── scripts/                      # Backend administrative scripts
-│   │   └── seed_mock_data.py         # Standalone CLI seeder
-│   ├── tests/                        # 16-suite automated test harness
-│   │   ├── conftest.py               # Pytest path and environment fixtures
-│   │   ├── test_core.py              # Core auth, security and JWT tests
-│   │   ├── test_database.py          # SQLite WAL, ACID rollback & FTS5 tests
-│   │   ├── test_document_rag.py      # Document vault & multi-source RAG tests
-│   │   ├── test_mock_data.py         # Persona integrity & procedural PAN tests
-│   │   ├── test_pdf_generator.py     # PDF dossier generation & indexing tests
-│   │   └── test_pipeline.py          # 7-step asset pipeline & arithmetic tests
-│   ├── pytest.ini                    # Pytest configuration
-│   └── requirements.txt              # Backend dependencies
-├── scripts/                          # Cross-platform monorepo runners
-│   └── run-python.js                 # Cross-platform .venv Python resolution
-├── package.json                      # Monorepo orchestration & single-command runners
-├── start-backend.ps1                 # PowerShell backend launcher
-├── start-frontend.ps1                # PowerShell frontend launcher
-└── README.md                         # Project documentation
+│   │   ├── config.py                 # Centralized environment configuration
+│   │   └── main.py                   # FastAPI application entrypoint
+│   ├── data/                         # Persistent database & outbox directory
+│   ├── knowledge/                    # 8 Official statutory regulatory guides (Markdown)
+│   ├── scripts/                      # Poller scripts & mock seeders
+│   └── tests/                        # 31-suite automated pytest test harness
+│
+├── scrapers/                         # Scrapy Statutory Regulatory Circular Crawler Suite
+│   ├── scrapy.cfg                    # Scrapy project configuration
+│   ├── runner.py                     # Programmatic crawler runner (npm run crawl:regulations)
+│   └── scrapers/
+│       ├── redis_store.py            # Redis storage engine with automatic SQLite fallback
+│       ├── pipelines.py              # Dual Redis & SQLite Document Vault pipelines
+│       ├── settings.py               # Polite crawling, AutoThrottle & concurrency controls
+│       └── spiders/                  # Individual regulatory portal spiders
+│           ├── rbi_spider.py         # RBI Notifications & Master Directions spider
+│           ├── sebi_spider.py        # SEBI Circulars & Demat Transmission spider
+│           ├── epfo_spider.py        # EPFO Form 20 Death Claim Directives spider
+│           └── irdai_spider.py       # IRDAI Policyholder Protection Circulars spider
+│
+├── larp/                             # Archived non-app markdown files, hackathon notes & audit logs
+│   ├── README.md                     # Directory manifest and guide
+│   ├── future.md                     # Initial roadmap brainstorming document
+│   ├── BACKEND_CHANGES_AUDIT.md      # Historical audit trails
+│   ├── round2/                       # Round 2 hackathon contribution reports
+│   └── round3/                       # Round 3 audit summaries and frontend reviews
+│
+├── scripts/                          # Cross-platform monorepo diagnostic and execution tools
+│   ├── doctor.js                     # Monorepo self-diagnostic verification script
+│   └── run-python.js                 # Cross-platform .venv Python resolution runner
+├── package.json                      # Monorepo orchestration scripts
+└── README.md                         # Architecture documentation
 ```
+
+---
+
+## Scrapy Regulatory Intelligence & Storage Architecture
+
+Government regulatory portals update asynchronously. Asset Bridge monitors circulars, master directions, and gazette notifications across all target authorities.
+
+### Redis Storage vs. Embedded SQLite Document Vault
+
+| Storage Tier | Technology | Key Capabilities | Best Used For |
+| :--- | :--- | :--- | :--- |
+| **Tier 1 (In-Memory / Queue)** | **Redis** | Sub-millisecond hashing (`regulation:<sha256>`), O(1) URL deduplication sets (`seen_urls`), and real-time Pub/Sub stream queues. | Multi-worker distributed crawling across several machines; real-time event broadcasting to SSE/WebSocket subscribers. |
+| **Tier 2 (Embedded Search)** | **SQLite FTS5 (WAL Mode)** | Zero external daemon requirement, full transactional ACID durability, and built-in BM25 full-text search indexing. | Core AI RAG knowledge retrieval, offline reliability on developer machines, and CI/CD pipelines. |
+| **Tier 3 (Audit Archive)** | **JSON Lines (`.jsonl`)** | Append-only plain text log (`scrapers/data/regulations.jsonl`). | Instant inspection via command line tools (`jq`, `grep`, `tail`). |
+
+### Automatic Failover Strategy
+The crawler incorporates a self-healing storage pipeline in `scrapers/scrapers/pipelines.py`:
+1. If Redis is running and reachable (`REDIS_ENABLED=true`), the spider caches every crawled circular into Redis and pushes to the stream queue.
+2. If Redis is offline or not installed, the crawler logs a clean notification and automatically persists the circular into the **SQLite Document Vault** with FTS5 search indexing and appends to `scrapers/data/regulations.jsonl`. No crawl job ever crashes due to missing infrastructure.
+
+---
+
+## Email Dispatch Architecture
+
+Statutory asset claiming dossiers contain confidential legal data and generated PDF attachments. The email system in `fastapi-backend/app/email_sender/` operates a resilient multi-tier delivery strategy:
+
+1. **Primary: Google Workspace / Gmail SMTP with App Password**:
+   - Transmits publication-grade MIME multipart HTML with the binary `Asset_Bridge_Claiming_Dossier_*.pdf` attached directly to real inboxes via `smtp.gmail.com:587` with STARTTLS.
+2. **Secondary: Twilio Comms Native Email API**:
+   - Native integration with `https://comms.twilio.com/v1/Emails` via HTTP Basic Auth (`ACCOUNT_SID:AUTH_TOKEN`).
+3. **Tertiary: Twilio SendGrid Web API v3**:
+   - Web API delivery via `https://api.sendgrid.com/v3/mail/send` with base64 PDF attachment.
+4. **Quaternary: Twilio SMS Alerts**:
+   - Real-time SMS dispatch via Twilio Messages API notifying the claimant or heir with a tracking ID upon email dispatch.
+5. **Fallback: Local Outbox Mock Mode**:
+   - When offline or unconfigured, writes full `.eml` RFC 822 messages to `fastapi-backend/data/outbox/` with a one-click download endpoint.
 
 ---
 
@@ -133,13 +168,34 @@ npm run dev
 | `npm run dev` | Launch both FastAPI backend and Vite frontend concurrently |
 | `npm run dev:backend` | Launch FastAPI backend with live reload on `http://127.0.0.1:8000` |
 | `npm run dev:frontend` | Launch Vite frontend on `http://localhost:5173` |
+| `npm run doctor` | Run monorepo self-diagnostic health check (Python, SQLite, Node, Ports, Env) |
 | `npm run test` | Run complete backend pytest suite + frontend typecheck & build |
-| `npm run test:backend` | Run 16-suite backend test harness (`pytest fastapi-backend`) |
+| `npm run test:backend` | Run 31-suite backend test harness (`pytest fastapi-backend`) |
 | `npm run test:frontend` | Build and typecheck React frontend (`tsc -b && vite build`) |
+| `npm run poll:regulations` | Run Phase 1 lightweight statutory feed poller (RBI, SEBI, EPFO, IRDAI) |
+| `npm run crawl:regulations` | Run Phase 2 Scrapy crawler suite with hybrid Redis & SQLite storage |
 | `npm run seed` | Seed all 5 personas, estate cases, documents, and chat sessions |
 | `npm run seed:reset` | Reset SQLite tables and reseed all demo personas |
 | `npm run seed:raghavan` | Seed primary demo persona (Raghavan Sundaram) |
 | `npm run seed:priya` | Seed millennial tech employee persona (Priya Sharma) |
+
+---
+
+## Automated Test Harness & Verification
+
+The backend test suite covers 100% of core operational pathways across 31 automated tests:
+
+```bash
+node scripts/run-python.js -m pytest fastapi-backend -v
+```
+
+1. **`test_core.py`**: Authentication tokens, bcrypt hashing, public identity resolution.
+2. **`test_database.py`**: SQLite WAL mode, foreign keys, transaction rollback, FTS5 full-text indexing.
+3. **`test_pipeline.py`**: Deterministic 7-step asset aggregation and duplicate reconciliation.
+4. **`test_mock_data.py`**: Persona consistency, procedural PAN generation, seed idempotent verification.
+5. **`test_pdf_generator.py`**: Publication-grade vector PDF generation, multi-page canvas, vault indexing.
+6. **`test_email_dispatch.py`**: Google App Password SMTP delivery, Twilio Comms native API, Twilio SendGrid payloads, and outbox fallback.
+7. **`test_regulations_crawler.py`**: Regulatory circular ingestion, FTS5 search, lightweight pollers, Scrapy pipeline processing, and Redis store failover.
 
 ---
 
@@ -169,48 +225,6 @@ All financial records pass through a deterministic, auditable 7-step processing 
 [ Step 7: Report Generation ]
         (Return structured ConsolidatedReport: summary, duplicates, findings, limitations)
 ```
-
-### Key Engineering Principles:
-* **Zero Double-Counting**: Potential duplicates are flagged (`isDuplicate=True`, `duplicateOf=primary.id`) rather than erased. The clean `verifiableTotal` excludes duplicate values while preserving a complete regulatory audit trail.
-* **Strict Identity Safeguard**: Partial name discrepancies (e.g., `R. Raghavan` vs `Raghavan`) receive a 0.65 confidence rating and are **never** elevated to verified status.
-* **Publication-Grade PDF Engine**: ReportLab-based vector PDF generator creates official succession claiming dossiers complete with legal heir entitlement breakdowns, statutory claim forms (Form 20, DA-2, Form A), and legal affidavits.
-* **In-Process BM25 & NVIDIA NIM RAG**: The legal succession assistant operates over both statutory knowledge guides and user-uploaded estate documents indexed into SQLite FTS5.
-
----
-
-## Key Pages and Endpoints
-
-| Category | Route | Purpose | Key Responsibilities |
-| :--- | :--- | :--- | :--- |
-| **Verify** | `/app/verify` | Multi-Regulator Identity Cross-Check | Cross-matches PAN, Name, and DOB against regulatory schemas; scores confidence and flags partial discrepancies. |
-| **Aggregate** | `/app/aggregate` | Account Aggregator Consent | ReBIT-style consent handle creation; multi-regulator asset discovery and automatic ingestion. |
-| **Alerts** | `/app/alerts` | Real-time Nominee Gap Auditing | WebSocket alerts for missing nominees, deceased nominees, minor nominees without appointed guardians, and dormant accounts. |
-| **Reunite** | `/app/reunite` | Civil Registration System (CRS) Link | Ingests death events, instantiates an estate succession case, and notifies legal heirs via SMS/Email. |
-| **Transfer** | `/app/cases/:id` | Estate Settlement Checklist | State-specific succession requirements (e.g., Tahsildar Legal Heir Certificate in TN vs. Succession Certificate in MH) + AI Assistant. |
-| **Claim Dossier** | `/api/reports/claiming-dossier/pdf` | Statutory Claiming Dossier (PDF) | Generates official claim packet with institution-by-institution forms and legal heir signature blocks. |
-| **Heir Portal** | `/heir` | Dedicated Claimant View | Secure access for legal heirs using Case ID + Heir PAN to track and tick off claim steps. |
-| **Forecast** | `/app/forecast` | Portfolio Projection | Month-by-month compound growth across asset classes with inflation adjustment and SIP step-up. |
-| **Life Plan** | `/app/plan` | Monte Carlo Life Simulator | 300-path stochastic simulation calculating financial independence age, success probability, and multi-generational legacy. |
-
----
-
-## 3-Minute Live Jury Demo Script
-
-1. **Verify (`/app/verify`)**: Click *"Fill demo identity"* for Raghavan (`ABCPI1234K`) -> Click *"Verify with all regulators"*. Notice Canara Bank highlights a partial name discrepancy (`R. Raghavan`) scored at 65% and isolated from confirmed identities. Click *"Download Claim Dossier (PDF)"* to inspect the generated dossier.
-2. **Aggregate (`/app/aggregate`)**: Click *"Approve and fetch from 5 regulators"*. Watch holdings aggregate and real-time nominee alerts stream in via WebSockets. Click *"Export Claim Schedule (PDF)"*.
-3. **Alerts (`/app/alerts`)**: Navigate to Alerts -> Click *"Update nominee"* on Indian Bank FD -> Assign *"Meenakshi (Spouse)"* -> Watch the alert resolve live with instant net-worth recalculation.
-4. **Reunite (`/app/reunite`)**: Submit a Civil Registration System (CRS) death report -> Case `AB-XXXX` is created, and legal heirs (Meenakshi and Divya) receive notifications.
-5. **Transfer / Case View (`/app/cases/:id`)**: Review the Tamil Nadu legal heir roadmap: Legal Heir Certificate from Tahsildar, Form 20 EPF settlement, LIC Claim Form A. Click *"Download Claim Dossier (PDF)"* to generate the case-specific packet. Query the integrated AI legal guide.
-6. **Heir Portal (`/heir`)**: Open `/heir` with Case ID `AB-4581` and Heir PAN `ABCPI5678M` -> The heir securely logs in to view and tick off claim steps.
-7. **Forecast and Life Plan (`/app/plan`)**: Run the Monte Carlo simulation -> 84% success rate; adjust retirement levers to see financial independence age dynamically shift.
-
----
-
-## Dexathon 2026 Team and Ownership
-
-* **Asvand**: Product Architecture, User Journey, UI/UX Polish and Frontend Integration.
-* **Sai**: Backend Engineering, 7-Step Asset Pipeline, System Integration, Reliability and Automated Testing.
-* **Shajith**: Presentation Visuals, Security Risk Registers, and Statutory Succession Documentation.
 
 ---
 

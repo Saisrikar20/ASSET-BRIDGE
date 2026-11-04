@@ -55,6 +55,10 @@ TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER", "").strip()
 TWILIO_COMMS_FROM_EMAIL = os.getenv("TWILIO_COMMS_FROM_EMAIL", f"{TWILIO_ACCOUNT_SID}@twilio.email" if TWILIO_ACCOUNT_SID else "").strip()
 TWILIO_COMMS_FROM_NAME = os.getenv("TWILIO_COMMS_FROM_NAME", "Trial with Twilio").strip()
 
+# Redis Storage Configuration (Optional: for Scrapy distributed crawling and caching)
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0").strip()
+REDIS_ENABLED = os.getenv("REDIS_ENABLED", "false").lower() in ("true", "1", "yes")
+
 def is_smtp_configured() -> bool:
     """Check if authentic SMTP credentials (such as Google App Password) are configured and enabled."""
     return bool(SMTP_HOST and SMTP_USER and SMTP_PASSWORD and SMTP_ENABLED)
@@ -70,3 +74,7 @@ def is_twilio_comms_configured() -> bool:
 def is_twilio_sms_configured() -> bool:
     """Check if Twilio SMS credentials are configured."""
     return bool(TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_PHONE_NUMBER)
+
+def is_redis_configured() -> bool:
+    """Check if Redis storage is enabled and configured."""
+    return bool(REDIS_ENABLED and REDIS_URL)

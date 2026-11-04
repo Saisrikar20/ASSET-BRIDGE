@@ -19,7 +19,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.config import OUTBOX_DIR
 from app.core.store import store
-import app.core.mailer as mailer_module
+import app.email_sender.dispatcher as mailer_module
 from app.core.mailer import (
     build_email_html,
     build_email_text,

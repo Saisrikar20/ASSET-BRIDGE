@@ -1,0 +1,65 @@
+"""
+Asset Bridge AI Assistant & Document RAG Engine
+Powers LLM succession guidance (NVIDIA NIM / Gemini / OpenAI fallback),
+dual-corpus knowledge base retrieval, and SQLite FTS5 document vault indexing.
+"""
+
+from app.ai_bot.assistant import (
+    GuideIn,
+    answer_question,
+    ensure_knowledge_fresh,
+    retrieve_statutory,
+    generate_action_links,
+    load_chunks,
+    bm25,
+    tokens,
+    call_nvidia,
+    call_gemini,
+    call_openai,
+    extractive_multisource,
+    build_multisource_prompt,
+    Chunk,
+)
+from app.ai_bot.rag import (
+    sanitize_filename,
+    compute_sha256,
+    extract_text_from_pdf,
+    chunk_text,
+    clean_fts_query,
+    ingest_document,
+    search_user_documents,
+    delete_user_document,
+    ingest_regulation_document,
+    list_regulations,
+    MAX_FILE_SIZE,
+    ALLOWED_MIME_TYPES,
+)
+
+__all__ = [
+    "GuideIn",
+    "answer_question",
+    "ensure_knowledge_fresh",
+    "retrieve_statutory",
+    "generate_action_links",
+    "load_chunks",
+    "bm25",
+    "tokens",
+    "call_nvidia",
+    "call_gemini",
+    "call_openai",
+    "extractive_multisource",
+    "build_multisource_prompt",
+    "Chunk",
+    "sanitize_filename",
+    "compute_sha256",
+    "extract_text_from_pdf",
+    "chunk_text",
+    "clean_fts_query",
+    "ingest_document",
+    "search_user_documents",
+    "delete_user_document",
+    "ingest_regulation_document",
+    "list_regulations",
+    "MAX_FILE_SIZE",
+    "ALLOWED_MIME_TYPES",
+]
