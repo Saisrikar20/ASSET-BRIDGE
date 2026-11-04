@@ -39,6 +39,9 @@ NATIONAL_STATS = [
     {'label': 'Inoperative EPF accounts', 'value': 9330, 'regulator': 'EPFO'},
     {'label': 'Unclaimed LIC funds', 'value': 5564, 'regulator': 'LIC'},
     {'label': 'Unclaimed mutual funds', 'value': 3749, 'regulator': 'SEBI'},
+    {'label': 'Household commercial bank deposits (RBI Table 50B)', 'value': 15316000, 'regulator': 'RBI'},
+    {'label': 'Household life insurance assets (RBI Table 50B)', 'value': 5795000, 'regulator': 'LIC'},
+    {'label': 'Household mutual fund investments (RBI Table 50B)', 'value': 2368000, 'regulator': 'SEBI'},
 ]
 
 DEMO_RECORDS = [

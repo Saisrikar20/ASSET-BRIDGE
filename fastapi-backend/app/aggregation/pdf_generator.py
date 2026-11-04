@@ -101,18 +101,34 @@ def get_institution_procedure(holding: Dict[str, Any], state: str) -> Dict[str, 
     has_nominee = bool(nominee and nominee.get("status") == "valid")
     
     if reg == "RBI":
-        return {
-            "form": "Model Claim Form for Deceased Depositor Accounts (Form DA-2 Annexure A)",
-            "authority": "Branch Manager / Retail Asset Settlement Cell",
-            "sla": "15 calendar days from receipt of all documents (RBI Master Circular 2024)",
-            "enclosures": [
-                "Original Passbook / Term Deposit Receipt (TDR)",
-                "Certified copy of Death Certificate issued by Municipal / Panchayat Registrar",
-                "Self-attested PAN and Aadhaar of all Claimant(s)",
-                "Cancelled Cheque / Core Banking Passbook for NEFT Settlement",
-                "Letter of Indemnity with two independent sureties (if balance exceeds branch threshold)" if not has_nominee else "Nominee KYC Identification Proof"
-            ]
-        }
+        if has_nominee:
+            return {
+                "form": "Model Claim Form for Deceased Depositors (Annex V - Settlement to Nominee/Survivor under Sec 45ZA(2) Banking Regulation Act)",
+                "authority": "Branch Manager / Retail Asset Settlement Cell (Commercial Bank)",
+                "sla": "15 calendar days from receipt of claim (RBI Master Direction 2025/2026; statutory delay penalty at Bank Rate + 4% = 9.75% p.a. applies beyond 15 days)",
+                "enclosures": [
+                    "Annex V Claim Form (Banks strictly prohibited by RBI from demanding probate, letters of administration, indemnity bond, or succession certificate from nominee)",
+                    "Original Passbook / Term Deposit Receipt (TDR) / Term Deposit Advice",
+                    "Certified copy of Death Certificate issued by Municipal / Panchayat Registrar under CRS",
+                    "Self-attested PAN and Aadhaar proof of Nominee / Survivor",
+                    "Cancelled Cheque / Bank Passbook copy for direct NEFT/RTGS settlement"
+                ]
+            }
+        else:
+            return {
+                "form": "Model Claim Form for Deceased Depositors (Annex VI - Settlement of Claims up to INR 15,00,000 threshold without Succession Certificate)",
+                "authority": "Branch Manager / Retail Asset Settlement Cell (Commercial Bank)",
+                "sla": "15 calendar days from receipt of claim (RBI Master Direction 2025/2026; statutory delay penalty at Bank Rate + 4% = 9.75% p.a. applies beyond 15 days)",
+                "enclosures": [
+                    "Annex VI Claim Form for intestate settlement without legal representation",
+                    "Annex VII: Letter of Indemnity executed on non-judicial stamp paper with one or two sureties",
+                    "Annex VIII: Letter of Disclaimer / No Objection Certificate (NOC) from all non-claiming legal heirs",
+                    "Original Passbook / Term Deposit Receipt (TDR)",
+                    "Certified copy of Death Certificate issued by Municipal / Panchayat Registrar under CRS",
+                    "Self-attested PAN and Aadhaar proof of all Claimant Legal Heirs",
+                    "Cancelled Cheque / Core Banking Passbook copy for direct electronic NEFT credit"
+                ]
+            }
     elif reg == "EPFO":
         return {
             "form": "EPFO Form 20 (Provident Fund Final Settlement) & Form 10D (Monthly Pension Claim)",

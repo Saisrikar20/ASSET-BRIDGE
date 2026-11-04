@@ -17,9 +17,9 @@ ASSET_CLASSES = {
 }
 
 SCENARIOS = {
-    'conservative': {'label': 'Conservative', 'equity': 9, 'pension': 8, 'gold': 6, 'debtDelta': -0.5, 'cash': 2.5},
-    'base': {'label': 'Base', 'equity': 11, 'pension': 9.5, 'gold': 8, 'debtDelta': 0, 'cash': 3},
-    'optimistic': {'label': 'Optimistic', 'equity': 13, 'pension': 11, 'gold': 10, 'debtDelta': 0.25, 'cash': 3.5},
+    'conservative': {'label': 'Conservative', 'equity': 9, 'pension': 8, 'gold': 6, 'debtDelta': -0.5, 'cash': 2.0},
+    'base': {'label': 'Base', 'equity': 11, 'pension': 9.5, 'gold': 8, 'debtDelta': 0, 'cash': 2.50},
+    'optimistic': {'label': 'Optimistic', 'equity': 13, 'pension': 11, 'gold': 10, 'debtDelta': 0.25, 'cash': 3.0},
 }
 
 OPTIONS = [
@@ -31,6 +31,7 @@ OPTIONS = [
     {'id': 'flexi', 'name': 'Flexi-cap mutual fund (SIP)', 'regulator': 'SEBI', 'class': 'equity', 'rate': None, 'rateKind': 'market-linked', 'risk': 'High', 'lockIn': 'None', 'tax': 'LTCG 12.5%', 'min': '₹500 SIP', 'mode': 'monthly', 'govt': False, 'bestFor': 'Active equity'},
     {'id': 'goldetf', 'name': 'Gold ETF / gold fund', 'regulator': 'SEBI', 'class': 'gold', 'rate': None, 'rateKind': 'tracks gold price', 'risk': 'Moderate', 'lockIn': 'None', 'tax': 'LTCG 12.5%', 'min': '₹500 SIP', 'mode': 'monthly', 'govt': False, 'bestFor': 'Inflation hedge'},
     {'id': 'sgb', 'name': 'Sovereign Gold Bond', 'regulator': 'RBI', 'class': 'gold', 'rate': None, 'rateKind': 'gold + 2.5%', 'risk': 'Moderate', 'lockIn': '8-year maturity', 'tax': 'Maturity tax-free', 'min': '1 gram', 'mode': 'lumpsum', 'govt': True, 'bestFor': 'Gold with interest'},
+    {'id': 'bankfd', 'name': 'Bank Fixed Deposit (1-3 yr term)', 'regulator': 'RBI', 'class': 'debt', 'rate': 6.55, 'rateKind': 'RBI SCB WADTDR 6.55%', 'risk': 'Low', 'lockIn': '1-3 years', 'tax': 'Taxable at slab', 'min': 'INR 1,000', 'mode': 'lumpsum', 'govt': False, 'bestFor': 'Capital preservation & guaranteed term interest'},
 ]
 
 DEFAULT_SETTINGS = {'years': 15, 'inflation': 5.5, 'scenario': 'base', 'stepUp': 5, 'reclaimIdle': True}
@@ -46,9 +47,9 @@ def classify_holding(h: dict) -> dict:
     if any(k in t for k in ['insurance', 'cover', 'policy']) and 'matured' not in t:
         return {'class': 'protection', 'rate': 0.0}
     if 'savings account' in t or 'matured' in t:
-        return {'class': 'cash', 'rate': 3.0}
+        return {'class': 'cash', 'rate': 2.50}
     if 'fixed deposit' in t:
-        return {'class': 'debt', 'rate': 6.6}
+        return {'class': 'debt', 'rate': 6.55}
     if 'epf' in t:
         return {'class': 'debt', 'rate': 8.25}
     if 'gold' in t or 'sgb' in t:
