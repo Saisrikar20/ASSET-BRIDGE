@@ -4,6 +4,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 KNOWLEDGE_DIR = BASE_DIR / "knowledge"
+DB_PATH = DATA_DIR / "asset_bridge.db"
+UPLOADS_DIR = DATA_DIR / "uploads"
 
 AUTH_SECRET = os.getenv("AUTH_SECRET", "asset-bridge-dev-secret")
 PORT = int(os.getenv("PORT", 4000))

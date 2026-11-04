@@ -53,7 +53,65 @@ export interface Analysis {
   liquidity: { liquid: number; locked: number; idle: number }; idleCostPerYear: number; equityShare: number; age: number | null;
   blended: number; protection: number; familyToday: number; insights: { tone: string; title: string; body: string }[];
 }
-export interface GuideAnswer { answer: string; engine: string; sources: { n: number; title: string; section: string; file: string }[] }
+export interface GuideSource {
+  type?: 'statutory' | 'user_doc';
+  tag?: string;
+  n?: number;
+  title: string;
+  section: string;
+  file: string;
+}
+
+export interface GuideAction {
+  label: string;
+  url: string;
+  type: 'navigate' | 'upload';
+}
+
+export interface GuideAnswer {
+  answer: string;
+  engine: string;
+  sessionId?: string;
+  sources: GuideSource[];
+  actions?: GuideAction[];
+}
+
+export interface ChatSession {
+  id: string;
+  userId: string;
+  caseId?: string;
+  title: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  sessionId: string;
+  role: 'user' | 'assistant';
+  content: string;
+  sources?: GuideSource[];
+  actions?: GuideAction[];
+  engine?: string;
+  createdAt: string;
+}
+
+export interface UserDocument {
+  id: string;
+  userId: string;
+  caseId?: string;
+  taskId?: string;
+  docType: string;
+  fileName: string;
+  filePath?: string;
+  fileSize: number;
+  mimeType: string;
+  sha256: string;
+  extractedText?: string;
+  status: string;
+  createdAt: string;
+}
+
 
 const TOKEN_KEY = 'ab_token';
 export const tokenStore = {
@@ -102,6 +160,22 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError(data.error || `Request failed (${res.status})`, res.status);
   return data as T;
+}
+
+export async function uploadDocument(formData: FormData): Promise<{ duplicate: boolean; document: UserDocument; chunks_indexed: number; message: string }> {
+  const headers: Record<string, string> = {};
+  const token = tokenStore.get();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}/api/documents/upload`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new ApiError(data.detail || data.error || 'Failed to upload document', res.status);
+  }
+  return res.json();
 }
 
 // ---------- life plan ----------

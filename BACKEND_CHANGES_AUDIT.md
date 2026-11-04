@@ -157,3 +157,41 @@ ALL TEST SUITES PASSED SUCCESSFULLY! (100% PASS RATE)
 ======================================================================
 ```
 
+---
+
+## 4. Multi-Source RAG AI Navigator & SQLite Persistence Layer
+
+### 4.1 SQLite Relational Persistence with WAL & FTS5
+- **Engine**: SQLite transactional engine configured with `PRAGMA journal_mode = WAL;`, `PRAGMA synchronous = NORMAL;`, and `PRAGMA foreign_keys = ON;`.
+- **Relational Tables**: `users`, `consents`, `holdings`, `alerts`, `cases`, `heirs`, `snapshots`, `user_documents`, `doc_chunks`, `chat_sessions`, `chat_messages`.
+- **FTS5 Virtual Table**: `doc_chunks_fts` with Porter stemmer for sub-millisecond BM25 keyword matching directly inside the database.
+- **Zero-Downtime Migration**: Seamless auto-migration on boot from legacy `db.json` with zero data loss and backwards-compatible `store.py` interface.
+
+### 4.2 Document Ingestion Pipeline (`app/aggregation/documents.py`)
+- **Validation**: Strict MIME and 10MB size limit checks for PDF, TXT, MD, JSON, PNG, JPEG.
+- **Integrity**: Client and server SHA-256 cryptographic hashing for instant duplicate detection.
+- **Text Extraction**: Pure-Python PDF text extraction via `pypdf` with fallback stream parsing.
+- **Semantic Chunking**: 250-word sliding windows with 30-word overlap tagged with section headings and page numbers.
+- **REST Endpoints**:
+  - `POST /api/documents/upload`
+  - `GET /api/documents`
+  - `GET /api/documents/{doc_id}/download`
+  - `DELETE /api/documents/{doc_id}`
+
+### 4.3 Multi-Source RAG Assistant (`app/aggregation/assistant.py`)
+- **Tri-Domain Grounding**:
+  1. User Uploaded Documents (searched via SQLite FTS5 BM25).
+  2. Statutory Succession Regulations (BM25 over RBI, EPFO, IRDAI, SEBI knowledge corpus).
+  3. Live Estate Context (user's holdings, nominee gaps, at-risk assets, and case checklist status).
+- **Dual Citations**: Disambiguates `[User Doc #X]` citations from `[Law #Y]` statutory citations.
+- **Deep-Link Action Pills**: Generates actionable navigation buttons (`/app/alerts`, `/app/cases/:id`, `/app/aggregate`).
+- **Persistent Chat History**: Conversations and session threads saved directly to SQLite (`chat_sessions`, `chat_messages`).
+
+### 4.4 Test Verification Results
+- `python fastapi-backend/test_database.py`: **100% PASS** (WAL mode, transactions, CRUD, FTS5, chat persistence).
+- `python fastapi-backend/test_document_rag.py`: **100% PASS** (upload, deduplication, search, citations, sessions).
+- `python fastapi-backend/test_core.py`: **100% PASS** (auth, metadata, identity).
+- `python fastapi-backend/test_pipeline.py`: **100% PASS** (7-step asset pipeline).
+- `npm --prefix client run build`: **0 Errors** (TypeScript compilation passed cleanly in 867ms).
+
+

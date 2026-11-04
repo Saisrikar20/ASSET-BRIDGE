@@ -1,6 +1,7 @@
 import datetime, re, random
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Header, status
+from fastapi import APIRouter, Depends, HTTPException, Header, status, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.core.store import store, uid
@@ -16,6 +17,7 @@ from app.aggregation.pipeline import (
     detect_duplicates, analyze_financials, generate_consolidated_report
 )
 from app.aggregation.assistant import answer_question, GuideIn
+from app.aggregation.documents import ingest_document, search_user_documents, delete_user_document
 
 router = APIRouter(prefix="/api")
 
@@ -422,13 +424,117 @@ async def update_case_task(case_id: str, task_id: str, body: TaskUpdateBody, use
     return {"case": c}
 
 # -------------------------------------------------------------
-# TASK 3: IN-PROCESS AI SUCCESSION GUIDE
+# TASK 3: MULTI-SOURCE RAG AI NAVIGATOR & DOCUMENT VAULT
 # -------------------------------------------------------------
 @router.post("/assistant")
-async def api_assistant(body: GuideIn):
-    """Integrated AI succession guide with BM25 retrieval and extractive fallback."""
+async def api_assistant(body: GuideIn, authorization: Optional[str] = Header(None)):
+    """Multi-source AI Navigator searching statutory law, user documents, and live portfolio."""
     if not body.question.strip():
         raise HTTPException(status_code=400, detail="Ask a question")
+        
+    if authorization and authorization.startswith("Bearer "):
+        user_id = verify_token(authorization.replace("Bearer ", "").strip())
+        if user_id:
+            body.userId = user_id
+            
     result = await answer_question(body)
     return result
+
+@router.get("/assistant/sessions")
+def get_chat_sessions(user: dict = Depends(get_current_user)):
+    """List persistent chat sessions for authenticated user."""
+    sessions = store.all("chat_sessions", lambda s: s.get("userId") == user["id"] or s.get("user_id") == user["id"])
+    return {"sessions": sessions}
+
+class CreateSessionBody(BaseModel):
+    title: str = "New Consultation"
+    caseId: Optional[str] = ""
+
+@router.post("/assistant/sessions")
+def create_chat_session(body: CreateSessionBody, user: dict = Depends(get_current_user)):
+    """Create a new persistent AI chat session."""
+    session = store.insert("chat_sessions", {
+        "id": uid("sess_"),
+        "userId": user["id"],
+        "caseId": body.caseId or "",
+        "title": body.title,
+        "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
+    })
+    return {"session": session}
+
+@router.get("/assistant/sessions/{session_id}/messages")
+def get_session_messages(session_id: str, user: dict = Depends(get_current_user)):
+    """Retrieve full persistent conversation history for a given session."""
+    session = store.find("chat_sessions", lambda s: s.get("id") == session_id and (s.get("userId") == user["id"] or s.get("user_id") == user["id"]))
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    messages = store.all("chat_messages", lambda m: m.get("sessionId") == session_id or m.get("session_id") == session_id)
+    return {"messages": messages}
+
+@router.post("/documents/upload")
+async def upload_document(
+    file: UploadFile = File(...),
+    caseId: Optional[str] = Form(""),
+    taskId: Optional[str] = Form(""),
+    docType: Optional[str] = Form("other"),
+    user: dict = Depends(get_current_user)
+):
+    """Upload, extract, chunk, and index an estate or financial document into SQLite and FTS5."""
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+        
+    try:
+        result = ingest_document(
+            file_bytes=content,
+            file_name=file.filename or "uploaded_file",
+            mime_type=file.content_type or "application/octet-stream",
+            user_id=user["id"],
+            case_id=caseId,
+            task_id=taskId,
+            doc_type=docType or "other"
+        )
+        
+        # Dispatch live alert via WebSockets
+        await live_manager.push(user["id"], "doc_uploaded", {
+            "fileName": file.filename,
+            "docId": result["document"]["id"],
+            "chunks": result.get("chunks_indexed", 0)
+        })
+        
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process document: {str(e)}")
+
+@router.get("/documents")
+def list_documents(caseId: Optional[str] = None, user: dict = Depends(get_current_user)):
+    """List indexed user documents from SQLite vault."""
+    pred = lambda d: (d.get("userId") == user["id"] or d.get("user_id") == user["id"]) and (not caseId or d.get("caseId") == caseId)
+    docs = store.all("user_documents", pred)
+    return {"documents": docs}
+
+@router.get("/documents/{doc_id}/download")
+def download_document(doc_id: str, user: dict = Depends(get_current_user)):
+    """Download stored document file."""
+    doc = store.find("user_documents", lambda d: d.get("id") == doc_id and (d.get("userId") == user["id"] or d.get("user_id") == user["id"]))
+    if not doc or not doc.get("filePath"):
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    file_path = doc.get("filePath")
+    from pathlib import Path
+    if not Path(file_path).exists():
+        raise HTTPException(status_code=404, detail="Physical document file missing from disk")
+        
+    return FileResponse(path=file_path, filename=doc.get("fileName"), media_type=doc.get("mimeType"))
+
+@router.delete("/documents/{doc_id}")
+def remove_document(doc_id: str, user: dict = Depends(get_current_user)):
+    """Delete a user document and cascade remove all chunks and FTS search index entries."""
+    success = delete_user_document(doc_id, user["id"])
+    if not success:
+        raise HTTPException(status_code=404, detail="Document not found or could not be removed")
+    return {"ok": True, "message": "Document deleted"}
 

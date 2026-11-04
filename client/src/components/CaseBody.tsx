@@ -1,14 +1,15 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { 
   CheckCircle2, Circle, FileText, Landmark, Upload, AlertTriangle, 
   Download, Printer, X, ShieldCheck 
 } from 'lucide-react';
-import type { Case, Task } from '../lib/api';
+import { api, uploadDocument, type Case, type Task } from '../lib/api';
 import { date, inr, inrShort, time } from '../lib/format';
 import { Badge, Card, Progress, RegChip, Button, cx } from './ui';
 import GuideChat from './GuideChat';
 
 interface UploadedDoc {
+  id?: string;
   taskId: string;
   docName: string;
   fileName: string;
@@ -24,6 +25,26 @@ export default function CaseBody({ c, onToggle }: { c: Case; onToggle: (t: Task)
   const [showDossier, setShowDossier] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadTask, setActiveUploadTask] = useState<{ taskId: string; docName: string } | null>(null);
+
+  // Fetch persisted documents from SQLite vault
+  useEffect(() => {
+    api<{ documents: any[] }>(`/documents?caseId=${c.id}`)
+      .then((res) => {
+        if (res.documents) {
+          const mapped: UploadedDoc[] = res.documents.map((d: any) => ({
+            id: d.id,
+            taskId: d.taskId || '',
+            docName: d.docType || '',
+            fileName: d.fileName,
+            fileSize: d.fileSize,
+            hash: d.sha256,
+            uploadedAt: d.createdAt,
+          }));
+          setUploadedDocs(mapped);
+        }
+      })
+      .catch(() => {});
+  }, [c.id]);
 
   const total = c.holdings.reduce((s, h) => s + h.value, 0);
   const done = c.tasks.filter((t) => t.done).length;
@@ -78,13 +99,19 @@ export default function CaseBody({ c, onToggle }: { c: Case; onToggle: (t: Task)
 
     try {
       const hash = await computeHash(file);
-      // Check if hash already exists in another task
-      const duplicate = uploadedDocs.find((d) => d.hash === hash);
-      if (duplicate) {
-        setDuplicateWarning(`Duplicate file detected: Exactly matches "${duplicate.fileName}" previously attached to another step.`);
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('caseId', c.id);
+      fd.append('taskId', activeUploadTask.taskId);
+      fd.append('docType', activeUploadTask.docName);
+
+      const res = await uploadDocument(fd);
+      if (res.duplicate) {
+        setDuplicateWarning(`Document already indexed in SQLite: ${res.message}`);
       }
 
       const newDoc: UploadedDoc = {
+        id: res.document.id,
         taskId: activeUploadTask.taskId,
         docName: activeUploadTask.docName,
         fileName: file.name,
@@ -94,15 +121,21 @@ export default function CaseBody({ c, onToggle }: { c: Case; onToggle: (t: Task)
       };
 
       setUploadedDocs((prev) => [...prev.filter((d) => !(d.taskId === activeUploadTask.taskId && d.docName === activeUploadTask.docName)), newDoc]);
-    } catch (err) {
-      setDuplicateWarning('Error reading file integrity hash. Please retry.');
+    } catch (err: any) {
+      setDuplicateWarning(err?.message || 'Error uploading document to SQLite vault. Please retry.');
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = '';
       setActiveUploadTask(null);
     }
   };
 
-  const removeDoc = (taskId: string, docName: string) => {
+  const removeDoc = async (taskId: string, docName: string) => {
+    const doc = uploadedDocs.find((d) => d.taskId === taskId && d.docName === docName);
+    if (doc?.id) {
+      try {
+        await api(`/documents/${doc.id}`, { method: 'DELETE' });
+      } catch {}
+    }
     setUploadedDocs((prev) => prev.filter((d) => !(d.taskId === taskId && d.docName === docName)));
   };
 
