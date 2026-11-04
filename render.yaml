@@ -1,36 +1,18 @@
-# Render Blueprint: the Express API (WebSockets + JSON store) and the FastAPI
-# AI guide. The React client is deployed separately (e.g. Vercel) with
-# VITE_API_URL pointing at the API service below.
+# Render Blueprint: Asset Bridge Unified FastAPI Backend.
+# The React client is deployed on Vercel/Netlify with VITE_API_URL pointing to this service.
 services:
   - type: web
-    name: asset-bridge-api
-    runtime: node
-    plan: free
-    rootDir: server
-    buildCommand: npm ci
-    startCommand: node src/index.js
-    healthCheckPath: /health
-    envVars:
-      - key: NODE_VERSION
-        value: "22"
-      - key: AUTH_SECRET
-        generateValue: true
-      # Public URL of the AI service below. Render normally gives it exactly
-      # this address; if it shows a different one, paste that here.
-      - key: AI_URL
-        value: https://asset-bridge-ai.onrender.com
-
-  - type: web
-    name: asset-bridge-ai
+    name: asset-bridge-backend
     runtime: python
     plan: free
-    rootDir: ai-service
+    rootDir: fastapi-backend
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
-        value: "3.12.7"
-      # Optional — without a key the guide answers from its knowledge base.
+        value: "3.11.9"
+      - key: AUTH_SECRET
+        generateValue: true
       - key: GEMINI_API_KEY
         sync: false

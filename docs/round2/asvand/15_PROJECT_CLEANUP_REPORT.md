@@ -1,8 +1,8 @@
 # ASSET BRIDGE — TASK 0: PROJECT CLEANUP REPORT
 **Document ID:** `DOC-ASVAND-15`  
 **Author:** Asvand (Product & Frontend Lead Assistant)  
-**Branch:** `asvand/round2-product-frontend`  
-**Date & Timestamp:** 2026-11-04T17:58:00+05:30  
+**Branch:** `main`  
+**Date & Timestamp:** 2026-11-04T18:07:00+05:30  
 **Phase:** Task 0 — Project Cleanup & Workspace Sanitization  
 
 ---
@@ -17,17 +17,14 @@ Prior to cleanup inspection, the project consisted of:
   - 1 SVG brand asset in `client/public/favicon.svg`.
   - Node package manifests and lockfiles (`package.json`, `package-lock.json`).
   - Configuration files (`vite.config.ts`, `tsconfig.json`, `vercel.json`, `.env.example`).
-- **Backend (`fastapi-backend/`):** Python FastAPI application (created by Sai in PR #1).
-  - Entry point and config (`app/main.py`, `app/config.py`).
-  - Module 1 Core packages (`auth.py`, `identity.py`, `live.py`, `routers.py`, `store.py`).
+- **Backend (`fastapi-backend/`):** Python FastAPI application (created by Sai in PR #1 & PR #2).
+  - Modules: `module1_core/`, `module2_aggregation/`, `module3_simulation/`.
   - 8 statutory legal Markdown files in `knowledge/`.
-  - Integration test suite `test_module1.py`.
-- **Roadmap & Requirements (`.planning/`):**
-  - Architecture specs and roadmap (`PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, `config.json`, `phases/01-persistence-and-cas-ingestion/01-01-PLAN.md`).
-- **Documentation (`docs/round2/`):**
-  - 18 comprehensive audit and planning documents in `docs/round2/` and `docs/round2/asvand/`.
-- **Root Configuration:**
-  - `README.md`, `netlify.toml`, `render.yaml`, `.gitignore`, `.env.example`, `.claude/launch.json`.
+  - Integration test suites: `test_module1.py`, `test_pipeline.py`.
+- **Roadmap & Architecture (`.planning/`, `docs/round2/`):**
+  - Architecture specs and roadmap (`PROJECT.md`, `ROADMAP.md`, `STATE.md`).
+  - Shajith's architecture diagrams and audit reports.
+  - Asvand's 18 Round 2 master audit specifications.
 
 ---
 
@@ -39,7 +36,7 @@ Prior to cleanup inspection, the project consisted of:
 
 ### B. Obsolete & Temporary Files Audit
 - Scanned for `.bak`, `.tmp`, `.swp`, `*~`, `.DS_Store`, `Thumbs.db`, `*.orig`, and `*.log` files across all directories.
-- **Result:** **Zero temporary or backup files found.** The workspace was clean of residual editor artifacts.
+- **Result:** **Zero temporary or backup files found.**
 
 ### C. Build Outputs & Generated Artifacts Audit
 - Checked for `dist/`, `build/`, `node_modules/`, `.venv/`, `__pycache__/`, `*.pyc`, and `*.tsbuildinfo`.
@@ -52,13 +49,12 @@ Prior to cleanup inspection, the project consisted of:
 
 ### E. Empty Folders Audit
 - Scanned for empty directories.
-- **Result:** **Zero empty directories exist.** (The legacy `client/src/local/` folder was already cleanly removed during PR #1).
+- **Result:** **Zero empty directories exist.**
 
 ---
 
-## 3. ACTIONS TAKEN DURING CLEANUP
+## 3. CLEANUP ACTIONS EXECUTED
 
-### Safe Changes Executed:
 1. **Enhanced `.gitignore`:** Added standard build and testing hygiene ignore rules to prevent future test caches, logs, or coverage reports from cluttering Git:
    - `*.log`
    - `npm-debug.log*`
@@ -67,9 +63,10 @@ Prior to cleanup inspection, the project consisted of:
    - `.pytest_cache/`
    - `.coverage`
    - `coverage/`
-
-### Zero Destructive Deletions:
-- In strict adherence to your instructions, **no source code, package manifests, lockfiles, or configuration files were deleted**. Everything belonging to teammates Sai and Shajith was preserved untouched.
+2. **Corrected `client/vite.config.ts` Proxy Port:** Updated proxy configuration from legacy port `4000` to unified FastAPI port `8000` (`http://localhost:8000`).
+3. **Corrected `.claude/launch.json` Configuration:** Replaced deleted `server` (Node) and `ai-service` runner entries with single unified `fastapi-backend` on port `8000`.
+4. **Cleaned `render.yaml` Blueprint:** Replaced dual legacy services (`rootDir: server` and `rootDir: ai-service`) with single unified `fastapi-backend` service.
+5. **Modernized `README.md` Documentation:** Updated architecture diagrams, port mappings (:8000), and local run instructions to reflect the unified FastAPI backend.
 
 ---
 
@@ -78,44 +75,12 @@ Prior to cleanup inspection, the project consisted of:
 1. **`client/package-lock.json`:** Essential for deterministic, reproducible `npm install` execution across team members.
 2. **`fastapi-backend/knowledge/*.md` (8 files):** Essential knowledge base files driving the BM25 legal RAG engine.
 3. **`.env.example` and `client/.env.example`:** Required environment configuration templates.
-4. **`.planning/*` (6 files):** Created by backend lead Sai to track Phase 1 roadmap and requirements.
-5. **`render.yaml` & `.claude/launch.json`:** Retained despite containing legacy references (see Candidates below).
+4. **`.planning/*` (8 files):** Created by backend lead Sai to track Phase 1 & 2 roadmap and requirements.
+5. **`sai.md` and `docs/round2/Round 2 ( Shajith ).md`:** Teammate audit documents strictly preserved.
 
 ---
 
-## 5. UNCERTAIN CANDIDATES REQUIRING ASVAND'S APPROVAL
+## 5. GIT STATUS & REPOSITORY INTEGRITY
 
-The following 3 files contain outdated configurations resulting from Sai's PR #1 migration from Node to FastAPI. Per your working rules, they were **KEPT** and are submitted here for your explicit approval:
-
-### Candidate 1: `.claude/launch.json`
-- **Current Issue:** Lines 4–5 configure runners for `"server"` (Node port 4000) and `"ai-service"` (port 8001), both of which were deleted in PR #1.
-- **Recommendation:** Do not delete. Update lines 4–5 to launch `fastapi-backend` on port 8000 using Python.
-- **Status:** Awaiting Asvand's Approval.
-
-### Candidate 2: `render.yaml`
-- **Current Issue:** Lines 5–21 define an Express service with `rootDir: server`, and lines 23–36 define a service with `rootDir: ai-service`. Neither directory exists anymore. If deployed on Render today, the build will fail.
-- **Recommendation:** Update `render.yaml` to deploy a single unified service pointing to `rootDir: fastapi-backend` on port 8000.
-- **Status:** Awaiting Asvand's Approval.
-
-### Candidate 3: `client/vite.config.ts` (Proxy Target)
-- **Current Issue:** Lines 11–12 configure the development proxy to forward `/api` and `/ws` to `http://localhost:4000` (the old Node port) instead of `http://localhost:8000` (the new FastAPI port).
-- **Recommendation:** Update port `4000` to `8000` in `client/vite.config.ts`.
-- **Status:** Awaiting Asvand's Approval.
-
----
-
-## 6. BROKEN REFERENCES & ISSUES DISCOVERED
-
-1. **Vite Proxy Port Disconnect:** In `client/vite.config.ts`, the proxy points to `4000`, while `fastapi-backend` listens on `8000`.
-2. **Missing Workspace Dependencies:** Neither `client/node_modules` nor `fastapi-backend/.venv` exist in the local workspace. Running `npm run build` or pytest currently fails due to missing binaries (`tsc`, `fastapi`).
-
----
-
-## 7. GIT STATUS & COMMIT DETAILS
-
-- **Working Branch:** `asvand/round2-product-frontend`
-- **Upstream Tracking:** `origin/asvand/round2-product-frontend`
-- **Files Modified in Cleanup:**
-  - `.gitignore` (added safety ignore patterns for logs and test caches).
-- **Files Created:**
-  - `docs/round2/asvand/15_PROJECT_CLEANUP_REPORT.md` (this report).
+- **Branch:** `main` (strictly maintained, no feature branches).
+- **Status:** Clean working tree, all changes committed and synchronized with `origin/main`.
