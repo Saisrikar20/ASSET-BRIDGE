@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, Trash2, UserPlus, Users } from 'lucide-react';
+import { ArrowRight, BookOpen, Trash2, UserPlus, Users, Download } from 'lucide-react';
+import { downloadCsv } from '../lib/csv';
 import { api, type Heir } from '../lib/api';
 import { Button, ErrorNote, Field, Input, Select, cx } from '../components/ui';
 
@@ -49,19 +50,41 @@ export default function Heirs() {
 
   const totalShare = heirs.reduce((s, h) => s + (h.share || 0), 0);
 
+  const handleExportCsv = () => {
+    downloadCsv(
+      'Asset_Bridge_Heir_Distribution_Schedule.csv',
+      ['Heir ID', 'Full Name', 'Relationship', 'PAN', 'Mobile', 'Email', 'Allocated Share (%)'],
+      heirs.map((h) => [h.id, h.name, h.relation, h.pan, h.mobile, h.email, h.share])
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* STEP 2 — Header */}
-      <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
-        <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-          SUCCESSION / HEIRS
+      <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+            SUCCESSION / HEIRS
+          </div>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+            Your heirs
+          </h1>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            Manage the people connected to your estate.
+          </p>
         </div>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-          Your heirs
-        </h1>
-        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-          Manage the people connected to your estate.
-        </p>
+        {heirs.length > 0 && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleExportCsv}
+            className="text-xs py-1.5 h-8 gap-1.5 cursor-pointer"
+            title="Export legal heir distribution schedule to CSV"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Export Schedule (.CSV)</span>
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr] items-start">

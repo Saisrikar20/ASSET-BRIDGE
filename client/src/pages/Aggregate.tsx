@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown, Mail } from 'lucide-react';
 import EmailDossierModal from '../components/EmailDossierModal';
+import { downloadCsv } from '../lib/csv';
 import { api, downloadClaimingDossierPdf, type Consent, type Holding, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date, inr } from '../lib/format';
@@ -188,6 +189,44 @@ export default function Aggregate() {
       </div>
     );
   }
+
+  const handleExportCsv = () => {
+    downloadCsv(
+      `Asset_Bridge_Schedule_${user?.identity?.pan || 'portfolio'}.csv`,
+      [
+        'Holding ID',
+        'Regulator',
+        'Asset Category',
+        'Financial Institution',
+        'Account / Folio Reference',
+        'Registered Owner Name',
+        'Valuation (INR)',
+        'Operating Status',
+        'Nominee Registered',
+        'Nominee Relationship',
+        'Nominee Status',
+        'Nominee Guardian',
+        'Last Verified KYC',
+        'Last Activity Date',
+      ],
+      holdings.map((h) => [
+        h.id,
+        h.regulator,
+        h.type,
+        h.institution,
+        h.ref,
+        h.registeredName || user?.name || '',
+        h.value,
+        h.status,
+        h.nominee?.name || 'None',
+        h.nominee?.relation || '',
+        h.nominee?.status || 'missing',
+        h.nominee?.guardian || '',
+        h.kycUpdated || '',
+        h.lastActivity || '',
+      ])
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -436,13 +475,25 @@ export default function Aggregate() {
                   {shown.length !== holdings.length && ` (filtered from ${holdings.length})`}
                 </span>
               </div>
-              <div className="text-right">
-                <span className="text-xs text-slate-500 dark:text-slate-400 mr-1.5">
-                  Total mapped asset value:
-                </span>
-                <span className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">
-                  {inr(totalValue)}
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 mr-1.5">
+                    Total mapped asset value:
+                  </span>
+                  <span className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">
+                    {inr(totalValue)}
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={handleExportCsv}
+                  className="text-xs py-1.5 h-8 gap-1.5 cursor-pointer"
+                  title="Export full verified asset schedule to CSV spreadsheet"
+                >
+                  <FileDown className="h-3.5 w-3.5" />
+                  <span>Export .CSV</span>
+                </Button>
               </div>
             </div>
 

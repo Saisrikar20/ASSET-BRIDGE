@@ -6,6 +6,13 @@ import { AuthProvider } from './lib/auth';
 import { SplashProvider } from './lib/splash';
 import './index.css';
 
+// Register PWA service worker for offline resilience (future.md §4.2)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
