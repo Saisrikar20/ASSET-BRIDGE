@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   BookOpen,
-  CheckCircle2,
+  Check,
+  Copy,
   ExternalLink,
   HeartHandshake,
   Radio,
@@ -12,7 +13,7 @@ import {
 import { api, type Case, type Heir, type Holding } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { inr, inrShort } from '../lib/format';
-import { Badge, Button, ErrorNote, Field, Input } from '../components/ui';
+import { Badge, Button, ErrorNote, Field, Input, cx } from '../components/ui';
 
 export default function Reunite() {
   const { user, refresh } = useAuth();
@@ -26,6 +27,8 @@ export default function Reunite() {
   });
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [result, setResult] = useState<{
     case: Case;
     notified: { name: string; via: string[] }[];
@@ -66,6 +69,25 @@ export default function Reunite() {
     }
   };
 
+  const existing = result?.case.id || cases[0]?.id;
+
+  const copyId = () => {
+    if (existing) {
+      navigator.clipboard.writeText(existing);
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
+    }
+  };
+
+  const copyLink = () => {
+    if (existing) {
+      const url = `${window.location.origin}/heir/${existing}`;
+      navigator.clipboard.writeText(url);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
   if (!user?.identity) {
     return (
       <div className="space-y-6">
@@ -100,29 +122,33 @@ export default function Reunite() {
     );
   }
 
-  const existing = result?.case.id || cases[0]?.id;
   const totalValue = holdings.reduce((s, h) => s + h.value, 0);
 
   const steps = [
     {
       title: 'CRS feed',
       desc: 'Registrar records death; event arrives with PAN / Aadhaar linkage.',
+      status: existing ? 'completed' : 'pending',
     },
     {
       title: 'Match',
       desc: `Linked to twin: ${holdings.length} holdings worth ${inrShort(totalValue)}.`,
+      status: existing ? 'completed' : 'pending',
     },
     {
       title: 'Notify',
-      desc: `${heirs.length} registered heir${heirs.length === 1 ? '' : 's'} receive case ID notification.`,
+      desc: `${heirs.length} registered heir${heirs.length === 1 ? '' : 's'} notified with Case ID.`,
+      status: existing ? 'completed' : 'pending',
     },
     {
       title: 'Verify heir',
       desc: 'Each heir unlocks the estate case using their individual PAN.',
+      status: existing ? 'current' : 'pending',
     },
     {
       title: 'Transfer',
-      desc: `State-specific checklist for ${user.identity.state || 'national'} generated for every holding.`,
+      desc: `State-specific checklist for ${user.identity.state || 'national'} generated.`,
+      status: 'pending',
     },
   ];
 
@@ -134,10 +160,12 @@ export default function Reunite() {
           STEP 04 / REUNITE
         </div>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-          Reunite
+          {existing ? 'Estate case created' : 'Reunite'}
         </h1>
         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-          See how your family's succession journey works.
+          {existing
+            ? 'The succession workflow is ready for the registered heirs.'
+            : "See how your family's succession journey works."}
         </p>
       </div>
 
@@ -195,7 +223,7 @@ export default function Reunite() {
         </div>
       </div>
 
-      {/* STEP 3 — Five-Step Process Connected Stepper */}
+      {/* STEP 7 — Five-Step Process Connected Stepper */}
       <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 space-y-4 shadow-sm">
         <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
           <Radio className="h-4 w-4 text-brand-700 dark:text-brand-400" />
@@ -209,8 +237,17 @@ export default function Reunite() {
           {steps.map((st, i) => (
             <div key={st.title} className="space-y-1.5 relative">
               <div className="flex items-center gap-2">
-                <div className="h-6 w-6 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-mono text-xs font-semibold flex items-center justify-center shrink-0">
-                  {i + 1}
+                <div
+                  className={cx(
+                    'h-6 w-6 rounded-full font-mono text-xs font-semibold flex items-center justify-center shrink-0',
+                    st.status === 'completed'
+                      ? 'bg-emerald-500 text-white'
+                      : st.status === 'current'
+                        ? 'bg-brand-600 text-white ring-2 ring-brand-200 dark:ring-brand-800'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                  )}
+                >
+                  {st.status === 'completed' ? '✓' : i + 1}
                 </div>
                 <span className="font-semibold text-xs text-slate-900 dark:text-white truncate">
                   {st.title}
@@ -227,8 +264,17 @@ export default function Reunite() {
         <div className="sm:hidden space-y-3.5 relative pl-5 border-l-2 border-slate-200 dark:border-slate-800 ml-2">
           {steps.map((st, i) => (
             <div key={st.title} className="relative space-y-0.5">
-              <div className="absolute -left-[27px] top-0.5 h-5 w-5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-mono text-[10px] font-semibold flex items-center justify-center">
-                {i + 1}
+              <div
+                className={cx(
+                  'absolute -left-[27px] top-0.5 h-5 w-5 rounded-full font-mono text-[10px] font-semibold flex items-center justify-center',
+                  st.status === 'completed'
+                    ? 'bg-emerald-500 text-white'
+                    : st.status === 'current'
+                      ? 'bg-brand-600 text-white'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                )}
+              >
+                {st.status === 'completed' ? '✓' : i + 1}
               </div>
               <div className="font-semibold text-xs text-slate-900 dark:text-white">
                 {st.title}
@@ -241,53 +287,141 @@ export default function Reunite() {
         </div>
       </div>
 
-      {/* STEP 5 & 6 — CRS Demo Control & Open Case State */}
-      <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 sm:p-6 space-y-4 shadow-sm">
+      {/* STEP 3, 4, 5, 6 — Post-CRS Success State or Pre-CRS Demo Control */}
+      <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 sm:p-6 space-y-5 shadow-sm">
         {existing ? (
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <Badge tone="green">ESTATE CASE OPEN</Badge>
-                <span className="font-mono text-base font-bold text-slate-900 dark:text-white">
+            {/* STEP 3 — Estate Case Reference Focus */}
+            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Badge tone="green">ACTIVE CASE</Badge>
+                  <span className="text-[11px] uppercase font-mono font-semibold tracking-wider text-slate-400">
+                    Estate Case Reference
+                  </span>
+                </div>
+                <div className="font-mono text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white select-all">
                   {existing}
-                </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Registered heirs unlock the succession twin using this case reference and their individual PAN.
+                </p>
               </div>
-              <span className="text-[11px] text-slate-500 font-mono">
-                CRS notification active
-              </span>
+              <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={copyId}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-mono font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer shadow-sm"
+                >
+                  {copiedId ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-emerald-600" />
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5 text-slate-400" />
+                      <span>Copy Case ID</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={copyLink}
+                  className="inline-flex items-center gap-1.5 text-[11px] text-brand-700 dark:text-brand-400 hover:underline cursor-pointer"
+                >
+                  {copiedLink ? 'Link copied!' : 'Copy heir access link'}
+                </button>
+              </div>
             </div>
 
-            {result?.notified && result.notified.length > 0 && (
-              <div className="p-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/60 space-y-1.5 text-xs">
-                <div className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
-                  Notification dispatch:
-                </div>
-                {result.notified.map((n) => (
-                  <div
-                    key={n.name}
-                    className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300"
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>
-                      {n.name} notified {n.via.length ? `via ${n.via.join(' & ')}` : ''}
-                    </span>
-                  </div>
-                ))}
+            {/* STEP 4 — Heir Notifications Breakdown */}
+            <div className="space-y-2 pt-1">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Heir Notification Dispatch
               </div>
-            )}
+              <div className="rounded-lg border border-slate-200/80 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden bg-white dark:bg-slate-900/40">
+                {heirs.length === 0 ? (
+                  <div className="p-3 text-xs text-slate-500">
+                    No heirs were registered on this twin prior to case creation.
+                  </div>
+                ) : (
+                  heirs.map((h) => {
+                    const notifEntry = result?.notified?.find((n) => n.name === h.name);
+                    const hasSms = notifEntry?.via?.includes('SMS') || Boolean(h.mobile);
+                    const hasEmail = notifEntry?.via?.includes('Email') || Boolean(h.email);
 
-            <p className="text-xs text-slate-600 dark:text-slate-400">
-              Heirs can access this case at{' '}
-              <span className="font-mono font-medium text-slate-800 dark:text-slate-200">
-                /heir/{existing}
-              </span>{' '}
-              using their individual verified PAN.
-            </p>
+                    return (
+                      <div
+                        key={h.id}
+                        className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="min-w-0">
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {h.name}
+                          </span>
+                          <span className="text-slate-400 ml-1.5 font-normal">
+                            · {h.relation}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] font-mono">
+                          <span className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
+                            <span
+                              className={cx(
+                                'h-1.5 w-1.5 rounded-full',
+                                hasSms ? 'bg-emerald-500' : 'bg-slate-300'
+                              )}
+                            />
+                            SMS:{' '}
+                            {hasSms
+                              ? h.mobile
+                                ? `Sent (••••${h.mobile.slice(-4)})`
+                                : 'Sent'
+                              : 'No number'}
+                          </span>
+                          <span className="text-slate-300 dark:text-slate-700">·</span>
+                          <span className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
+                            <span
+                              className={cx(
+                                'h-1.5 w-1.5 rounded-full',
+                                hasEmail ? 'bg-emerald-500' : 'bg-slate-300'
+                              )}
+                            />
+                            Email: {hasEmail ? 'Sent' : 'No address'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono">
+                * Simulated notifications recorded in demonstration event ledger.
+              </div>
+            </div>
 
-            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+            {/* STEP 5 — Heir Portal Access */}
+            <div className="p-3.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  Heir Access Portal:
+                </span>
+                <p className="text-slate-500 dark:text-slate-400 text-[11px]">
+                  Each heir must open the case using their own PAN. No unauthorized party can access the estate.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">
+                  /heir/{existing}
+                </span>
+              </div>
+            </div>
+
+            {/* STEP 6 — Next Actions */}
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
               <Button
                 onClick={() => nav(`/app/cases/${existing}`)}
-                className="flex-1 justify-between text-xs"
+                className="flex-1 justify-between text-xs py-2.5"
               >
                 <span>Open transfer workflow (Step 05)</span>
                 <ArrowRight className="h-4 w-4" />
@@ -295,7 +429,7 @@ export default function Reunite() {
               <Button
                 variant="secondary"
                 onClick={() => nav(`/heir/${existing}`)}
-                className="text-xs gap-1.5"
+                className="text-xs gap-1.5 py-2.5"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
                 <span>Preview Heir Portal</span>
@@ -312,7 +446,7 @@ export default function Reunite() {
                       )
                   )
                 }
-                className="text-xs gap-1.5"
+                className="text-xs gap-1.5 py-2.5"
               >
                 <BookOpen className="h-3.5 w-3.5" />
                 <span>Ask AI Guide</span>
