@@ -9,3 +9,10 @@ fastapi-backend/data/
 .DS_Store
 .idea/
 *.tsbuildinfo
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pytest_cache/
+.coverage
+coverage/
