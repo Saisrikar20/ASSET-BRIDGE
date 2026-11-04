@@ -160,13 +160,13 @@ export default function Alerts() {
             'rounded-xl border p-3 text-left transition cursor-pointer',
             filter === 'all'
               ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-black shadow-sm'
-              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-slate-300'
+              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-slate-300'
           )}
         >
           <div
             className={cx(
               'text-[10px] uppercase font-mono font-semibold',
-              filter === 'all' ? 'text-slate-300 dark:text-black/60' : 'text-slate-400'
+              filter === 'all' ? 'text-slate-300 dark:text-slate-700' : 'text-slate-500 dark:text-slate-400'
             )}
           >
             Open Alerts
@@ -183,13 +183,13 @@ export default function Alerts() {
             'rounded-xl border p-3 text-left transition cursor-pointer',
             filter === 'high'
               ? 'border-rose-600 bg-rose-600 text-white shadow-sm'
-              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-rose-300'
+              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-rose-300'
           )}
         >
           <div
             className={cx(
               'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
-              filter === 'high' ? 'text-rose-100' : 'text-slate-400'
+              filter === 'high' ? 'text-rose-100' : 'text-slate-500 dark:text-slate-400'
             )}
           >
             <span
@@ -214,13 +214,13 @@ export default function Alerts() {
             'rounded-xl border p-3 text-left transition cursor-pointer',
             filter === 'medium'
               ? 'border-amber-600 bg-amber-600 text-white shadow-sm'
-              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-amber-300'
+              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-amber-300'
           )}
         >
           <div
             className={cx(
               'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
-              filter === 'medium' ? 'text-amber-100' : 'text-slate-400'
+              filter === 'medium' ? 'text-amber-100' : 'text-slate-500 dark:text-slate-400'
             )}
           >
             <span
@@ -248,7 +248,7 @@ export default function Alerts() {
             'rounded-xl border p-3 text-left transition cursor-pointer',
             filter === 'low'
               ? 'border-slate-700 bg-slate-700 text-white shadow-sm'
-              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-slate-300'
+              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-slate-300'
           )}
         >
           <div
@@ -274,13 +274,13 @@ export default function Alerts() {
             'rounded-xl border p-3 text-left transition cursor-pointer col-span-2 sm:col-span-1',
             filter === 'resolved'
               ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-emerald-300'
+              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-emerald-300'
           )}
         >
           <div
             className={cx(
               'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
-              filter === 'resolved' ? 'text-emerald-100' : 'text-slate-400'
+              filter === 'resolved' ? 'text-emerald-100' : 'text-slate-500 dark:text-slate-400'
             )}
           >
             <span
@@ -335,7 +335,7 @@ export default function Alerts() {
 
       {/* STEP 5 & 6 — Alert List */}
       {list.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900/40">
+        <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900">
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mb-2">
             {filter === 'resolved' ? (
               <BellOff className="h-5 w-5" />
@@ -357,7 +357,7 @@ export default function Alerts() {
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm">
+        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm">
           {list.map((a) => {
             const h = holdings[a.holdingId];
             const isNominee = NOMINEE_KINDS.includes(a.kind);
@@ -388,7 +388,7 @@ export default function Alerts() {
                     </p>
 
                     {h && (
-                      <div className="pt-0.5 text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-2 flex-wrap font-mono">
+                      <div className="pt-0.5 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap font-mono">
                         <span>{h.institution}</span>
                         <span>·</span>
                         <span>{h.ref}</span>
@@ -495,7 +495,7 @@ export default function Alerts() {
           Next Steps in Your Succession Journey
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 flex flex-col justify-between gap-3">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between gap-3">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300">
@@ -520,7 +520,7 @@ export default function Alerts() {
             </Button>
           </div>
 
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 flex flex-col justify-between gap-3">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between gap-3">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300">
@@ -545,7 +545,7 @@ export default function Alerts() {
             </Button>
           </div>
 
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 flex flex-col justify-between gap-3">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between gap-3">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300">

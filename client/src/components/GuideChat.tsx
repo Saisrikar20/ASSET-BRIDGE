@@ -210,7 +210,7 @@ export default function GuideChat({
   return (
     <div
       className={cx(
-        'rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 flex flex-col overflow-hidden shadow-sm',
+        'rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col overflow-hidden shadow-sm',
         compact ? 'h-[520px]' : 'h-[calc(100vh-230px)] min-h-[500px]'
       )}
     >
@@ -299,7 +299,7 @@ export default function GuideChat({
                   key={s}
                   type="button"
                   onClick={() => ask(s)}
-                  className="p-3 text-left rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 text-xs text-slate-700 dark:text-slate-300 transition cursor-pointer shadow-xs"
+                  className="p-3 text-left rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 text-xs text-slate-700 dark:text-slate-300 transition cursor-pointer shadow-xs"
                 >
                   <span className="line-clamp-2">{s}</span>
                 </button>
