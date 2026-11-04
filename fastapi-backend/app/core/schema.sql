@@ -155,3 +155,20 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     FOREIGN KEY (session_id) REFERENCES chat_sessions(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_chat_msg_sess ON chat_messages(session_id);
+
+-- 13. Sent Emails Audit Log
+CREATE TABLE IF NOT EXISTS sent_emails (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    case_id TEXT,
+    to_email TEXT NOT NULL,
+    recipient_name TEXT,
+    subject TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    status TEXT NOT NULL,
+    is_mock INTEGER DEFAULT 0,
+    raw_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sent_emails_user ON sent_emails(user_id);
+CREATE INDEX IF NOT EXISTS idx_sent_emails_case ON sent_emails(case_id);

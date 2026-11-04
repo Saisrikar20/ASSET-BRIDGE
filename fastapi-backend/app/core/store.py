@@ -10,7 +10,7 @@ from app.core.db import get_connection, init_db, transaction
 DB_FILE = DATA_DIR / "db.json"
 TABLES = [
     "users", "heirs", "consents", "holdings", "alerts", "cases",
-    "snapshots", "user_documents", "doc_chunks", "chat_sessions", "chat_messages"
+    "snapshots", "user_documents", "doc_chunks", "chat_sessions", "chat_messages", "sent_emails"
 ]
 
 def uid(prefix: str = "") -> str:
@@ -157,6 +157,20 @@ class Store:
                    (id, session_id, role, content, sources_json, actions_json, engine, raw_json, created_at) 
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (row_id, session_id, role, content, sources, actions, engine, raw_json, created_at)
+            )
+        elif table == "sent_emails":
+            case_id = str(row.get("caseId") or row.get("case_id") or "")
+            to_email = str(row.get("toEmail") or row.get("to_email") or "")
+            recip_name = str(row.get("recipientName") or row.get("recipient_name") or "")
+            subject = str(row.get("subject") or "")
+            filename = str(row.get("filename") or "")
+            status = str(row.get("status") or "sent")
+            is_mock = 1 if row.get("isMock") or row.get("is_mock") else 0
+            conn.execute(
+                """INSERT OR REPLACE INTO sent_emails 
+                   (id, user_id, case_id, to_email, recipient_name, subject, filename, status, is_mock, raw_json, created_at) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (row_id, user_id, case_id, to_email, recip_name, subject, filename, status, is_mock, raw_json, created_at)
             )
         else:
             pass

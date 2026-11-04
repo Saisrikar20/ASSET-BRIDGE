@@ -1,3 +1,4 @@
+from app.core.mailer import send_claiming_dossier_email
 import datetime, re, random
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Header, status, UploadFile, File, Form
@@ -731,4 +732,91 @@ async def save_claiming_dossier_to_vault(
         "document": doc_meta["document"],
         "chunks_indexed": doc_meta.get("chunks_indexed", 0)
     }
+
+# -------------------------------------------------------------
+# TASK 5: EMAIL DISPATCH FOR STATUTORY CLAIMING DOSSIER
+# -------------------------------------------------------------
+class SendDossierEmailIn(BaseModel):
+    toEmail: str
+    recipientName: Optional[str] = None
+    pan: Optional[str] = None
+    personaId: Optional[str] = None
+    caseId: Optional[str] = None
+    customNote: Optional[str] = None
+
+@router.post("/reports/claiming-dossier/email")
+def api_send_claiming_dossier_email(
+    body: SendDossierEmailIn,
+    authorization: Optional[str] = Header(None)
+):
+    """Generate and dispatch official claiming dossier PDF via email with corporate HTML template."""
+    clean_email = (body.toEmail or "").strip()
+    if "@" not in clean_email or "." not in clean_email:
+        raise HTTPException(status_code=400, detail="A valid recipient email address is required")
+
+    auth_user = None
+    if isinstance(authorization, str) and authorization.startswith("Bearer "):
+        token = authorization.replace("Bearer ", "").strip()
+        uid_val = verify_token(token)
+        if uid_val:
+            auth_user = store.find("users", lambda u: u.get("id") == uid_val)
+
+    ctx = resolve_person_context(pan=body.pan, persona_id=body.personaId, case_id=body.caseId, user=auth_user)
+    
+    pdf_bytes = generate_claiming_dossier_pdf(
+        person_info=ctx["person"],
+        holdings=ctx["holdings"],
+        heirs=ctx["heirs"],
+        state_info=ctx["state_info"],
+        case_info=ctx.get("case")
+    )
+    
+    clean_name = re.sub(r'[^a-zA-Z0-9_-]', '_', ctx["person"].get("name", "Claimant"))
+    filename = f"Asset_Bridge_Claiming_Dossier_{clean_name}.pdf"
+    total_val = sum(h.get("value", 0) for h in ctx["holdings"])
+
+    result = send_claiming_dossier_email(
+        to_email=clean_email,
+        pdf_bytes=pdf_bytes,
+        filename=filename,
+        person_name=ctx["person"].get("name", "Claimant"),
+        pan=ctx["person"].get("pan", "ABCDE1234F"),
+        case_id=body.caseId,
+        holdings_count=len(ctx["holdings"]),
+        total_value_inr=total_val,
+        recipient_name=body.recipientName,
+        custom_note=body.customNote,
+        user_id=auth_user["id"] if auth_user else None
+    )
+
+    return result
+
+@router.get("/reports/claiming-dossier/email/history")
+def get_claiming_dossier_email_history(
+    caseId: Optional[str] = None,
+    authorization: Optional[str] = Header(None)
+):
+    """Retrieve audit history of dispatched claiming dossier emails."""
+    auth_user = None
+    if isinstance(authorization, str) and authorization.startswith("Bearer "):
+        token = authorization.replace("Bearer ", "").strip()
+        uid_val = verify_token(token)
+        if uid_val:
+            auth_user = store.find("users", lambda u: u.get("id") == uid_val)
+
+    user_id = auth_user["id"] if auth_user else None
+    
+    def match_record(r: dict) -> bool:
+        if caseId and r.get("caseId") == caseId:
+            return True
+        if user_id and r.get("userId") == user_id:
+            return True
+        if not caseId and not user_id:
+            return True
+        return False
+
+    records = store.all("sent_emails", match_record)
+    # Sort newest first
+    records.sort(key=lambda r: r.get("createdAt", ""), reverse=True)
+    return {"ok": True, "count": len(records), "history": records[:50]}
 

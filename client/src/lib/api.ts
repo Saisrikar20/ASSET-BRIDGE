@@ -261,3 +261,35 @@ export async function saveClaimingDossierToVault(params?: { pan?: string; person
   );
 }
 
+// ---------- Email Dispatch for Claiming Dossier ----------
+export interface SentEmailRecord {
+  id: string;
+  userId?: string;
+  caseId?: string;
+  toEmail: string;
+  recipientName?: string;
+  subject: string;
+  filename: string;
+  status: string;
+  isMock: boolean;
+  createdAt: string;
+}
+
+export async function sendClaimingDossierEmail(params: {
+  toEmail: string;
+  recipientName?: string;
+  pan?: string;
+  personaId?: string;
+  caseId?: string;
+  customNote?: string;
+}): Promise<{ ok: boolean; message: string; trackingId: string; isMock: boolean; status: string; toEmail: string }> {
+  return api('/reports/claiming-dossier/email', {
+    method: 'POST',
+    body: params,
+  });
+}
+
+export async function getClaimingDossierEmailHistory(caseId?: string): Promise<{ ok: boolean; count: number; history: SentEmailRecord[] }> {
+  return api(`/reports/claiming-dossier/email/history${caseId ? `?caseId=${encodeURIComponent(caseId)}` : ''}`);
+}
+
