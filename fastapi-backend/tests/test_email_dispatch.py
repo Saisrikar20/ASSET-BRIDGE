@@ -16,6 +16,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.config import OUTBOX_DIR
 from app.core.store import store
+import app.core.mailer as mailer_module
 from app.core.mailer import (
     build_email_html,
     build_email_text,
@@ -68,8 +69,10 @@ def test_mime_message_construction():
     assert len(att.get_content()) == len(pdf_bytes)
     print("[PASS] MIME message assembled with valid PDF attachment.")
 
-def test_outbox_fallback_mock_delivery():
+def test_outbox_fallback_mock_delivery(monkeypatch):
     print("--- 2. Testing Outbox Mock Delivery Fallback ---")
+    monkeypatch.setattr(mailer_module, "is_smtp_configured", lambda: False)
+
     dummy_pdf = b"%PDF-1.4 Mock Dossier Buffer"
     result = send_claiming_dossier_email(
         to_email="test.claimant@example.com",
@@ -103,8 +106,9 @@ def test_outbox_fallback_mock_delivery():
     assert attachments[0].get_content() == dummy_pdf
     print(f"[PASS] Mock delivery successfully stored and decoded in {eml_file.name} ({len(eml_content)} bytes).")
 
-def test_api_send_dossier_email_endpoint():
+def test_api_send_dossier_email_endpoint(monkeypatch):
     print("--- 3. Testing POST /api/reports/claiming-dossier/email ---")
+    monkeypatch.setattr(mailer_module, "is_smtp_configured", lambda: False)
     
     # A. Validation check: Invalid email
     bad_res = client.post("/api/reports/claiming-dossier/email", json={
@@ -113,7 +117,7 @@ def test_api_send_dossier_email_endpoint():
     })
     assert bad_res.status_code == 400
 
-    # B. Valid email dispatch
+    # B. Valid email dispatch (mock mode tested cleanly)
     res = client.post("/api/reports/claiming-dossier/email", json={
         "toEmail": "priya.heir@family.org",
         "recipientName": "Ananya Sharma",
