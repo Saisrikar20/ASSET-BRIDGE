@@ -353,3 +353,16 @@ export async function pollRegulations(params?: { regulator?: string }): Promise<
   const qs = query.toString();
   return api(`/documents/regulations/poll${qs ? `?${qs}` : ''}`, { method: 'POST' });
 }
+
+export async function crawlRegulations(params?: { regulator?: string }): Promise<{
+  ok: boolean;
+  spidersRun?: number;
+  totalRegulationsInVault?: number;
+  summary?: any;
+  message?: string;
+}> {
+  const query = new URLSearchParams();
+  if (params?.regulator) query.set('regulator', params.regulator);
+  const qs = query.toString();
+  return api(`/documents/regulations/poll${qs ? `?${qs}` : ''}`, { method: 'POST' });
+}
