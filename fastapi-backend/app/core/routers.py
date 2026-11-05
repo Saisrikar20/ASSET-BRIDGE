@@ -129,7 +129,7 @@ def demo_login(persona: Optional[str] = None):
         email = "demo@assetbridge.in"
 
     user = store.find("users", lambda u: u.get("email") == email)
-    if not user:
+    if not user or not user.get("identity"):
         if pkey in ["raghavan", "priya", "vikram", "sunita", "rajesh"]:
             from app.core.seeder import seed_persona
             seed_persona(pkey)
@@ -178,6 +178,13 @@ def update_avatar(body: AvatarBody, user_auth: dict = Depends(get_current_user))
 @router.post("/demo/reset")
 def reset_demo(user: dict = Depends(get_current_user)):
     uid_val = user["id"]
+    email = user.get("email", "")
+    pkey = email.replace("@demo.local", "").strip().lower()
+    from app.aggregation.personas import PERSONAS
+    if pkey in PERSONAS:
+        from app.core.seeder import seed_persona
+        seed_persona(pkey, reset=False)
+        return {"ok": True, "message": f"Demo persona '{pkey}' restored to initial state"}
     for tbl in ["holdings", "alerts", "consents", "heirs", "snapshots"]:
         store.remove(tbl, lambda r: r.get("userId") == uid_val)
     store.remove("cases", lambda c: c.get("ownerId") == uid_val)

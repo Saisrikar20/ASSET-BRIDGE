@@ -1,3 +1,4 @@
+import datetime
 """
 Asset Bridge Mock Data Seeder Core Logic
 Seeds complete multi-persona portfolios, alerts, cases, documents, and chat sessions.
@@ -9,7 +10,7 @@ from app.core.store import store, uid
 from app.core.auth import hash_password
 from app.aggregation.personas import PERSONAS
 from app.aggregation.documents import ingest_document
-from app.core.identity import verify_identity
+from app.core.identity import REGULATORS, verify_identity
 
 SAMPLE_DOCS_DIR = DATA_DIR / "sample_documents"
 
@@ -63,14 +64,37 @@ def seed_persona(persona_key: str, reset: bool = False):
         store.insert("users", user_record)
         print(f"     [OK] User created: {email}")
 
-        # 2. Seed Holdings
+        # 2. Seed Holdings & Active AA Consent Handle
         store.remove("holdings", lambda h: h.get("userId") == user_id)
+        store.remove("consents", lambda c: c.get("userId") == user_id)
+        consent_id = f"c_{pkey}_active"
+        now_dt = datetime.datetime.now(datetime.timezone.utc)
+        store.insert("consents", {
+            "id": consent_id,
+            "userId": user_id,
+            "handle": f"consent-{pkey}@onemoney",
+            "purpose": "Aggregated wealth and succession twin audit",
+            "fiTypes": [
+                "DEPOSIT", "EPF", "INSURANCE_POLICIES", "MUTUAL_FUNDS",
+                "LIC_POLICIES", "NPS", "RECURRING_DEPOSIT"
+            ],
+            "regulators": list(REGULATORS.keys()),
+            "status": "ACTIVE",
+            "createdAt": now_dt.isoformat(),
+            "expiresAt": (now_dt + datetime.timedelta(days=365)).isoformat(),
+            "fetchType": "ONETIME",
+            "dataLife": "12 months"
+        })
         for h in p["holdings"]:
             h_copy = dict(h)
             h_copy["userId"] = user_id
+            st = h.get("status") or h.get("recordStatus") or "active"
+            h_copy["status"] = st
+            h_copy["recordStatus"] = st
             h_copy["registeredName"] = h.get("registeredName") or p["name"]
+            h_copy["consentId"] = consent_id
             store.insert("holdings", h_copy)
-        print(f"     [OK] {len(p['holdings'])} holdings seeded into SQLite.")
+        print(f"     [OK] {len(p['holdings'])} holdings and active AA consent seeded into SQLite.")
 
         # 3. Seed Risk Alerts
         store.remove("alerts", lambda a: a.get("userId") == user_id)
@@ -118,18 +142,19 @@ def seed_persona(persona_key: str, reset: bool = False):
         # 4. Seed Heirs and Cases (if applicable)
         store.remove("heirs", lambda hr: hr.get("userId") == user_id)
         case_id = f"AB-{abs(hash(p['pan'])) % 9000 + 1000}"
-        for fam in p.get("family", []):
-            if fam.get("status") != "deceased":
-                store.insert("heirs", {
-                    "userId": user_id,
-                    "caseId": case_id,
-                    "name": fam.get("name"),
-                    "pan": fam.get("pan", "ABCDE1234F"),
-                    "relation": fam.get("relation"),
-                    "mobile": fam.get("phone", "9840000000"),
-                    "email": f"{fam.get('name').lower().replace(' ', '')}@demo.local",
-                    "share": 50 if fam.get("relation") == "Spouse" else 25
-                })
+        surviving_family = [fam for fam in p.get("family", []) if fam.get("status") != "deceased"]
+        heir_share = round(100.0 / len(surviving_family), 1) if surviving_family else 100.0
+        for fam in surviving_family:
+            store.insert("heirs", {
+                "userId": user_id,
+                "caseId": case_id,
+                "name": fam.get("name"),
+                "pan": fam.get("pan", "ABCDE1234F"),
+                "relation": fam.get("relation"),
+                "mobile": fam.get("phone", "9840000000"),
+                "email": f"{fam.get('name').lower().replace(' ', '')}@demo.local",
+                "share": heir_share
+            })
         print(f"     [OK] Legal heirs registered.")
 
         # Seed Cases for raghavan and vikram
