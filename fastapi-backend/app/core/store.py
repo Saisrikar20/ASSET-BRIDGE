@@ -2,6 +2,7 @@ import json
 import os
 import time
 import random
+import uuid
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 from app.config import DATA_DIR
@@ -15,7 +16,7 @@ TABLES = [
 
 def uid(prefix: str = "") -> str:
     """Generate a collision-resistant unique identifier."""
-    return f"{prefix}{int(time.time()*1000):x}{random.randint(1000, 9999):x}"
+    return f"{prefix}{int(time.time()*1000):x}{uuid.uuid4().hex[:10]}"
 
 class Store:
     def __init__(self):
