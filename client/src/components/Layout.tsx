@@ -107,10 +107,10 @@ export default function Layout() {
       <button
         onClick={() => setPersonaOpen(!personaOpen)}
         disabled={switching}
-        className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-surface/90 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+        className="flex items-center gap-2 rounded-lg border border-[#DDD7CA] bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
         title="Switch Demo Persona Profile"
       >
-        <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+        <span className="flex h-2 w-2 rounded-full bg-[#55C6B0]" />
         <span className="truncate max-w-[140px] font-medium text-slate-900 dark:text-white">{currentPersona.name}</span>
         <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
       </button>
@@ -118,7 +118,7 @@ export default function Layout() {
       {personaOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setPersonaOpen(false)} />
-          <div className="absolute right-0 mt-2 z-50 w-76 rounded-xl border border-slate-200 dark:border-slate-800 bg-surface p-2 shadow-2xl animate-in fade-in zoom-in-95">
+          <div className="absolute right-0 mt-2 z-50 w-76 rounded-xl border border-[#DDD7CA] bg-white p-2 shadow-2xl animate-in fade-in zoom-in-95">
             <div className="px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Quick Switch Demographic Persona
             </div>
@@ -132,14 +132,14 @@ export default function Layout() {
                     className={cx(
                       'w-full text-left px-2.5 py-2 rounded-lg text-xs transition flex flex-col gap-0.5 cursor-pointer',
                       isSelected
-                        ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-900 dark:text-brand-200 font-semibold'
+                        ? 'bg-[#1C3041]/10 text-[#101D2B] font-semibold'
                         : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                     )}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold flex items-center gap-1.5">
                         {p.name}
-                        {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-brand-600" />}
+                        {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-[#55C6B0]" />}
                       </span>
                       <span className="text-[10px] rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-slate-500">
                         {p.state}
@@ -172,7 +172,7 @@ export default function Layout() {
           className={({ isActive }) =>
             cx(
               'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
-              isActive ? 'bg-white/15 text-white' : 'text-[#b9d3f5]/80 hover:bg-white/10 hover:text-white'
+              isActive ? 'bg-[#1C3041] text-[#55C6B0] font-semibold' : 'text-[#9BA7B2] hover:bg-white/10 hover:text-white'
             )
           }
         >
@@ -185,7 +185,7 @@ export default function Layout() {
         </NavLink>
       ))}
 
-      <div className="mt-auto rounded-xl bg-white/10 p-3 text-xs text-[#b9d3f5]">
+      <div className="mt-auto rounded-xl bg-white/10 p-3 text-xs text-[#9BA7B2]">
         <NavLink to="/app/avatar" onClick={() => setOpen(false)} className="group flex items-center gap-2.5" title="Change avatar">
           <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white/15 ring-2 ring-white/20 transition group-hover:ring-white/50">
             {user?.avatar ? (
@@ -206,7 +206,7 @@ export default function Layout() {
           </span>
         </NavLink>
         <div className="mt-2 flex items-center gap-1.5">
-          <span className={cx('h-2 w-2 rounded-full', connected ? 'bg-emerald-400' : 'bg-slate-400')} />
+          <span className={cx('h-2 w-2 rounded-full', connected ? 'bg-[#55C6B0]' : 'bg-slate-400')} />
           {connected ? 'Live alerts connected' : 'Connecting…'}
         </div>
         <div className="mt-3 flex items-center justify-between">
@@ -227,7 +227,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen lg:pl-64">
       {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-[#183329] lg:block print:hidden">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-[#101D2B] lg:block print:hidden">
         {sidebar}
       </aside>
 
@@ -235,7 +235,7 @@ export default function Layout() {
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden print:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-64 bg-[#183329]">
+          <aside className="absolute inset-y-0 left-0 w-64 bg-[#101D2B]">
             <button className="absolute right-3 top-4 text-white" onClick={() => setOpen(false)} aria-label="Close menu">
               <X />
             </button>
@@ -245,7 +245,7 @@ export default function Layout() {
       )}
 
       {/* Sticky Top Header bar with Persona Switcher & Navigation controls */}
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 bg-surface/90 px-4 py-2.5 backdrop-blur print:hidden">
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-[#DDD7CA] bg-white/95 px-4 py-2.5 backdrop-blur print:hidden">
         <div className="flex items-center gap-3">
           <button className="lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
             <Menu className="h-5 w-5" />

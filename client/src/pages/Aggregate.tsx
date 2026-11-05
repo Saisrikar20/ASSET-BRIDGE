@@ -247,7 +247,7 @@ export default function Aggregate() {
 
       {/* Consent Status Section */}
       {currentConsent && (
-        <div className="rounded-2xl border border-[#E2D9C5] bg-white p-5 space-y-3 shadow-xs">
+        <div className="rounded-2xl border border-[#DDD7CA] bg-white p-5 space-y-3 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
@@ -280,7 +280,7 @@ export default function Aggregate() {
                   onClick={() => {
                     navigator.clipboard.writeText(currentConsent.id);
                   }}
-                  className="inline-flex items-center gap-1 text-[11px] font-mono text-[#62755D] hover:text-[#26352D] transition cursor-pointer"
+                  className="inline-flex items-center gap-1 text-[11px] font-mono text-[#71808C] hover:text-[#17232E] transition cursor-pointer"
                   title="Copy technical consent identifier"
                 >
                   <span>Ref: {currentConsent.id.slice(0, 10)}…</span>
@@ -288,8 +288,8 @@ export default function Aggregate() {
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-[#4B5E47] flex-wrap">
-                <span className="font-semibold text-[#26352D]">
+              <div className="flex items-center gap-2 text-xs text-[#71808C] flex-wrap">
+                <span className="font-semibold text-[#17232E]">
                   Connected to {currentConsent.regulators?.length || ALL.length} statutory registries
                 </span>
                 <span>·</span>
@@ -703,7 +703,7 @@ export default function Aggregate() {
                     setDownloadingPdf(false);
                   }
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#244B3C] text-white hover:bg-[#1E3E32] text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B] text-white hover:bg-[#1C3041] text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 title="Download consolidated statutory claim dossier PDF"
               >
                 {downloadingPdf ? (

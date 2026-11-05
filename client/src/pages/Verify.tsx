@@ -108,7 +108,7 @@ export default function Verify() {
           <button
             type="button"
             onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#C8BEAA] bg-[#EFE9DC] text-xs font-medium text-[#26352D] hover:bg-[#E9E0CC] transition cursor-pointer self-start sm:self-center shadow-xs"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#DDD7CA] bg-white text-xs font-medium text-[#17232E] hover:bg-[#F5F3ED] transition cursor-pointer self-start sm:self-center shadow-xs"
             title="Edit verification parameters"
           >
             <RotateCcw className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />

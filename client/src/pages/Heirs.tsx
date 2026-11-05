@@ -343,7 +343,7 @@ export default function Heirs() {
               </Field>
             </div>
 
-            <div className="pt-2 pb-1 flex flex-col items-center justify-center bg-[#F7F4EB] rounded-xl p-3 border border-[#E2D9C5]">
+            <div className="pt-2 pb-1 flex flex-col items-center justify-center bg-[#F5F3ED] rounded-xl p-3 border border-[#DDD7CA]">
               <DetentDial
                 label="Allocated share"
                 min={0}
@@ -355,7 +355,7 @@ export default function Heirs() {
                 onValueChange={(v) => setF({ ...f, share: v })}
                 formatValue={(v) => `${v}%`}
               />
-              <span className="text-[11px] text-[#5A6B54] mt-1.5 font-medium">
+              <span className="text-[11px] text-[#71808C] mt-1.5 font-medium">
                 Target estate proportion · Total allocated: {totalShare + f.share}%
               </span>
             </div>

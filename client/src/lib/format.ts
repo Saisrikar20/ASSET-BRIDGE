@@ -10,13 +10,13 @@ export const date = (d: string) => new Date(d).toLocaleDateString('en-IN', { day
 export const time = (d: string) => new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
 export const REG_STYLE: Record<string, { dot: string; bg: string; text: string; bar: string }> = {
-  RBI: { dot: 'bg-indigo-500', bg: 'bg-indigo-50', text: 'text-indigo-700', bar: 'bg-indigo-500' },
-  EPFO: { dot: 'bg-amber-500', bg: 'bg-amber-50', text: 'text-amber-700', bar: 'bg-amber-500' },
-  IRDAI: { dot: 'bg-rose-500', bg: 'bg-rose-50', text: 'text-rose-700', bar: 'bg-rose-500' },
-  SEBI: { dot: 'bg-sky-500', bg: 'bg-sky-50', text: 'text-sky-700', bar: 'bg-sky-500' },
-  LIC: { dot: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', bar: 'bg-emerald-500' },
-  PFRDA: { dot: 'bg-violet-500', bg: 'bg-violet-50', text: 'text-violet-700', bar: 'bg-violet-500' },
-  DOP: { dot: 'bg-orange-500', bg: 'bg-orange-50', text: 'text-orange-700', bar: 'bg-orange-500' },
+  RBI: { dot: 'bg-[#1C3041]', bg: 'bg-[#1C3041]/10', text: 'text-[#1C3041]', bar: 'bg-[#1C3041]' },
+  EPFO: { dot: 'bg-[#C58B3C]', bg: 'bg-[#C58B3C]/10', text: 'text-[#C58B3C]', bar: 'bg-[#C58B3C]' },
+  IRDAI: { dot: 'bg-[#C45D5D]', bg: 'bg-[#C45D5D]/10', text: 'text-[#C45D5D]', bar: 'bg-[#C45D5D]' },
+  SEBI: { dot: 'bg-[#55C6B0]', bg: 'bg-[#55C6B0]/15', text: 'text-[#101D2B]', bar: 'bg-[#55C6B0]' },
+  LIC: { dot: 'bg-[#34765B]', bg: 'bg-[#34765B]/10', text: 'text-[#34765B]', bar: 'bg-[#34765B]' },
+  PFRDA: { dot: 'bg-[#101D2B]', bg: 'bg-[#101D2B]/10', text: 'text-[#101D2B]', bar: 'bg-[#101D2B]' },
+  DOP: { dot: 'bg-[#D5C5A1]', bg: 'bg-[#D5C5A1]/20', text: 'text-[#17232E]', bar: 'bg-[#D5C5A1]' },
 };
 
 // Chart series colours by asset class — fixed order, validated for CVD separation.

@@ -311,7 +311,7 @@ export default function Reunite() {
                 <button
                   type="button"
                   onClick={copyId}
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#C8BEAA] bg-[#EFE9DC] text-xs font-mono font-medium text-[#26352D] hover:bg-[#E9E0CC] transition cursor-pointer shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#DDD7CA] bg-white text-xs font-mono font-medium text-[#17232E] hover:bg-[#F5F3ED] transition cursor-pointer shadow-xs"
                 >
                   {copiedId ? (
                     <>

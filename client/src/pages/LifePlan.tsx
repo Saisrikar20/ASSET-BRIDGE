@@ -138,7 +138,7 @@ export default function LifePlan() {
 
       <div className="mb-5 flex gap-1 overflow-x-auto rounded-xl bg-surface p-1 ring-1 ring-slate-200">
         {TABS.map((t) => (
-          <button key={t.id} onClick={() => setTab(t.id)} className={cx('cursor-pointer whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition', tab === t.id ? 'bg-[#244B3C] text-white' : 'text-[#26352D] hover:bg-[#EFE9DC]')}>{t.label}</button>
+          <button key={t.id} onClick={() => setTab(t.id)} className={cx('cursor-pointer whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition', tab === t.id ? 'bg-[#101D2B] text-white' : 'text-[#17232E] hover:bg-[#F5F3ED]')}>{t.label}</button>
         ))}
         {busy && <span className="ml-auto self-center pr-3 text-xs text-slate-400">simulating…</span>}
       </div>

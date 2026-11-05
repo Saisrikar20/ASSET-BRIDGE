@@ -110,18 +110,18 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F4EB] flex items-center justify-center p-3 sm:p-6 lg:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-[#F5F3ED] flex items-center justify-center p-3 sm:p-6 lg:p-8 relative overflow-hidden">
       {/* Subtle Ambient Glows */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#A8B7A1]/20 blur-[100px] pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#244B3C]/10 blur-[100px] pointer-events-none" />
+      <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#55C6B0]/15 blur-[100px] pointer-events-none" />
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#101D2B]/10 blur-[100px] pointer-events-none" />
 
       {/* Main Split Floating Modal Card (Compact & Proportionate) */}
-      <div className="relative w-full max-w-3xl rounded-[24px] bg-white shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 p-3 sm:p-3.5 border border-[#E2D9C5] transition-all">
+      <div className="relative w-full max-w-3xl rounded-[24px] bg-white shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 p-3 sm:p-3.5 border border-[#DDD7CA] transition-all">
         
         {/* =========================================================================
             LEFT COLUMN: Compact Cosmic Visual Card (5 cols)
             ========================================================================= */}
-        <div className="lg:col-span-4 rounded-[18px] overflow-hidden relative min-h-[200px] lg:min-h-[380px] flex flex-col justify-between p-4 bg-[#080B10] text-white shadow-inner select-none">
+        <div className="lg:col-span-4 rounded-[18px] overflow-hidden relative min-h-[200px] lg:min-h-[380px] flex flex-col justify-between p-4 bg-[#101D2B] text-white shadow-inner select-none">
           
           {/* Deep Cosmic Background Vector Illustration */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -289,18 +289,18 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
         {/* =========================================================================
             RIGHT COLUMN: Clean Minimal Form Panel (7 cols)
             ========================================================================= */}
-        <div className="lg:col-span-8 flex flex-col justify-between p-4 sm:p-7 bg-white text-[#26352D]">
+        <div className="lg:col-span-8 flex flex-col justify-between p-4 sm:p-7 bg-white text-[#17232E]">
           
           {/* Top Bar: Brand Logo */}
           <div className="flex items-center justify-between pb-4">
             <div className="flex items-center gap-2">
               <LogoMark className="h-6 w-6" />
-              <span className="font-sans font-bold text-sm tracking-tight text-[#26352D]">
+              <span className="font-sans font-bold text-sm tracking-tight text-[#17232E]">
                 ASSET BRIDGE
               </span>
             </div>
 
-            <div className="flex items-center gap-1 text-[10px] font-semibold text-[#5A6B54] border border-[#E2D9C5] rounded-full px-2.5 py-0.5 bg-[#F7F4EB]">
+            <div className="flex items-center gap-1 text-[10px] font-semibold text-[#71808C] border border-[#DDD7CA] rounded-full px-2.5 py-0.5 bg-[#F5F3ED]">
               <span>🇮🇳</span>
               <span>IN</span>
             </div>
@@ -309,10 +309,10 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
           {/* Central Auth Form */}
           <div className="max-w-sm w-full mx-auto my-auto space-y-4">
             <div className="text-center space-y-0.5">
-              <h1 className="text-2xl font-extrabold tracking-tight text-[#26352D]">
+              <h1 className="text-2xl font-extrabold tracking-tight text-[#17232E]">
                 {mode === 'signup' ? 'Create Account' : 'Welcome'}
               </h1>
-              <p className="text-xs text-[#5A6B54]">
+              <p className="text-xs text-[#71808C]">
                 Financial Intelligence & Estate Succession
               </p>
             </div>
@@ -322,22 +322,22 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
               type="button"
               disabled={busy !== null}
               onClick={() => go('/auth/demo', {}, 'demo')}
-              className="w-full py-2.5 px-4 rounded-full border border-[#244B3C]/30 bg-[#F7F4EB] hover:bg-[#E9E0CC] text-[#244B3C] font-semibold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
+              className="w-full py-2.5 px-4 rounded-full border border-[#101D2B]/20 bg-[#F5F3ED] hover:bg-[#EAE6DC] text-[#101D2B] font-semibold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
               title="Instantly sign in with Raghavan Sundaram's complete preloaded estate holdings, alerts, and heirs"
             >
               {busy === 'demo' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-[#244B3C]" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-[#101D2B]" />
               ) : (
-                <Sparkles className="h-3.5 w-3.5 text-[#244B3C]" />
+                <Sparkles className="h-3.5 w-3.5 text-[#101D2B]" />
               )}
               <span>Instant Demo Login (Preloaded Estate & Heirs)</span>
             </button>
 
             {/* Divider: — or — */}
-            <div className="flex items-center justify-center gap-3 text-xs text-[#8C9C84] font-mono">
-              <span className="h-px w-10 bg-[#E2D9C5]" />
+            <div className="flex items-center justify-center gap-3 text-xs text-[#71808C] font-mono">
+              <span className="h-px w-10 bg-[#DDD7CA]" />
               <span className="text-[10px]">or sign in with credentials</span>
-              <span className="h-px w-10 bg-[#E2D9C5]" />
+              <span className="h-px w-10 bg-[#DDD7CA]" />
             </div>
 
             <form onSubmit={submit} className="space-y-3">
@@ -349,7 +349,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
                     placeholder="Full Name"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D9C5] bg-white text-[#26352D] placeholder:text-[#8C9C84] text-xs outline-none transition focus:border-[#244B3C] focus:ring-1 focus:ring-[#244B3C]/20"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD7CA] bg-white text-[#17232E] placeholder:text-[#71808C] text-xs outline-none transition focus:border-[#101D2B] focus:ring-1 focus:ring-[#55C6B0]/20"
                   />
                 </div>
               )}
@@ -362,7 +362,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
                   placeholder="Email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2D9C5] bg-white text-[#26352D] placeholder:text-[#8C9C84] text-xs outline-none transition focus:border-[#244B3C] focus:ring-1 focus:ring-[#244B3C]/20"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD7CA] bg-white text-[#17232E] placeholder:text-[#71808C] text-xs outline-none transition focus:border-[#101D2B] focus:ring-1 focus:ring-[#55C6B0]/20"
                 />
               </div>
 
@@ -374,12 +374,12 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
                     placeholder="Password"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-[#E2D9C5] bg-white text-[#26352D] placeholder:text-[#8C9C84] text-xs outline-none transition focus:border-[#244B3C] focus:ring-1 focus:ring-[#244B3C]/20"
+                    className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-[#DDD7CA] bg-white text-[#17232E] placeholder:text-[#71808C] text-xs outline-none transition focus:border-[#101D2B] focus:ring-1 focus:ring-[#55C6B0]/20"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#8C9C84] hover:text-[#26352D] cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#71808C] hover:text-[#17232E] cursor-pointer"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -393,7 +393,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
                       e.preventDefault();
                       alert('Password recovery link has been dispatched to ' + (form.email || 'your email'));
                     }}
-                    className="text-[10px] font-medium text-[#244B3C] hover:underline transition cursor-pointer"
+                    className="text-[10px] font-medium text-[#101D2B] hover:underline transition cursor-pointer"
                   >
                     Forgot password?
                   </a>
@@ -410,7 +410,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
               <button
                 type="submit"
                 disabled={busy !== null}
-                className="w-full py-2.5 px-4 rounded-full bg-[#244B3C] hover:bg-[#1E3E32] text-white font-semibold text-xs tracking-wide shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+                className="w-full py-2.5 px-4 rounded-full bg-[#101D2B] hover:bg-[#1C3041] text-white font-semibold text-xs tracking-wide shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
               >
                 {busy === 'form' && <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />}
                 <span>{mode === 'signup' ? 'Create Account' : 'Login'}</span>
@@ -421,7 +421,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
                 type="button"
                 disabled={busy !== null}
                 onClick={() => go('/auth/demo', {}, 'demo')}
-                className="w-full py-2 px-4 rounded-full border border-[#E2D9C5] bg-white hover:bg-[#F7F4EB] text-[#26352D] text-xs font-medium flex items-center justify-center gap-2 transition cursor-pointer shadow-xs disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full py-2 px-4 rounded-full border border-[#DDD7CA] bg-white hover:bg-[#F5F3ED] text-[#17232E] text-xs font-medium flex items-center justify-center gap-2 transition cursor-pointer shadow-xs disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <svg className="h-3.5 w-3.5" viewBox="0 0 24 24">
                   <path
@@ -446,13 +446,13 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
             </form>
 
             {/* Toggle Sign Up / Sign In */}
-            <div className="text-center text-xs text-[#5A6B54]">
+            <div className="text-center text-xs text-[#71808C]">
               {mode === 'login' ? (
                 <span>
                   Don't have an account?{' '}
                   <Link
                     to="/signup"
-                    className="font-semibold text-[#244B3C] hover:underline transition"
+                    className="font-semibold text-[#101D2B] hover:underline transition"
                   >
                     Sign up
                   </Link>
@@ -462,7 +462,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
                   Already have an account?{' '}
                   <Link
                     to="/login"
-                    className="font-semibold text-[#244B3C] hover:underline transition"
+                    className="font-semibold text-[#101D2B] hover:underline transition"
                   >
                     Sign in
                   </Link>
@@ -472,21 +472,21 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
           </div>
 
           {/* Bottom Social / Trust Icons */}
-          <div className="pt-4 flex items-center justify-center gap-5 text-[#8C9C84]">
+          <div className="pt-4 flex items-center justify-center gap-5 text-[#71808C]">
             {/* Facebook */}
-            <svg className="h-3.5 w-3.5 hover:text-[#26352D] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
               <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z" />
             </svg>
             {/* Twitter */}
-            <svg className="h-3.5 w-3.5 hover:text-[#26352D] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
             {/* LinkedIn */}
-            <svg className="h-3.5 w-3.5 hover:text-[#26352D] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
             </svg>
             {/* Instagram */}
-            <svg className="h-3.5 w-3.5 hover:text-[#26352D] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
             </svg>
           </div>
