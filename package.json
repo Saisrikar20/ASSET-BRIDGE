@@ -22,8 +22,5 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
-  },
-  "dependencies": {
-    "ogl": "^1.0.11"
   }
 }
