@@ -1,21 +1,21 @@
 /**
- * Asset Bridge Minimal Geometric Identity Mark
+ * Asset Bridge Ultra-Minimal Line Symbol
  * 
- * Distinctive geometric architectural symbol representing financial consolidation 
- * and connection across a unified ledger bridge.
+ * An intentional, line-based vector symbol representing multiple financial paths
+ * converging and connecting across a unified structural bridge.
  */
 
-export const BRIDGE_PATH =
-  'M16 5L19.5 9.5L16 14L12.5 9.5ZM4 25L11 9H14.5L7.5 25H4ZM28 25L21 9H17.5L24.5 25H28Z';
-
-export const LOTUS_PATH = BRIDGE_PATH;
+export const BRIDGE_SVG_PATH = 'M5 23L11 13H21L27 23M4 17H28M16 13V17';
+export const BRIDGE_PATH = BRIDGE_SVG_PATH;
+export const LOTUS_PATH = BRIDGE_SVG_PATH;
 
 interface LogoMarkProps {
   className?: string;
   onDark?: boolean;
 }
 
-export default function LogoMark({ className = 'h-8 w-8', onDark = false }: LogoMarkProps) {
+export default function LogoMark({ className = 'h-7 w-7', onDark = false }: LogoMarkProps) {
+  const strokeColor = onDark ? '#E9E0CC' : '#244B3C';
   return (
     <svg
       viewBox="0 0 32 32"
@@ -25,38 +25,25 @@ export default function LogoMark({ className = 'h-8 w-8', onDark = false }: Logo
       role="img"
       aria-label="Asset Bridge"
     >
-      {/* Central Keystone Nexus — The unified financial core */}
+      {/* Intentional Line Bridge: Twin converging paths united across horizontal span */}
       <path
-        d="M16 5L19.5 9.5L16 14L12.5 9.5Z"
-        className={onDark ? 'fill-sky-400' : 'fill-blue-600 dark:fill-sky-400'}
+        d="M5 23L11 13H21L27 23"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-
-      {/* Left Structural Pier Span */}
       <path
-        d="M4 25L11 9H14.5L7.5 25H4Z"
-        className={onDark ? 'fill-white' : 'fill-slate-900 dark:fill-slate-100'}
+        d="M4 17H28"
+        stroke={strokeColor}
+        strokeWidth="2.5"
+        strokeLinecap="round"
       />
-
-      {/* Right Structural Pier Span */}
       <path
-        d="M28 25L21 9H17.5L24.5 25H28Z"
-        className={onDark ? 'fill-white' : 'fill-slate-900 dark:fill-slate-100'}
-      />
-
-      {/* Connecting Bridge Deck — Uniting multiple financial institutions */}
-      <rect
-        x="3"
-        y="16.5"
-        width="26"
-        height="2.5"
-        rx="1.25"
-        className={onDark ? 'fill-slate-200' : 'fill-slate-800 dark:fill-slate-200'}
-      />
-
-      {/* Tension Arch — Structural foundation */}
-      <path
-        d="M9 25C11 20.5 21 20.5 23 25H25C22.5 19 9.5 19 7 25H9Z"
-        className={onDark ? 'fill-white/40' : 'fill-slate-400 dark:fill-slate-500'}
+        d="M16 13V17"
+        stroke={onDark ? '#A8B7A1' : '#244B3C'}
+        strokeWidth="2.5"
+        strokeLinecap="round"
       />
     </svg>
   );

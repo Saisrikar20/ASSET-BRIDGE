@@ -35,11 +35,10 @@ function nodeSvg(k: string, [x, y, label, icon]: [number, number, string, string
   const twin = icon === 'twin';
   const r = twin ? 26 : 20;
   const inner = twin
-    ? `<g class="lotus" transform="translate(-16 -16)">
-        <path d="M16 5L19.5 9.5L16 14L12.5 9.5Z" fill="currentColor"/>
-        <path d="M4 25L11 9H14.5L7.5 25H4Z" fill="currentColor"/>
-        <path d="M28 25L21 9H17.5L24.5 25H28Z" fill="currentColor"/>
-        <rect x="3" y="16.5" width="26" height="2.5" rx="1.25" fill="currentColor"/>
+    ? `<g class="lotus" transform="translate(-16 -16)" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 23L11 13H21L27 23"/>
+        <path d="M4 17H28"/>
+        <path d="M16 13V17"/>
       </g>`
     : `<g class="ic" transform="translate(-9 -9) scale(.75)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[icon]}</g>`;
   return `<g class="nd" data-k="${k}" transform="translate(${x} ${y})">
