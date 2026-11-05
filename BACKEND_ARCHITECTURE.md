@@ -195,3 +195,4 @@ Provides guaranteed notification delivery for claiming dossiers and institutiona
   - 4 specialized Spiders: `rbi_notifications`, `sebi_circulars`, `epfo_circulars`, `irdai_circulars`.
   - Item Pipeline (`AssetBridgeVaultPipeline`): Automatically routes circulars into SQLite Document Vault via `ingest_regulation_document()` or the HTTP API fallback.
   - Deduplication: Computes circular hashes to prevent duplicate ingestion.
+
