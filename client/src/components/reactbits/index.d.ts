@@ -108,3 +108,4 @@ declare module './PillNav' {
   const PillNav: React.FC<PillNavProps>;
   export default PillNav;
 }
+

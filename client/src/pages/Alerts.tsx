@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BellOff,
   BookOpen,
@@ -10,7 +10,7 @@ import {
   Landmark,
   Loader2,
   RefreshCw,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   api,
   getRegulations,
@@ -20,21 +20,38 @@ import {
   type Heir,
   type Holding,
   type RegulatoryCircular,
-} from '../lib/api';
-import { useLive, useLiveStatus } from '../lib/live';
-import { inr, time } from '../lib/format';
-import { Button, ErrorNote, Input, RegChip, Select, cx } from '../components/ui';
+} from "../lib/api";
+import { useLive, useLiveStatus } from "../lib/live";
+import { inr, time } from "../lib/format";
+import {
+  Button,
+  ErrorNote,
+  Input,
+  RegChip,
+  Select,
+  cx,
+} from "../components/ui";
+import { motion } from "motion/react";
 
-const NOMINEE_KINDS = ['nominee_missing', 'nominee_deceased', 'nominee_minor'];
-const RELATIONS = ['Spouse', 'Son', 'Daughter', 'Mother', 'Father', 'Brother', 'Sister', 'Other'];
+const NOMINEE_KINDS = ["nominee_missing", "nominee_deceased", "nominee_minor"];
+const RELATIONS = [
+  "Spouse",
+  "Son",
+  "Daughter",
+  "Mother",
+  "Father",
+  "Brother",
+  "Sister",
+  "Other",
+];
 
-type FilterKey = 'all' | 'high' | 'medium' | 'low' | 'resolved';
+type FilterKey = "all" | "high" | "medium" | "low" | "resolved";
 
 function SeverityChip({
   severity,
   resolved,
 }: {
-  severity: Alert['severity'];
+  severity: Alert["severity"];
   resolved: boolean;
 }) {
   if (resolved) {
@@ -46,7 +63,7 @@ function SeverityChip({
     );
   }
 
-  if (severity === 'high') {
+  if (severity === "high") {
     return (
       <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-800 bg-rose-50 px-2.5 py-0.5 rounded-full ring-1 ring-rose-200">
         <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
@@ -55,7 +72,7 @@ function SeverityChip({
     );
   }
 
-  if (severity === 'medium') {
+  if (severity === "medium") {
     return (
       <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
         <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
@@ -73,25 +90,25 @@ function SeverityChip({
 }
 
 function getConciseSummary(a: Alert, h?: Holding): string {
-  if (a.kind === 'nominee_missing') {
-    return `No nominee is registered for this ${h?.type ? h.type.toLowerCase() : 'asset'}.`;
+  if (a.kind === "nominee_missing") {
+    return `No nominee is registered for this ${h?.type ? h.type.toLowerCase() : "asset"}.`;
   }
-  if (a.kind === 'nominee_minor') {
-    return 'The registered nominee is a minor and requires a legal guardian appointment.';
+  if (a.kind === "nominee_minor") {
+    return "The registered nominee is a minor and requires a legal guardian appointment.";
   }
-  if (a.kind === 'nominee_deceased') {
-    return 'The registered nominee is recorded as deceased in civil registration records.';
+  if (a.kind === "nominee_deceased") {
+    return "The registered nominee is recorded as deceased in civil registration records.";
   }
-  if (a.kind === 'name_mismatch') {
-    return 'Account holder name differs from the verified statutory PAN registry.';
+  if (a.kind === "name_mismatch") {
+    return "Account holder name differs from the verified statutory PAN registry.";
   }
-  if (a.kind === 'inoperative' || a.kind === 'dormant') {
-    return 'Asset is flagged inoperative due to statutory 24-month inactivity.';
+  if (a.kind === "inoperative" || a.kind === "dormant") {
+    return "Asset is flagged inoperative due to statutory 24-month inactivity.";
   }
-  if (a.kind === 'stale_kyc') {
-    return 'Periodic regulatory KYC refresh is overdue under Master Directions.';
+  if (a.kind === "stale_kyc") {
+    return "Periodic regulatory KYC refresh is overdue under Master Directions.";
   }
-  return a.detail.split('.')[0] + '.';
+  return a.detail.split(".")[0] + ".";
 }
 
 export default function Alerts() {
@@ -100,29 +117,33 @@ export default function Alerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [holdings, setHoldings] = useState<Record<string, Holding>>({});
   const [heirs, setHeirs] = useState<Heir[]>([]);
-  const [filter, setFilter] = useState<FilterKey>('all');
+  const [filter, setFilter] = useState<FilterKey>("all");
   const [editing, setEditing] = useState<string | null>(null);
-  const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
+  const [expandedDetails, setExpandedDetails] = useState<
+    Record<string, boolean>
+  >({});
   const [flash, setFlash] = useState<string | null>(null);
   const [regulations, setRegulations] = useState<RegulatoryCircular[]>([]);
   const [pollingRegs, setPollingRegs] = useState(false);
   const [crawlingScrapy, setCrawlingScrapy] = useState(false);
   const [pollResult, setPollResult] = useState<string | null>(null);
-  const [selectedRegulator, setSelectedRegulator] = useState<string>('all');
+  const [selectedRegulator, setSelectedRegulator] = useState<string>("all");
   const [showRegs, setShowRegs] = useState<boolean>(false);
 
   const load = () => {
-    api<{ alerts: Alert[] }>('/alerts')
+    api<{ alerts: Alert[] }>("/alerts")
       .then((r) => setAlerts(r.alerts))
       .catch(() => {});
-    api<{ holdings: Holding[] }>('/holdings')
-      .then((r) => setHoldings(Object.fromEntries(r.holdings.map((h) => [h.id, h]))))
+    api<{ holdings: Holding[] }>("/holdings")
+      .then((r) =>
+        setHoldings(Object.fromEntries(r.holdings.map((h) => [h.id, h]))),
+      )
       .catch(() => {});
   };
 
   useEffect(() => {
     load();
-    api<{ heirs: Heir[] }>('/heirs')
+    api<{ heirs: Heir[] }>("/heirs")
       .then((r) => setHeirs(r.heirs))
       .catch(() => {});
     getRegulations()
@@ -131,7 +152,7 @@ export default function Alerts() {
   }, []);
 
   useLive((e) => {
-    if (e.type === 'alert') {
+    if (e.type === "alert") {
       setAlerts((all) => {
         const next = [e.data, ...all.filter((x) => x.id !== e.data.id)];
         return next;
@@ -139,29 +160,29 @@ export default function Alerts() {
       setFlash(e.data.id);
       setTimeout(() => setFlash(null), 2500);
     }
-    if (e.type === 'alert_resolved') {
+    if (e.type === "alert_resolved") {
       setAlerts((all) =>
-        all.map((a) => (a.id === e.data.id ? { ...a, resolved: true } : a))
+        all.map((a) => (a.id === e.data.id ? { ...a, resolved: true } : a)),
       );
     }
   });
 
   const dismiss = async (id: string) => {
     try {
-      await api(`/alerts/${id}/dismiss`, { method: 'POST' });
+      await api(`/alerts/${id}/dismiss`, { method: "POST" });
       setAlerts((all) =>
-        all.map((a) => (a.id === id ? { ...a, resolved: true } : a))
+        all.map((a) => (a.id === id ? { ...a, resolved: true } : a)),
       );
     } catch {
       setAlerts((all) =>
-        all.map((a) => (a.id === id ? { ...a, resolved: true } : a))
+        all.map((a) => (a.id === id ? { ...a, resolved: true } : a)),
       );
     }
   };
 
   const reactivate = async (holdingId: string) => {
     try {
-      await api(`/holdings/${holdingId}/reactivate`, { method: 'POST' });
+      await api(`/holdings/${holdingId}/reactivate`, { method: "POST" });
       load();
     } catch {
       load();
@@ -174,11 +195,15 @@ export default function Alerts() {
     try {
       const res = await pollRegulations();
       const s = (res as any)?.summary || {};
-      setPollResult(`Indexed ${s.total_new ?? 0} new circulars (${s.total_existing ?? 0} verified up-to-date).`);
+      setPollResult(
+        `Indexed ${s.total_new ?? 0} new circulars (${s.total_existing ?? 0} verified up-to-date).`,
+      );
       const regs = await getRegulations();
       setRegulations(regs.regulations);
     } catch (e) {
-      setPollResult((e as Error).message || 'Failed to poll regulatory circulars');
+      setPollResult(
+        (e as Error).message || "Failed to poll regulatory circulars",
+      );
     } finally {
       setPollingRegs(false);
     }
@@ -189,11 +214,13 @@ export default function Alerts() {
     setPollResult(null);
     try {
       const res = await crawlRegulations();
-      setPollResult(`Scrapy complete: ${res.spidersRun} spiders run, ${res.totalRegulationsInVault} indexed into Document Vault.`);
+      setPollResult(
+        `Scrapy complete: ${res.spidersRun} spiders run, ${res.totalRegulationsInVault} indexed into Document Vault.`,
+      );
       const regs = await getRegulations();
       setRegulations(regs.regulations);
     } catch (e) {
-      setPollResult((e as Error).message || 'Failed to execute Scrapy crawler');
+      setPollResult((e as Error).message || "Failed to execute Scrapy crawler");
     } finally {
       setCrawlingScrapy(false);
     }
@@ -201,9 +228,15 @@ export default function Alerts() {
 
   // Group duplicate regulations by canonical key (regulator + normalized title)
   const groupedRegulations = useMemo(() => {
-    const map = new Map<string, { rep: RegulatoryCircular; count: number; items: RegulatoryCircular[] }>();
+    const map = new Map<
+      string,
+      { rep: RegulatoryCircular; count: number; items: RegulatoryCircular[] }
+    >();
     for (const reg of regulations) {
-      const normTitle = reg.fileName.replace(/^\[[^\]]+\]\s*/, '').trim().toLowerCase();
+      const normTitle = reg.fileName
+        .replace(/^\[[^\]]+\]\s*/, "")
+        .trim()
+        .toLowerCase();
       const key = `${reg.regulator.toLowerCase()}::${normTitle}`;
       if (!map.has(key)) {
         map.set(key, { rep: reg, count: 1, items: [reg] });
@@ -219,13 +252,13 @@ export default function Alerts() {
   const openAlerts = alerts.filter((a) => !a.resolved);
   const resolvedAlerts = alerts.filter((a) => a.resolved);
 
-  const highCount = openAlerts.filter((a) => a.severity === 'high').length;
-  const medCount = openAlerts.filter((a) => a.severity === 'medium').length;
-  const lowCount = openAlerts.filter((a) => a.severity === 'low').length;
+  const highCount = openAlerts.filter((a) => a.severity === "high").length;
+  const medCount = openAlerts.filter((a) => a.severity === "medium").length;
+  const lowCount = openAlerts.filter((a) => a.severity === "low").length;
 
   const list = useMemo(() => {
-    if (filter === 'resolved') return resolvedAlerts;
-    if (filter === 'all') return openAlerts;
+    if (filter === "resolved") return resolvedAlerts;
+    if (filter === "all") return openAlerts;
     return openAlerts.filter((a) => a.severity === filter);
   }, [openAlerts, resolvedAlerts, filter]);
 
@@ -234,7 +267,12 @@ export default function Alerts() {
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="space-y-6"
+    >
       {/* Clean Page Header */}
       <div className="pb-4 border-b border-[#DDD7CA] flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -251,52 +289,60 @@ export default function Alerts() {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
         <button
           type="button"
-          onClick={() => setFilter('all')}
+          onClick={() => setFilter("all")}
           className={cx(
-            'rounded-xl border p-3 text-left transition cursor-pointer',
-            filter === 'all'
-              ? 'border-[#101D2B] bg-[#101D2B] text-white shadow-sm ring-1 ring-[#55C6B0]'
-              : 'border-[#DDD7CA] bg-white text-[#17232E] hover:border-[#101D2B]/50'
+            "rounded-xl border p-3 text-left transition cursor-pointer",
+            filter === "all"
+              ? "border-[#101D2B] bg-[#101D2B] text-white shadow-sm ring-1 ring-[#55C6B0]"
+              : "border-[#DDD7CA] bg-white text-[#17232E] hover:border-[#101D2B]/50",
           )}
         >
           <div
             className={cx(
-              'text-[10px] uppercase font-mono font-semibold',
-              filter === 'all' ? 'text-[#9BA7B2]' : 'text-[#71808C]'
+              "text-[10px] uppercase font-mono font-semibold",
+              filter === "all" ? "text-[#9BA7B2]" : "text-[#71808C]",
             )}
           >
             Open Alerts
           </div>
-          <div className={cx('text-xl font-bold tracking-tight mt-0.5 tabular-nums', filter === 'all' ? 'text-white' : 'text-[#17232E]')}>
+          <div
+            className={cx(
+              "text-xl font-bold tracking-tight mt-0.5 tabular-nums",
+              filter === "all" ? "text-white" : "text-[#17232E]",
+            )}
+          >
             {openAlerts.length}
           </div>
         </button>
 
         <button
           type="button"
-          onClick={() => setFilter('high')}
+          onClick={() => setFilter("high")}
           className={cx(
-            'rounded-xl border p-3 text-left transition cursor-pointer',
-            filter === 'high'
-              ? 'border-rose-600 bg-rose-600 text-white shadow-sm'
-              : 'border-[#DDD7CA] bg-white text-[#17232E] hover:border-rose-300'
+            "rounded-xl border p-3 text-left transition cursor-pointer",
+            filter === "high"
+              ? "border-rose-600 bg-rose-600 text-white shadow-sm"
+              : "border-[#DDD7CA] bg-white text-[#17232E] hover:border-rose-300",
           )}
         >
           <div
             className={cx(
-              'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
-              filter === 'high' ? 'text-rose-100' : 'text-[#71808C]'
+              "text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5",
+              filter === "high" ? "text-rose-100" : "text-[#71808C]",
             )}
           >
             <span
-              className={cx('h-1.5 w-1.5 rounded-full', filter === 'high' ? 'bg-white' : 'bg-rose-500')}
+              className={cx(
+                "h-1.5 w-1.5 rounded-full",
+                filter === "high" ? "bg-white" : "bg-rose-500",
+              )}
             />
             High
           </div>
           <div
             className={cx(
-              'text-xl font-bold tracking-tight mt-0.5 tabular-nums',
-              filter === 'high' ? 'text-white' : 'text-[#C45D5D]'
+              "text-xl font-bold tracking-tight mt-0.5 tabular-nums",
+              filter === "high" ? "text-white" : "text-[#C45D5D]",
             )}
           >
             {highCount}
@@ -305,29 +351,32 @@ export default function Alerts() {
 
         <button
           type="button"
-          onClick={() => setFilter('medium')}
+          onClick={() => setFilter("medium")}
           className={cx(
-            'rounded-xl border p-3 text-left transition cursor-pointer',
-            filter === 'medium'
-              ? 'border-amber-600 bg-amber-600 text-white shadow-sm'
-              : 'border-[#DDD7CA] bg-white text-[#17232E] hover:border-amber-300'
+            "rounded-xl border p-3 text-left transition cursor-pointer",
+            filter === "medium"
+              ? "border-amber-600 bg-amber-600 text-white shadow-sm"
+              : "border-[#DDD7CA] bg-white text-[#17232E] hover:border-amber-300",
           )}
         >
           <div
             className={cx(
-              'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
-              filter === 'medium' ? 'text-amber-100' : 'text-[#71808C]'
+              "text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5",
+              filter === "medium" ? "text-amber-100" : "text-[#71808C]",
             )}
           >
             <span
-              className={cx('h-1.5 w-1.5 rounded-full', filter === 'medium' ? 'bg-white' : 'bg-amber-500')}
+              className={cx(
+                "h-1.5 w-1.5 rounded-full",
+                filter === "medium" ? "bg-white" : "bg-amber-500",
+              )}
             />
             Medium
           </div>
           <div
             className={cx(
-              'text-xl font-bold tracking-tight mt-0.5 tabular-nums',
-              filter === 'medium' ? 'text-white' : 'text-[#C58B3C]'
+              "text-xl font-bold tracking-tight mt-0.5 tabular-nums",
+              filter === "medium" ? "text-white" : "text-[#C58B3C]",
             )}
           >
             {medCount}
@@ -336,55 +385,66 @@ export default function Alerts() {
 
         <button
           type="button"
-          onClick={() => setFilter('low')}
+          onClick={() => setFilter("low")}
           className={cx(
-            'rounded-xl border p-3 text-left transition cursor-pointer',
-            filter === 'low'
-              ? 'border-[#1C3041] bg-[#1C3041] text-white shadow-sm'
-              : 'border-[#DDD7CA] bg-white text-[#17232E] hover:border-[#1C3041]'
+            "rounded-xl border p-3 text-left transition cursor-pointer",
+            filter === "low"
+              ? "border-[#1C3041] bg-[#1C3041] text-white shadow-sm"
+              : "border-[#DDD7CA] bg-white text-[#17232E] hover:border-[#1C3041]",
           )}
         >
           <div
             className={cx(
-              'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
-              filter === 'low' ? 'text-slate-200' : 'text-[#71808C]'
+              "text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5",
+              filter === "low" ? "text-slate-200" : "text-[#71808C]",
             )}
           >
             <span
-              className={cx('h-1.5 w-1.5 rounded-full', filter === 'low' ? 'bg-white' : 'bg-[#71808C]')}
+              className={cx(
+                "h-1.5 w-1.5 rounded-full",
+                filter === "low" ? "bg-white" : "bg-[#71808C]",
+              )}
             />
             Low
           </div>
-          <div className={cx('text-xl font-bold tracking-tight mt-0.5 tabular-nums', filter === 'low' ? 'text-white' : 'text-[#17232E]')}>
+          <div
+            className={cx(
+              "text-xl font-bold tracking-tight mt-0.5 tabular-nums",
+              filter === "low" ? "text-white" : "text-[#17232E]",
+            )}
+          >
             {lowCount}
           </div>
         </button>
 
         <button
           type="button"
-          onClick={() => setFilter('resolved')}
+          onClick={() => setFilter("resolved")}
           className={cx(
-            'rounded-xl border p-3 text-left transition cursor-pointer col-span-2 sm:col-span-1',
-            filter === 'resolved'
-              ? 'border-emerald-600 bg-[#34765B] text-white shadow-sm'
-              : 'border-[#DDD7CA] bg-white text-[#17232E] hover:border-emerald-300'
+            "rounded-xl border p-3 text-left transition cursor-pointer col-span-2 sm:col-span-1",
+            filter === "resolved"
+              ? "border-emerald-600 bg-[#34765B] text-white shadow-sm"
+              : "border-[#DDD7CA] bg-white text-[#17232E] hover:border-emerald-300",
           )}
         >
           <div
             className={cx(
-              'text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5',
-              filter === 'resolved' ? 'text-emerald-100' : 'text-[#71808C]'
+              "text-[10px] uppercase font-mono font-semibold flex items-center gap-1.5",
+              filter === "resolved" ? "text-emerald-100" : "text-[#71808C]",
             )}
           >
             <span
-              className={cx('h-1.5 w-1.5 rounded-full', filter === 'resolved' ? 'bg-white' : 'bg-emerald-500')}
+              className={cx(
+                "h-1.5 w-1.5 rounded-full",
+                filter === "resolved" ? "bg-white" : "bg-emerald-500",
+              )}
             />
             Resolved
           </div>
           <div
             className={cx(
-              'text-xl font-bold tracking-tight mt-0.5 tabular-nums',
-              filter === 'resolved' ? 'text-white' : 'text-[#34765B]'
+              "text-xl font-bold tracking-tight mt-0.5 tabular-nums",
+              filter === "resolved" ? "text-white" : "text-[#34765B]",
             )}
           >
             {resolvedAlerts.length}
@@ -396,23 +456,23 @@ export default function Alerts() {
       {list.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#DDD7CA] p-8 text-center bg-white">
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F3ED] text-[#71808C] mb-2">
-            {filter === 'resolved' ? (
+            {filter === "resolved" ? (
               <BellOff className="h-5 w-5" />
             ) : (
               <CheckCircle2 className="h-5 w-5 text-[#34765B]" />
             )}
           </div>
           <p className="text-xs font-semibold text-[#17232E]">
-            {filter === 'resolved'
-              ? 'No resolved alerts yet'
-              : filter === 'all'
-                ? 'No open alerts'
+            {filter === "resolved"
+              ? "No resolved alerts yet"
+              : filter === "all"
+                ? "No open alerts"
                 : `No ${filter}-severity alerts`}
           </p>
           <p className="mt-0.5 text-xs text-[#71808C]">
-            {filter === 'resolved'
-              ? 'Resolve an alert above and it will be recorded here.'
-              : 'All holdings are compliant or no statutory issues have been detected.'}
+            {filter === "resolved"
+              ? "Resolve an alert above and it will be recorded here."
+              : "All holdings are compliant or no statutory issues have been detected."}
           </p>
         </div>
       ) : (
@@ -426,9 +486,11 @@ export default function Alerts() {
               <div
                 key={a.id}
                 className={cx(
-                  'p-4 sm:px-5 sm:py-3.5 transition-colors',
-                  flash === a.id && 'bg-[#55C6B0]/10',
-                  a.resolved ? 'opacity-70 hover:opacity-100' : 'hover:bg-[#F5F3ED]/50'
+                  "p-4 sm:px-5 sm:py-3.5 transition-colors",
+                  flash === a.id && "bg-[#55C6B0]/10",
+                  a.resolved
+                    ? "opacity-70 hover:opacity-100"
+                    : "hover:bg-[#F5F3ED]/50",
                 )}
               >
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 lg:gap-4">
@@ -436,7 +498,10 @@ export default function Alerts() {
                   <div className="min-w-0 flex-1 space-y-1.5">
                     {/* Top line: Severity + Alert title + Regulator */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <SeverityChip severity={a.severity} resolved={a.resolved} />
+                      <SeverityChip
+                        severity={a.severity}
+                        resolved={a.resolved}
+                      />
                       <span className="font-bold text-sm text-[#17232E]">
                         {a.title}
                       </span>
@@ -451,7 +516,9 @@ export default function Alerts() {
                     {/* Supporting info: Institution, masked ref, asset type, value */}
                     {h && (
                       <div className="pt-0.5 text-xs text-[#71808C] flex items-center gap-2 flex-wrap font-mono">
-                        <span className="font-semibold text-[#17232E]">{h.institution}</span>
+                        <span className="font-semibold text-[#17232E]">
+                          {h.institution}
+                        </span>
                         <span>·</span>
                         <span>{h.ref}</span>
                         <span>·</span>
@@ -468,7 +535,7 @@ export default function Alerts() {
                           onClick={() => toggleDetails(a.id)}
                           className="font-sans text-[11px] text-[#71808C] hover:text-[#17232E] underline cursor-pointer"
                         >
-                          {isExpanded ? 'Hide details' : 'More details'}
+                          {isExpanded ? "Hide details" : "More details"}
                         </button>
                       </div>
                     )}
@@ -491,22 +558,24 @@ export default function Alerts() {
                       {isNominee ? (
                         <Button
                           size="sm"
-                          onClick={() => setEditing(editing === a.id ? null : a.id)}
+                          onClick={() =>
+                            setEditing(editing === a.id ? null : a.id)
+                          }
                         >
                           {editing === a.id
-                            ? 'Close'
-                            : a.kind === 'nominee_minor'
-                              ? 'Add guardian'
-                              : 'Update nominee'}
+                            ? "Close"
+                            : a.kind === "nominee_minor"
+                              ? "Add guardian"
+                              : "Update nominee"}
                         </Button>
                       ) : (
                         <Button
                           size="sm"
                           onClick={() => reactivate(a.holdingId)}
                         >
-                          {a.kind === 'name_mismatch'
-                            ? 'Correct name'
-                            : 'Re-KYC & reactivate'}
+                          {a.kind === "name_mismatch"
+                            ? "Correct name"
+                            : "Re-KYC & reactivate"}
                         </Button>
                       )}
 
@@ -516,10 +585,10 @@ export default function Alerts() {
                         variant="secondary"
                         onClick={() =>
                           nav(
-                            '/app/guide?q=' +
+                            "/app/guide?q=" +
                               encodeURIComponent(
-                                `How do I resolve this alert: ${a.title} on ${a.regulator}?`
-                              )
+                                `How do I resolve this alert: ${a.title} on ${a.regulator}?`,
+                              ),
                           )
                         }
                       >
@@ -552,7 +621,7 @@ export default function Alerts() {
                   <NomineeForm
                     holding={h}
                     heirs={heirs}
-                    minor={a.kind === 'nominee_minor'}
+                    minor={a.kind === "nominee_minor"}
                     onDone={() => {
                       setEditing(null);
                       load();
@@ -578,11 +647,13 @@ export default function Alerts() {
                   Regulatory Circulars & Statutory Rules
                 </h3>
                 <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#EAE6DC] text-[#101D2B] font-semibold border border-[#DDD7CA]">
-                  {groupedRegulations.length} unique ({regulations.length} indexed)
+                  {groupedRegulations.length} unique ({regulations.length}{" "}
+                  indexed)
                 </span>
               </div>
               <p className="text-xs text-[#71808C]">
-                Official gazette settlement timelines and penalty directions from RBI, SEBI, EPFO & IRDAI.
+                Official gazette settlement timelines and penalty directions
+                from RBI, SEBI, EPFO & IRDAI.
               </p>
             </div>
           </div>
@@ -636,7 +707,9 @@ export default function Alerts() {
                   ) : (
                     <RefreshCw className="h-3.5 w-3.5 text-[#101D2B]" />
                   )}
-                  <span>{pollingRegs ? 'Polling Portals...' : 'Sync (Fast)'}</span>
+                  <span>
+                    {pollingRegs ? "Polling Portals..." : "Sync (Fast)"}
+                  </span>
                 </button>
 
                 <button
@@ -651,18 +724,24 @@ export default function Alerts() {
                   ) : (
                     <RefreshCw className="h-3.5 w-3.5 text-[#101D2B]" />
                   )}
-                  <span>{crawlingScrapy ? 'Crawling Scrapy...' : 'Scrapy Deep Crawl'}</span>
+                  <span>
+                    {crawlingScrapy
+                      ? "Crawling Scrapy..."
+                      : "Scrapy Deep Crawl"}
+                  </span>
                 </button>
               </div>
 
               <div className="flex items-center gap-1.5 text-xs text-[#71808C] font-mono">
                 <span
                   className={cx(
-                    'h-2 w-2 rounded-full',
-                    connected ? 'bg-[#34765B]' : 'bg-[#71808C]'
+                    "h-2 w-2 rounded-full",
+                    connected ? "bg-[#34765B]" : "bg-[#71808C]",
                   )}
                 />
-                <span>{connected ? 'Live AA sync active' : 'Demo feed mode'}</span>
+                <span>
+                  {connected ? "Live AA sync active" : "Demo feed mode"}
+                </span>
               </div>
             </div>
 
@@ -671,16 +750,16 @@ export default function Alerts() {
               <span className="text-[11px] font-semibold text-[#71808C] uppercase tracking-wider mr-1">
                 Filter Regulator:
               </span>
-              {['all', 'RBI', 'SEBI', 'EPFO', 'IRDAI'].map((r) => (
+              {["all", "RBI", "SEBI", "EPFO", "IRDAI"].map((r) => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => setSelectedRegulator(r)}
                   className={cx(
-                    'px-3 py-1 rounded-full text-xs font-semibold transition cursor-pointer',
+                    "px-3 py-1 rounded-full text-xs font-semibold transition cursor-pointer",
                     selectedRegulator.toUpperCase() === r.toUpperCase()
-                      ? 'bg-[#101D2B] text-white shadow-xs'
-                      : 'bg-white border border-[#DDD7CA] text-[#17232E] hover:bg-white'
+                      ? "bg-[#101D2B] text-white shadow-xs"
+                      : "bg-white border border-[#DDD7CA] text-[#17232E] hover:bg-white",
                   )}
                 >
                   {r.toUpperCase()}
@@ -690,10 +769,12 @@ export default function Alerts() {
 
             {/* Grouped Circulars Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-              {(selectedRegulator === 'all'
+              {(selectedRegulator === "all"
                 ? groupedRegulations
                 : groupedRegulations.filter(
-                    (x) => x.rep.regulator.toUpperCase() === selectedRegulator.toUpperCase()
+                    (x) =>
+                      x.rep.regulator.toUpperCase() ===
+                      selectedRegulator.toUpperCase(),
                   )
               ).map(({ rep: reg, count }) => (
                 <div
@@ -712,12 +793,12 @@ export default function Alerts() {
                       )}
                     </div>
                     <span className="text-[11px] text-[#71808C] font-medium">
-                      {reg.publicationDate || 'Recent'}
+                      {reg.publicationDate || "Recent"}
                     </span>
                   </div>
 
                   <div className="font-bold text-[#17232E] line-clamp-2">
-                    {reg.fileName.replace(/^\[[^\]]+\]\s*/, '')}
+                    {reg.fileName.replace(/^\[[^\]]+\]\s*/, "")}
                   </div>
 
                   {reg.circularNo && (
@@ -743,7 +824,9 @@ export default function Alerts() {
                         <span>Official Portal Notice</span>
                         <ExternalLink className="h-3 w-3" />
                       </a>
-                      <span className="text-[#71808C] font-mono text-[10px]">Vault Indexed</span>
+                      <span className="text-[#71808C] font-mono text-[10px]">
+                        Vault Indexed
+                      </span>
                     </div>
                   )}
                 </div>
@@ -752,7 +835,7 @@ export default function Alerts() {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -768,9 +851,9 @@ function NomineeForm({
   onDone: () => void;
 }) {
   const [f, setF] = useState({
-    name: minor ? holding.nominee?.name || '' : '',
-    relation: minor ? holding.nominee?.relation || 'Son' : 'Spouse',
-    guardian: '',
+    name: minor ? holding.nominee?.name || "" : "",
+    relation: minor ? holding.nominee?.relation || "Son" : "Spouse",
+    guardian: "",
   });
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -779,7 +862,10 @@ function NomineeForm({
     setBusy(true);
     setErr(null);
     try {
-      await api(`/holdings/${holding.id}/nominee`, { method: 'PATCH', body: f });
+      await api(`/holdings/${holding.id}/nominee`, {
+        method: "PATCH",
+        body: f,
+      });
       onDone();
     } catch (e) {
       setErr((e as Error).message);
@@ -831,7 +917,8 @@ function NomineeForm({
       <ErrorNote msg={err} />
       <div className="flex flex-wrap items-center justify-between gap-3 text-xs pt-1">
         <span className="text-[#71808C] text-[11px]">
-          Submits a statutory nomination update request to {holding.institution}.
+          Submits a statutory nomination update request to {holding.institution}
+          .
         </span>
         <Button
           size="sm"
