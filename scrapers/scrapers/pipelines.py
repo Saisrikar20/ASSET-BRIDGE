@@ -75,7 +75,7 @@ class AssetBridgeVaultPipeline:
         logger.info(f"Processing regulation: [{regulator}] {title[:60]}")
 
         # Method 1: Direct backend function if running locally inside monorepo
-        if HAS_LOCAL_BACKEND:
+        if HAS_LOCAL_BACKEND and callable(ingest_regulation_document):
             try:
                 res = ingest_regulation_document(
                     regulator=regulator,
@@ -87,15 +87,16 @@ class AssetBridgeVaultPipeline:
                     publication_date=date,
                     category=category
                 )
-                if res.get("duplicate"):
+                if isinstance(res, dict) and res.get("duplicate"):
                     self.duplicate_count += 1
                     logger.info(f"Duplicate circular skipped: {title[:40]}")
                 else:
                     self.ingested_count += 1
-                    spider.logger.info(f"Successfully ingested and indexed: {title[:40]} (Doc ID: {res.get('docId')})")
+                    doc_id_str = res.get('docId') if isinstance(res, dict) else ''
+                    logger.info(f"Successfully ingested and indexed: {title[:40]} (Doc ID: {doc_id_str})")
                 return item
             except Exception as e:
-                spider.logger.warning(f"Local ingestion error: {e}. Falling back to HTTP API.")
+                logger.warning(f"Local ingestion error: {e}. Falling back to HTTP API.")
 
         # Method 2: HTTP API fallback (for containerized or CI/CD runs)
         try:
@@ -121,9 +122,9 @@ class AssetBridgeVaultPipeline:
                 else:
                     self.ingested_count += 1
             else:
-                spider.logger.warning(f"HTTP ingestion returned {resp.status_code}: {resp.text[:100]}")
+                logger.warning(f"HTTP ingestion returned {resp.status_code}: {resp.text[:100]}")
         except Exception as e:
-            spider.logger.warning(f"HTTP ingestion connection failed: {e}")
+            logger.warning(f"HTTP ingestion connection failed: {e}")
 
         return item
 

@@ -1,13 +1,12 @@
 {
   "include": [
-    "app",
     "fastapi-backend",
     "scrapers"
   ],
   "extraPaths": [
-    ".",
-    "app",
     "fastapi-backend",
     "scrapers"
-  ]
+  ],
+  "venvPath": ".",
+  "venv": ".venv"
 }
