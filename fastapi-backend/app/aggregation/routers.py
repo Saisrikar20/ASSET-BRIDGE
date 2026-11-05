@@ -657,6 +657,10 @@ def resolve_alert(alert_id: str, user: dict = Depends(get_current_user)):
 
     return {"ok": True}
 
+@router.post("/alerts/{alert_id}/dismiss")
+def dismiss_alert(alert_id: str, user: dict = Depends(get_current_user)):
+    return resolve_alert(alert_id=alert_id, user=user)
+
 
 
 # -------------------------------------------------------------
@@ -718,6 +722,29 @@ def add_heir(body: HeirCreateBody, user: dict = Depends(get_current_user)):
     return {"heir": heir}
 
 
+
+class HeirUpdateBody(BaseModel):
+    name: Optional[str] = None
+    relation: Optional[str] = None
+    pan: Optional[str] = None
+    mobile: Optional[str] = None
+    email: Optional[str] = None
+    share: Optional[float] = None
+
+@router.patch("/heirs/{heir_id}")
+def update_heir(heir_id: str, body: HeirUpdateBody, user: dict = Depends(get_current_user)):
+    h = store.find("heirs", lambda item: item.get("id") == heir_id and item.get("userId") == user["id"])
+    if not h:
+        raise HTTPException(status_code=404, detail="Heir not found")
+    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    if "pan" in updates and updates["pan"]:
+        updates["pan"] = updates["pan"].strip().upper()
+    if "name" in updates and updates["name"]:
+        updates["name"] = updates["name"].strip()
+    if "relation" in updates and updates["relation"]:
+        updates["relation"] = updates["relation"].strip()
+    store.update("heirs", lambda item: item.get("id") == heir_id, updates)
+    return {"heir": store.find("heirs", lambda item: item.get("id") == heir_id)}
 
 @router.delete("/heirs/{heir_id}")
 
@@ -813,37 +840,45 @@ async def crs_death_notification(body: DeathNoticeBody, user: dict = Depends(get
 
 
 
+class CaseCreateBody(BaseModel):
+    deceasedName: Optional[str] = None
+    deceasedPan: Optional[str] = None
+    dateOfDeath: str
+    registrationNo: Optional[str] = None
+    place: Optional[str] = None
+    state: Optional[str] = None
+
+@router.post("/cases")
+async def create_case(body: CaseCreateBody, user: dict = Depends(get_current_user)):
+    pan_val = body.deceasedPan or (user.get("identity") or {}).get("pan") or "ABCDE1234F"
+    death_body = DeathNoticeBody(
+        pan=pan_val,
+        dateOfDeath=body.dateOfDeath,
+        registrationNo=body.registrationNo,
+        place=body.place
+    )
+    res = await crs_death_notification(body=death_body, user=user)
+    return {"case": res["case"], "ok": True}
+
 @router.get("/cases")
-
 def get_cases(user: dict = Depends(get_current_user)):
-
     uid_val = user["id"]
-
     pan = (user.get("identity") or {}).get("pan")
-
     cases = store.all("cases", lambda c: bool(c.get("ownerId") == uid_val or (pan and any(h.get("pan") == pan for h in c.get("heirs", [])))))
-
     return {
-
         "cases": [
-
             {
-
                 "id": c["id"],
-
                 "deceasedName": c["deceasedName"],
-
                 "createdAt": c["createdAt"],
-
-                "progress": len([t for t in c.get("tasks", []) if t.get("done")]) / max(len(c.get("tasks", [])), 1)
-
+                "progress": len([t for t in c.get("tasks", []) if t.get("done")]) / max(len(c.get("tasks", [])), 1),
+                "totalValue": sum(h.get("value", 0) for h in c.get("holdings", [])),
+                "assetCount": len(c.get("holdings", [])),
+                "heirCount": len(c.get("heirs", [])),
+                "status": "Settled" if c.get("tasks") and all(t.get("done") for t in c.get("tasks")) else "In Progress",
             } for c in cases
-
         ]
-
     }
-
-
 
 @router.get("/cases/{case_id}")
 
