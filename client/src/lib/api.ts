@@ -317,8 +317,9 @@ export async function api<T>(
   if (opts.body !== undefined) headers["content-type"] = "application/json";
   if (opts.heirPan) headers["x-heir-pan"] = opts.heirPan;
   let res: Response;
+  const cleanPath = path.startsWith('/api') ? path.replace(/^\/api/, '') : path;
   try {
-    res = await fetch(`${API_BASE}/api${path}`, {
+    res = await fetch(`${API_BASE}/api${cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath}`, {
       method: opts.method || (opts.body !== undefined ? "POST" : "GET"),
       headers,
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
@@ -568,7 +569,7 @@ export async function saveClaimingDossierToVault(params?: {
     message: string;
     document: any;
     chunks_indexed: number;
-  }>(`/api/reports/claiming-dossier/vault${qs ? `?${qs}` : ""}`, {
+  }>(`/reports/claiming-dossier/vault${qs ? `?${qs}` : ""}`, {
     method: "POST",
   });
 }
