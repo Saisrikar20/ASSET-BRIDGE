@@ -88,6 +88,42 @@
 }
 
 /* Exclusive Application Theme: Midnight Navy & Warm White */
+
+/* Custom Luxury Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #DDD7CA;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #55C6B0;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+
+.card-shine {
+  position: relative;
+  overflow: hidden;
+}
+.card-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(85, 198, 176, 0.5), transparent);
+}
+
 body {
   background-color: var(--color-warm-white);
   color: var(--color-deep-ink);
@@ -163,7 +199,8 @@ html {
     margin: 15mm 12mm 15mm 12mm;
   }
 
-  body {
+  
+body {
     background: white !important;
     color: #17232E !important;
     font-size: 11pt !important;

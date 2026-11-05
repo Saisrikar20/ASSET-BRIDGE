@@ -1,55 +1,51 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
-  Bell,
-  BookOpen,
-  Compass,
-  Sprout,
-  TrendingUp,
-  FileCheck2,
-  HeartHandshake,
-  LayoutDashboard,
-  Layers,
-  LogOut,
   Menu,
-  ShieldCheck,
-  Users,
   X,
   ChevronDown,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useLive, useLiveStatus } from '../lib/live';
 import { api, type Alert, type User } from '../lib/api';
 import { Logo, cx, useToast } from './ui';
-import { AvatarFace } from './kokonutui/avatar-picker';
-import { isRouteVisible } from '../lib/features';
 import CursorGrid from './reactbits/CursorGrid';
 import PillNav from './reactbits/PillNav';
+import Sidebar from './Sidebar';
 
-const NAV = [
-  { to: '/app', label: 'Financial twin', icon: LayoutDashboard, end: true },
-  { to: '/app/verify', label: 'Verify', icon: ShieldCheck },
-  { to: '/app/aggregate', label: 'Aggregate', icon: Layers },
-  { to: '/app/alerts', label: 'Alerts', icon: Bell },
-  { to: '/app/plan', label: 'Life plan', icon: Compass },
-  { to: '/app/forecast', label: 'Forecast & analysis', icon: TrendingUp },
-  { to: '/app/invest', label: 'Investment options', icon: Sprout },
-  { to: '/app/heirs', label: 'Heirs', icon: Users },
-  { to: '/app/reunite', label: 'Reunite', icon: HeartHandshake },
-  { to: '/app/cases', label: 'Transfer', icon: FileCheck2 },
-  { to: '/app/guide', label: 'AI succession guide', icon: BookOpen },
-];
+const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
+  '/app': { title: 'Financial Twin', subtitle: 'Executive net worth and regulatory asset summary' },
+  '/app/verify': { title: 'Identity Verification', subtitle: 'Statutory PAN & CKYC registry compliance' },
+  '/app/aggregate': { title: 'Account Aggregator', subtitle: 'Multi-regulator consent gateway (RBI, SEBI, IRDAI, EPFO)' },
+  '/app/alerts': { title: 'Regulatory Alerts', subtitle: 'Real-time nominee gaps and compliance intelligence' },
+  '/app/heirs': { title: 'Legal Heirs Roster', subtitle: 'Statutory succession shares and nominee audit' },
+  '/app/reunite': { title: 'Reunite Unclaimed', subtitle: 'DEA Fund, IEPF, EPFO, and SCWF asset recovery' },
+  '/app/cases': { title: 'Estate Claims', subtitle: 'Deceased succession dossiers and institutional dispatch' },
+  '/app/guide': { title: 'Succession Navigator', subtitle: 'AI legal guide grounded in circulars and case documents' },
+  '/app/avatar': { title: 'Account Profile', subtitle: 'Demographic identity and persona settings' },
+};
 
 export default function Layout() {
-  const { user, meta, logout, setSession } = useAuth();
-  const nav = useNavigate();
+  const { user, meta, setSession } = useAuth();
   const location = useLocation();
   const connected = useLiveStatus();
   const { toast, success, error } = useToast();
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [openAlerts, setOpenAlerts] = useState(0);
   const [personaOpen, setPersonaOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    return localStorage.getItem('ab_sidebar_collapsed') === 'true';
+  });
+
+  const toggleCollapse = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('ab_sidebar_collapsed', String(next));
+      return next;
+    });
+  };
 
   const loadCount = () =>
     api<{ alerts: Alert[] }>('/alerts')
@@ -83,12 +79,12 @@ export default function Layout() {
     setSwitching(true);
     setPersonaOpen(false);
     try {
-      const res = await api<{ token: string; user: User }>(`/auth/demo?persona=${encodeURIComponent(personaId)}`, {
-        method: 'POST',
-      });
+      const res = await api<{ token: string; user: User }>(
+        `/auth/demo?persona=${encodeURIComponent(personaId)}`,
+        { method: 'POST' }
+      );
       setSession(res.token, res.user);
       success(`Switched persona to ${personaName}`, `Now viewing portfolio and cases for ${personaName}`);
-      // Reload alerts count for newly active profile
       loadCount();
     } catch (err) {
       error('Failed to switch persona', (err as Error).message);
@@ -98,138 +94,29 @@ export default function Layout() {
   };
 
   const personas = meta?.personas || [];
-  const currentPersona = personas.find((p) => p.name.toLowerCase() === user?.name?.toLowerCase()) || {
+  const currentPersona = personas.find(
+    (p) => p.name.toLowerCase() === user?.name?.toLowerCase()
+  ) || {
     id: 'custom',
     name: user?.name || 'Active User',
     role: 'Claimant',
     state: user?.identity?.state || 'India',
+    pan: user?.identity?.pan || 'ABCDE1234F',
   };
 
-  const personaDropdown = (
-    <div className="relative">
-      <button
-        onClick={() => setPersonaOpen(!personaOpen)}
-        disabled={switching}
-        className="flex items-center gap-2 rounded-lg border border-[#DDD7CA] bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 transition cursor-pointer"
-        title="Switch Demo Persona Profile"
-      >
-        <span className="flex h-2 w-2 rounded-full bg-[#55C6B0]" />
-        <span className="truncate max-w-[140px] font-medium text-slate-900">{currentPersona.name}</span>
-        <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-      </button>
-
-      {personaOpen && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setPersonaOpen(false)} />
-          <div className="absolute right-0 mt-2 z-50 w-76 rounded-xl border border-[#DDD7CA] bg-white p-2 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Quick Switch Demographic Persona
-            </div>
-            <div className="mt-1 divide-y divide-slate-100">
-              {personas.map((p) => {
-                const isSelected = p.name.toLowerCase() === user?.name?.toLowerCase();
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => handleSwitchPersona(p.id, p.name)}
-                    className={cx(
-                      'w-full text-left px-2.5 py-2 rounded-lg text-xs transition flex flex-col gap-0.5 cursor-pointer',
-                      isSelected
-                        ? 'bg-[#1C3041]/10 text-[#101D2B] font-semibold'
-                        : 'hover:bg-slate-100 text-slate-700'
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold flex items-center gap-1.5">
-                        {p.name}
-                        {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-[#55C6B0]" />}
-                      </span>
-                      <span className="text-[10px] rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-500">
-                        {p.state}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-slate-500 truncate">
-                      {p.role} · PAN: {p.pan}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-
-  const sidebar = (
-    <nav className="flex h-full flex-col gap-1 p-4">
-      <div className="mb-6 px-2 pt-1">
-        <Logo light tagline onClick={() => setOpen(false)} />
-      </div>
-      {NAV.filter(({ to }) => isRouteVisible(to)).map(({ to, label, icon: Icon, end }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end={end}
-          onClick={() => setOpen(false)}
-          className={({ isActive }) =>
-            cx(
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
-              isActive ? 'bg-[#1C3041] text-[#55C6B0] font-semibold' : 'text-[#9BA7B2] hover:bg-white/10 hover:text-white'
-            )
-          }
-        >
-          <Icon className="h-4 w-4 shrink-0" />
-          <span className="flex-1">{label}</span>
-          {label === 'Alerts' && openAlerts > 0 && (
-            <span className="rounded-full bg-rose-500 px-1.5 text-[11px] font-bold text-white">{openAlerts}</span>
-          )}
-          
-        </NavLink>
-      ))}
-
-      <div className="mt-auto rounded-xl bg-white/10 p-3 text-xs text-[#9BA7B2]">
-        <NavLink to="/app/avatar" onClick={() => setOpen(false)} className="group flex items-center gap-2.5" title="Change avatar">
-          <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white/15 ring-2 ring-white/20 transition group-hover:ring-white/50">
-            {user?.avatar ? (
-              <AvatarFace seed={user.avatar.seed} className="h-full w-full" />
-            ) : (
-              <span className="text-sm font-bold text-white">
-                {user?.name
-                  .split(' ')
-                  .map((p) => p[0])
-                  .slice(0, 2)
-                  .join('')}
-              </span>
-            )}
-          </span>
-          <span className="min-w-0">
-            <span className="block truncate font-semibold text-white">{user?.avatar?.displayName || user?.name}</span>
-            <span className="block truncate">{user?.avatar ? user.email : 'Pick your avatar →'}</span>
-          </span>
-        </NavLink>
-        <div className="mt-2 flex items-center gap-1.5">
-          <span className={cx('h-2 w-2 rounded-full', connected ? 'bg-[#55C6B0]' : 'bg-slate-400')} />
-          {connected ? 'Live alerts connected' : 'Connecting…'}
-        </div>
-        <div className="mt-3 flex items-center justify-between">
-          <button
-            onClick={() => {
-              logout();
-              nav('/');
-            }}
-            className="flex cursor-pointer items-center gap-1.5 font-semibold text-white/90 hover:text-white"
-          >
-            <LogOut className="h-3.5 w-3.5" /> Sign out
-          </button>
-                  </div>
-      </div>
-    </nav>
-  );
+  const currentRouteMeta = PAGE_TITLES[location.pathname] || {
+    title: 'Asset Bridge',
+    subtitle: 'Statutory succession and asset recovery suite',
+  };
 
   return (
-    <div className="min-h-screen lg:pl-64 bg-[#F5F3ED] text-[#17232E] relative">
-      {/* Interactive Background CursorGrid */}
+    <div
+      className={cx(
+        'min-h-screen bg-[#F5F3ED] text-[#17232E] relative transition-all duration-300',
+        collapsed ? 'lg:pl-20' : 'lg:pl-64'
+      )}
+    >
+      {/* Interactive Background CursorGrid - Non-intrusive and lightweight */}
       <CursorGrid
         cellSize={54}
         color="#55C6B0"
@@ -246,45 +133,82 @@ export default function Layout() {
         lightMode={true}
         className="fixed inset-0 pointer-events-none z-0"
       />
-      {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-[#101D2B] lg:block print:hidden">
-        {sidebar}
-      </aside>
 
-      {/* Mobile Drawer */}
-      {open && (
-        <div className="fixed inset-0 z-40 lg:hidden print:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-64 bg-[#101D2B]">
-            <button className="absolute right-3 top-4 text-white" onClick={() => setOpen(false)} aria-label="Close menu">
-              <X />
+      {/* Desktop Fixed Sidebar */}
+      <div className="fixed inset-y-0 left-0 z-30 hidden lg:block print:hidden">
+        <Sidebar
+          collapsed={collapsed}
+          onToggleCollapse={toggleCollapse}
+          openAlertsCount={openAlerts}
+          liveConnected={connected}
+        />
+      </div>
+
+      {/* Mobile Drawer Navigation */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden print:hidden">
+          <div
+            className="fixed inset-0 bg-[#101D2B]/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 w-64 bg-[#101D2B] shadow-2xl flex flex-col z-50 animate-in slide-in-from-left duration-200">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="absolute right-3 top-4 h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer transition z-50"
+              aria-label="Close menu"
+            >
+              <X className="h-4 w-4" />
             </button>
-            {sidebar}
-          </aside>
+            <Sidebar
+              collapsed={false}
+              onCloseMobile={() => setMobileOpen(false)}
+              openAlertsCount={openAlerts}
+              liveConnected={connected}
+            />
+          </div>
         </div>
       )}
 
-      {/* Sticky Top Header bar with Persona Switcher & Navigation controls */}
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-[#DDD7CA] bg-white/95 px-4 py-2.5 backdrop-blur print:hidden">
-        <div className="flex items-center gap-3">
-          <button className="lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
-            <Menu className="h-5 w-5" />
+      {/* Sticky Global Application Header */}
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-[#DDD7CA] bg-white/95 px-4 py-2.5 backdrop-blur-sm print:hidden shadow-xs">
+        {/* Left: Mobile Toggle & Page Title */}
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            className="lg:hidden h-8 w-8 rounded-lg border border-[#DDD7CA] bg-white hover:bg-[#F5F3ED] flex items-center justify-center text-[#17232E] cursor-pointer"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open navigation menu"
+          >
+            <Menu className="h-4 w-4" />
           </button>
-          <div className="lg:hidden">
-            <Logo />
+
+          <div className="lg:hidden shrink-0">
+            <Logo size="md" />
+          </div>
+
+          <div className="hidden lg:block min-w-0">
+            <div className="font-bold text-sm text-[#101D2B] tracking-tight leading-tight truncate">
+              {currentRouteMeta.title}
+            </div>
+            <div className="text-[11px] text-[#71808C] truncate leading-tight">
+              {currentRouteMeta.subtitle}
+            </div>
           </div>
         </div>
 
-        {/* React Bits PillNav for Desktop Quick Navigation */}
-        <div className="hidden md:flex items-center">
+        {/* Center: Desktop Quick Navigation PillNav */}
+        <div className="hidden xl:flex items-center">
           <PillNav
             items={[
               { label: 'Twin', href: '/app' },
               { label: 'Verify', href: '/app/verify' },
               { label: 'Aggregate', href: '/app/aggregate' },
               { label: 'Alerts', href: '/app/alerts' },
-              { label: 'AI Guide', href: '/app/guide' },
+              { label: 'Heirs', href: '/app/heirs' },
+              { label: 'Reunite', href: '/app/reunite' },
               { label: 'Cases', href: '/app/cases' },
+              { label: 'AI Guide', href: '/app/guide' },
             ]}
             activeHref={location.pathname}
             layout="joined"
@@ -305,14 +229,89 @@ export default function Layout() {
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          {personaDropdown}
-          
+        {/* Right: Demographic Persona Switcher */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setPersonaOpen(!personaOpen)}
+              disabled={switching}
+              className="flex items-center gap-2 rounded-full border border-[#DDD7CA] bg-white px-3 py-1.5 text-xs font-semibold text-[#101D2B] shadow-xs hover:bg-[#F5F3ED] transition cursor-pointer"
+              title="Switch Demographic Persona Profile"
+            >
+              <span className="flex h-2 w-2 rounded-full bg-[#55C6B0] shadow-[0_0_4px_#55C6B0]" />
+              <span className="truncate max-w-[120px] sm:max-w-[160px] font-bold text-[#101D2B]">
+                {currentPersona.name}
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 text-[#71808C]" />
+            </button>
+
+            {personaOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setPersonaOpen(false)}
+                />
+                <div className="absolute right-0 mt-2 z-50 w-76 rounded-2xl border border-[#DDD7CA] bg-white p-2 shadow-xl animate-in fade-in zoom-in-95">
+                  <div className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-[#71808C] flex items-center justify-between border-b border-[#DDD7CA] pb-2">
+                    <span>DEMOGRAPHIC PERSONAS</span>
+                    <Sparkles className="h-3 w-3 text-[#55C6B0]" />
+                  </div>
+                  <div className="mt-1 divide-y divide-slate-100">
+                    {personas.map((p) => {
+                      const isSelected =
+                        p.name.toLowerCase() === user?.name?.toLowerCase();
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => handleSwitchPersona(p.id, p.name)}
+                          className={cx(
+                            'w-full text-left px-3 py-2 rounded-xl text-xs transition flex flex-col gap-0.5 cursor-pointer mt-0.5',
+                            isSelected
+                              ? 'bg-[#101D2B] text-white font-semibold'
+                              : 'hover:bg-[#F5F3ED] text-[#17232E]'
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold flex items-center gap-1.5">
+                              {p.name}
+                              {isSelected && (
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#55C6B0]" />
+                              )}
+                            </span>
+                            <span
+                              className={cx(
+                                'text-[10px] rounded-full px-2 py-0.2 font-mono',
+                                isSelected
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-[#F5F3ED] text-[#71808C] border border-[#DDD7CA]'
+                              )}
+                            >
+                              {p.state}
+                            </span>
+                          </div>
+                          <div
+                            className={cx(
+                              'text-[10px] truncate',
+                              isSelected ? 'text-white/80' : 'text-[#71808C]'
+                            )}
+                          >
+                            {p.role} · PAN: {p.pan}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-8">
+      <main className="relative z-10 mx-auto max-w-6xl px-4 py-6 sm:px-8">
         <Outlet />
       </main>
     </div>

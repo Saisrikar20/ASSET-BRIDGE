@@ -349,10 +349,9 @@ def api_get_consolidated_report(user: dict = Depends(get_current_user)):
 # -------------------------------------------------------------
 
 class ConsentCreateBody(BaseModel):
-
     regulators: List[str]
-
     months: Optional[int] = 12
+    purpose: Optional[str] = "STATUTORY_SUCCESSION_AUDIT"
 
 
 
@@ -465,6 +464,42 @@ async def create_consent(body: ConsentCreateBody, user: dict = Depends(get_curre
     return {"consent": consent, "holdingsCount": len(created_holdings)}
 
 
+
+
+@router.post("/consents/fetch")
+async def fetch_consents(user: dict = Depends(get_current_user)):
+    uid_val = user["id"]
+    active = store.find("consents", lambda c: c.get("userId") == uid_val and c.get("status") == "ACTIVE")
+    if not active:
+        raise HTTPException(status_code=404, detail="No active consent found to fetch data")
+    identity = user.get("identity") or DEMO_IDENTITY
+    raw_records = discover_assets(identity, active.get("regulators", []))
+    normalized = normalize_assets(raw_records, identity)
+    deduped_assets, duplicates = detect_duplicates(normalized)
+    
+    store.remove("holdings", lambda h: h.get("userId") == uid_val)
+    created_holdings = []
+    for a in deduped_assets:
+        h_dict = a.model_dump()
+        h_dict["userId"] = uid_val
+        h_dict["consentId"] = active.get("id")
+        store.insert("holdings", h_dict)
+        created_holdings.append(h_dict)
+        
+    analysis = analyze_financials(deduped_assets, identity)
+    store.remove("alerts", lambda al: al.get("userId") == uid_val)
+    for al in analysis.alerts:
+        al_dict = al.model_dump()
+        al_dict["userId"] = uid_val
+        store.insert("alerts", al_dict)
+        await live_manager.push(uid_val, "alert", al_dict)
+        
+    return {"ok": True, "holdingsCount": len(created_holdings), "totalValue": sum(h.get("value", 0) for h in created_holdings)}
+
+
+@router.post("/holdings/sync")
+async def sync_holdings(user: dict = Depends(get_current_user)):
+    return await fetch_consents(user=user)
 
 @router.post("/consents/{consent_id}/revoke")
 
@@ -622,6 +657,10 @@ def resolve_alert(alert_id: str, user: dict = Depends(get_current_user)):
 
     return {"ok": True}
 
+@router.post("/alerts/{alert_id}/dismiss")
+def dismiss_alert(alert_id: str, user: dict = Depends(get_current_user)):
+    return resolve_alert(alert_id=alert_id, user=user)
+
 
 
 # -------------------------------------------------------------
@@ -683,6 +722,29 @@ def add_heir(body: HeirCreateBody, user: dict = Depends(get_current_user)):
     return {"heir": heir}
 
 
+
+class HeirUpdateBody(BaseModel):
+    name: Optional[str] = None
+    relation: Optional[str] = None
+    pan: Optional[str] = None
+    mobile: Optional[str] = None
+    email: Optional[str] = None
+    share: Optional[float] = None
+
+@router.patch("/heirs/{heir_id}")
+def update_heir(heir_id: str, body: HeirUpdateBody, user: dict = Depends(get_current_user)):
+    h = store.find("heirs", lambda item: item.get("id") == heir_id and item.get("userId") == user["id"])
+    if not h:
+        raise HTTPException(status_code=404, detail="Heir not found")
+    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    if "pan" in updates and updates["pan"]:
+        updates["pan"] = updates["pan"].strip().upper()
+    if "name" in updates and updates["name"]:
+        updates["name"] = updates["name"].strip()
+    if "relation" in updates and updates["relation"]:
+        updates["relation"] = updates["relation"].strip()
+    store.update("heirs", lambda item: item.get("id") == heir_id, updates)
+    return {"heir": store.find("heirs", lambda item: item.get("id") == heir_id)}
 
 @router.delete("/heirs/{heir_id}")
 
@@ -778,37 +840,45 @@ async def crs_death_notification(body: DeathNoticeBody, user: dict = Depends(get
 
 
 
+class CaseCreateBody(BaseModel):
+    deceasedName: Optional[str] = None
+    deceasedPan: Optional[str] = None
+    dateOfDeath: str
+    registrationNo: Optional[str] = None
+    place: Optional[str] = None
+    state: Optional[str] = None
+
+@router.post("/cases")
+async def create_case(body: CaseCreateBody, user: dict = Depends(get_current_user)):
+    pan_val = body.deceasedPan or (user.get("identity") or {}).get("pan") or "ABCDE1234F"
+    death_body = DeathNoticeBody(
+        pan=pan_val,
+        dateOfDeath=body.dateOfDeath,
+        registrationNo=body.registrationNo,
+        place=body.place
+    )
+    res = await crs_death_notification(body=death_body, user=user)
+    return {"case": res["case"], "ok": True}
+
 @router.get("/cases")
-
 def get_cases(user: dict = Depends(get_current_user)):
-
     uid_val = user["id"]
-
     pan = (user.get("identity") or {}).get("pan")
-
     cases = store.all("cases", lambda c: bool(c.get("ownerId") == uid_val or (pan and any(h.get("pan") == pan for h in c.get("heirs", [])))))
-
     return {
-
         "cases": [
-
             {
-
                 "id": c["id"],
-
                 "deceasedName": c["deceasedName"],
-
                 "createdAt": c["createdAt"],
-
-                "progress": len([t for t in c.get("tasks", []) if t.get("done")]) / max(len(c.get("tasks", [])), 1)
-
+                "progress": len([t for t in c.get("tasks", []) if t.get("done")]) / max(len(c.get("tasks", [])), 1),
+                "totalValue": sum(h.get("value", 0) for h in c.get("holdings", [])),
+                "assetCount": len(c.get("holdings", [])),
+                "heirCount": len(c.get("heirs", [])),
+                "status": "Settled" if c.get("tasks") and all(t.get("done") for t in c.get("tasks")) else "In Progress",
             } for c in cases
-
         ]
-
     }
-
-
 
 @router.get("/cases/{case_id}")
 
@@ -871,7 +941,7 @@ async def update_case_task(case_id: str, task_id: str, body: TaskUpdateBody, use
 # -------------------------------------------------------------
 
 @router.post("/assistant")
-
+@router.post("/ai/ask")
 async def api_assistant(body: GuideIn, authorization: Optional[str] = Header(None)):
 
     """Multi-source AI Navigator searching statutory law, user documents, and live portfolio."""

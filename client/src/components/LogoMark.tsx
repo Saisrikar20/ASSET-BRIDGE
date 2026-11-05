@@ -3,7 +3,7 @@
  * 
  * Twin flowing financial / horizon wave paths crossed by an unbroken diagonal bridge span,
  * signifying asset recovery, succession, and estate unification.
- * Matched to official palette (Midnight Navy #101D2B / Warm White #F5F3ED / Muted Teal #55C6B0 / Forest Green #244B3C).
+ * Matched to official palette (Midnight Navy #101D2B / Warm White #F5F3ED / Muted Teal #55C6B0 / Forest Green #34765B).
  */
 
 export const BRIDGE_SVG_PATH =
@@ -18,7 +18,7 @@ interface LogoMarkProps {
 }
 
 export default function LogoMark({ className = 'h-7 w-7', onDark = false, stroke }: LogoMarkProps) {
-  const strokeColor = stroke || (onDark ? '#55C6B0' : '#244B3C');
+  const strokeColor = stroke || (onDark ? '#55C6B0' : '#101D2B');
   return (
     <svg
       viewBox="0 0 32 32"

@@ -39,3 +39,4 @@ export interface PillNavProps {
 
 declare const PillNav: FC<PillNavProps>;
 export default PillNav;
+

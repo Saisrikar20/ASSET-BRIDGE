@@ -30,3 +30,4 @@ export interface CrystalizedBallProps {
 
 declare const CrystalizedBall: FC<CrystalizedBallProps>;
 export default CrystalizedBall;
+
