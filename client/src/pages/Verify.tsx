@@ -104,11 +104,7 @@ export default function Verify() {
       {/* 1. Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200/80 dark:border-slate-800">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/40 px-2 py-0.5 rounded border border-brand-200/60 dark:border-brand-900/40">
-              STEP 01 / VERIFICATION
-            </span>
-          </div>
+          
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white mt-1">
             Identity Verification
           </h1>
@@ -123,7 +119,7 @@ export default function Verify() {
           <button
             type="button"
             onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer self-start sm:self-center shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#C8BEAA] bg-[#EFE9DC] text-xs font-medium text-[#26352D] hover:bg-[#E9E0CC] transition cursor-pointer self-start sm:self-center shadow-xs"
             title="Edit verification parameters"
           >
             <RotateCcw className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
@@ -455,7 +451,7 @@ export default function Verify() {
               <button
                 type="button"
                 onClick={() => setShowEmailModal(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#C8BEAA] bg-[#EFE9DC] text-xs font-medium text-[#26352D] hover:bg-[#E9E0CC] shadow-xs transition-colors cursor-pointer"
                 title="Email statutory claiming dossier with PDF attachment"
               >
                 <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
@@ -476,7 +472,7 @@ export default function Verify() {
                     setDownloadingPdf(false);
                   }
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#244B3C] text-white hover:bg-[#1E3E32] text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 title="Download consolidated statutory claim dossier PDF"
               >
                 {downloadingPdf ? (

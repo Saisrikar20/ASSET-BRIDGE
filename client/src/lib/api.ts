@@ -170,11 +170,23 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
   }
   // A static host answering for a missing backend returns its HTML 404 page, not JSON.
   if (!(res.headers.get('content-type') || '').includes('application/json')) {
-    throw new ApiError(res.ok ? 'Unexpected response from the server.' : "The Asset Bridge server is not reachable on port 8000. Please verify that the backend is running via 'npm run dev'.", res.status || 0);
+    throw new ApiError(res.ok ? 'Unexpected response from the server.' : "The Asset Bridge backend is unreachable on port 8000. Start the server using 'npm run dev' (or 'npm run dev:backend').", res.status || 0);
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError(data.error || `Request failed (${res.status})`, res.status);
   return data as T;
+}
+
+export async function checkBackendHealth(): Promise<{ ok: boolean; status?: string; service?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/health`);
+    if (res.ok) return await res.json();
+  } catch {}
+  try {
+    const res = await fetch(`${API_BASE}/health`);
+    if (res.ok) return await res.json();
+  } catch {}
+  return { ok: false };
 }
 
 export async function uploadDocument(formData: FormData): Promise<{ duplicate: boolean; document: UserDocument; chunks_indexed: number; message: string }> {

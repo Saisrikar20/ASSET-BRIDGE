@@ -15,7 +15,6 @@ import BuiltWith from '../components/landing/BuiltWith';
 import TwoMinutes from '../components/landing/TwoMinutes';
 import { api, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { ThemeToggle } from '../lib/theme';
 import { useSplash } from '../lib/splash';
 import { inrShort, REG_STYLE } from '../lib/format';
 
@@ -206,8 +205,7 @@ export default function Landing() {
             <a href="#built" className="hover:text-ink">Built with</a>
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <ThemeToggle />
-            <Link to="/heir" className="hidden px-2 text-sm font-semibold text-slate-600 hover:text-ink sm:block">I'm an heir</Link>
+                        <Link to="/heir" className="hidden px-2 text-sm font-semibold text-slate-600 hover:text-ink sm:block">I'm an heir</Link>
             {user ? <Button onClick={() => open(async () => '/app')}>Open my twin</Button> : <Button onClick={demo} loading={busy}>Open the demo <ArrowRight className="h-4 w-4" /></Button>}
           </div>
         </div>

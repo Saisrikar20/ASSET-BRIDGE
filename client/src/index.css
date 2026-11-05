@@ -1,158 +1,73 @@
 @import 'tailwindcss';
 
-/* Dark mode is a class on <html> (set by the theme toggle), not the OS setting alone. */
-@custom-variant dark (&:where(.dark, .dark *));
+/* Unified Green + Beige Design System (Round 4, Phase 3)
+   - Primary forest green: #244B3C
+   - Warm beige: #E9E0CC
+   - Soft ivory: #F7F4EB
+   - Dark text: #26352D
+   - Muted sage: #A8B7A1
+*/
 
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  /* LedgerLens colours: warm greys, a burnt-orange accent (500/600) and navy
-     (800/900) for the dark panels and gradients. */
-  --color-brand-50: #fdeee7;
-  --color-brand-100: #fbd9c9;
-  --color-brand-500: #d64511;
-  --color-brand-600: #d64511;
-  --color-brand-700: #b23a0e;
-  --color-brand-800: #0e2747;
-  --color-brand-900: #081629;
-  --color-ink: #17181a;
-  /* Warm grey neutrals. */
-  --color-slate-50: #f8fafc;
-  --color-slate-100: #f1f5f9;
-  --color-slate-200: #e2e8f0;
-  --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #64748b;
-  --color-slate-600: #475569;
-  --color-slate-700: #334155;
-  --color-slate-800: #1e293b;
-  --color-slate-900: #0f172a;
-  --color-slate-950: #020617;
-  /* Card / panel background, and a fixed navy for gradients that stay dark in both themes. */
-  --color-surface: #ffffff;
-  --color-night: #0e2747;
+
+  /* Brand Forest Green & Beige Tones */
+  --color-brand-50: #F7F4EB;
+  --color-brand-100: #E9E0CC;
+  --color-brand-200: #C2D1BC;
+  --color-brand-300: #A8B7A1;
+  --color-brand-400: #62826E;
+  --color-brand-500: #244B3C;
+  --color-brand-600: #1E3E32;
+  --color-brand-700: #183329;
+  --color-brand-800: #12271F;
+  --color-brand-900: #0C1B15;
+
+  /* Dark green typography */
+  --color-ink: #26352D;
+
+  /* Warm ivory/beige/sage neutrals */
+  --color-slate-50: #F7F4EB;
+  --color-slate-100: #EFE9DC;
+  --color-slate-200: #E2D9C5;
+  --color-slate-300: #C8BEAA;
+  --color-slate-400: #8C9C84;
+  --color-slate-500: #5A6B54;
+  --color-slate-600: #3E4F42;
+  --color-slate-700: #324236;
+  --color-slate-800: #26352D;
+  --color-slate-900: #1A251F;
+  --color-slate-950: #0F1713;
+
+  /* Surfaces & fixed dark accents */
+  --color-surface: #FFFFFF;
+  --color-night: #183329;
 }
 
-/* Chart roles: series slots follow the validated categorical palette (light steps). */
 :root {
-  --chart-grid: #ebeae7;
-  --chart-ink: #17181a;
-  --chart-surface: #ffffff;
-  --chart-muted: #f3f2f0;
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --series-3: #1baf7a;
-  --series-4: #eda100;
-  --series-5: #e87ba4;
-  --series-teal: #0e2747;
-  --series-slate: #6b6f76;
-  --series-neutral: #a3a6ac;
-  --series-red: #e34948;
+  --chart-grid: #E2D9C5;
+  --chart-ink: #26352D;
+  --chart-surface: #FFFFFF;
+  --chart-muted: #EFE9DC;
+  --series-1: #244B3C;
+  --series-2: #8C9C84;
+  --series-3: #D9822B;
+  --series-4: #4A7A64;
+  --series-5: #B07D62;
+  --series-teal: #244B3C;
+  --series-slate: #5A6B54;
+  --series-neutral: #A8B7A1;
+  --series-red: #D9534F;
   color-scheme: light;
 }
 
-/* Dark theme: tuned tokens for maximum readability, contrast, and premium dark mode.
-   Slate tokens provide crisp light text on deep dark surfaces, subtle dark borders,
-   and vibrant readable accents. */
-.dark {
-  color-scheme: dark;
-  --color-ink: #f8fafc;
-  --color-surface: #141619;
-  --color-night: #0e2747;
-
-  /* Crisp, high-contrast Slate tokens tuned for dark mode readability:
-     - 50: deep page background (#0c0d10)
-     - 100: dark elevated surface / dividers (#181a1e)
-     - 800: subtle, crisp dark borders (#272a30)
-     - 900: dark card surface (#141619)
-     - 950: true deep black (#0a0b0d)
-     - 200, 300: bright, crisp primary & secondary text (#e2e8f0, #cbd5e1)
-     - 400, 500: bright, legible silvery slate for labels, metadata, subtext (>7:1 contrast) (#94a3b8, #cbd5e1)
-     - 600, 700: high-contrast text (#e2e8f0, #f1f5f9)
-  */
-  --color-slate-50: #090d16;
-  --color-slate-100: #111726;
-  --color-slate-200: #1c263a;
-  --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #94a3b8;
-  --color-slate-600: #cbd5e1;
-  --color-slate-700: #e2e8f0;
-  --color-slate-800: #1e293b;
-  --color-slate-900: #111726;
-  --color-slate-950: #090d16;
-  --color-brand-50: #3a2117;
-  --color-brand-100: #4a2a1c;
-  --color-brand-500: #f0652f;
-  --color-brand-600: #e0561f;
-  --color-brand-700: #f6a27f;
-  --color-brand-800: #0e2747;
-  --color-brand-900: #081629;
-  --color-rose-50: color-mix(in oklab, var(--color-rose-500) 14%, #18191c);
-  --color-rose-100: color-mix(in oklab, var(--color-rose-500) 22%, #18191c);
-  --color-rose-200: color-mix(in oklab, var(--color-rose-500) 34%, #18191c);
-  --color-rose-700: color-mix(in oklab, var(--color-rose-500) 62%, white);
-  --color-rose-800: color-mix(in oklab, var(--color-rose-500) 48%, white);
-  --color-rose-900: #fecdd3;
-  --color-emerald-50: color-mix(in oklab, var(--color-emerald-500) 14%, #18191c);
-  --color-emerald-100: color-mix(in oklab, var(--color-emerald-500) 22%, #18191c);
-  --color-emerald-200: color-mix(in oklab, var(--color-emerald-500) 34%, #18191c);
-  --color-emerald-700: color-mix(in oklab, var(--color-emerald-500) 62%, white);
-  --color-emerald-800: color-mix(in oklab, var(--color-emerald-500) 48%, white);
-  --color-emerald-900: #a7f3d0;
-  --color-amber-50: color-mix(in oklab, var(--color-amber-500) 14%, #18191c);
-  --color-amber-100: color-mix(in oklab, var(--color-amber-500) 22%, #18191c);
-  --color-amber-200: color-mix(in oklab, var(--color-amber-500) 34%, #18191c);
-  --color-amber-700: color-mix(in oklab, var(--color-amber-500) 62%, white);
-  --color-amber-800: color-mix(in oklab, var(--color-amber-500) 48%, white);
-  --color-amber-900: #fde68a;
-  --color-sky-50: color-mix(in oklab, var(--color-sky-500) 14%, #18191c);
-  --color-sky-100: color-mix(in oklab, var(--color-sky-500) 22%, #18191c);
-  --color-sky-200: color-mix(in oklab, var(--color-sky-500) 34%, #18191c);
-  --color-sky-700: color-mix(in oklab, var(--color-sky-500) 62%, white);
-  --color-sky-800: color-mix(in oklab, var(--color-sky-500) 48%, white);
-  --color-indigo-50: color-mix(in oklab, var(--color-indigo-500) 14%, #18191c);
-  --color-indigo-100: color-mix(in oklab, var(--color-indigo-500) 22%, #18191c);
-  --color-indigo-200: color-mix(in oklab, var(--color-indigo-500) 34%, #18191c);
-  --color-indigo-700: color-mix(in oklab, var(--color-indigo-500) 62%, white);
-  --color-indigo-800: color-mix(in oklab, var(--color-indigo-500) 48%, white);
-  --color-violet-50: color-mix(in oklab, var(--color-violet-500) 14%, #18191c);
-  --color-violet-100: color-mix(in oklab, var(--color-violet-500) 22%, #18191c);
-  --color-violet-200: color-mix(in oklab, var(--color-violet-500) 34%, #18191c);
-  --color-violet-700: color-mix(in oklab, var(--color-violet-500) 62%, white);
-  --color-violet-800: color-mix(in oklab, var(--color-violet-500) 48%, white);
-  --color-orange-50: color-mix(in oklab, var(--color-orange-500) 14%, #18191c);
-  --color-orange-100: color-mix(in oklab, var(--color-orange-500) 22%, #18191c);
-  --color-orange-200: color-mix(in oklab, var(--color-orange-500) 34%, #18191c);
-  --color-orange-700: color-mix(in oklab, var(--color-orange-500) 62%, white);
-  --color-orange-800: color-mix(in oklab, var(--color-orange-500) 48%, white);
-  --color-teal-50: color-mix(in oklab, var(--color-teal-500) 14%, #18191c);
-  --color-teal-100: color-mix(in oklab, var(--color-teal-500) 22%, #18191c);
-  --color-teal-200: color-mix(in oklab, var(--color-teal-500) 34%, #18191c);
-  --color-teal-700: color-mix(in oklab, var(--color-teal-500) 62%, white);
-  --color-teal-800: color-mix(in oklab, var(--color-teal-500) 48%, white);
-  --chart-grid: #2a2c30;
-  --chart-ink: #ecebe8;
-  --chart-surface: #18191c;
-  --chart-muted: #1e2023;
-  --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
-  --series-4: #c98500;
-  --series-5: #d55181;
-  --series-teal: #b9d3f5;
-  --series-slate: #8f939a;
-  --series-neutral: #6b6f76;
-  --series-red: #e66767;
-}
-
+/* Single Unified Identity: No dark mode bifurcation */
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
-}
-
-.dark body {
   background-color: var(--color-slate-50);
-  color: #f1f5f9;
+  color: var(--color-slate-800);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .prose-answer p { margin: 0.4rem 0; }
@@ -179,15 +94,43 @@ html {
   50% { transform: translate(6px, -8px); opacity: 1; }
 }
 
-/* Keyframes for Asset Bridge Transition */
-@keyframes dash {
-  to {
-    stroke-dashoffset: 0;
-  }
+/* ==========================================================================
+   Home → Dashboard: Circuit-Board Node Transition (Green & Beige Theme)
+   ========================================================================== */
+.cb {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background-color: #F7F4EB;
+  color: #26352D;
+  background-image: radial-gradient(rgba(168, 183, 161, 0.4) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  animation: cbIn 0.25s ease both;
 }
+.cb.out { animation: cbOut 0.45s ease forwards; pointer-events: none; }
+@keyframes cbIn { from { opacity: 0; } }
+@keyframes cbOut { to { opacity: 0; transform: scale(1.04); filter: blur(4px); } }
+.cb svg { width: min(820px, 94vw); height: auto; overflow: visible; }
+.cb .tr { fill: none; stroke: #A8B7A1; stroke-width: 2; stroke-linejoin: round; }
+.cb .pl { fill: none; stroke: #244B3C; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: url(#cbGlow); }
+.cb .jn { fill: #244B3C; }
+.cb .nd rect { fill: #FFFFFF; stroke: #C8BEAA; stroke-width: 1.5; transition: stroke 0.3s, fill 0.3s; }
+.cb .nd .ic { color: #5A6B54; transition: color 0.3s; }
+.cb .nd text { fill: #5A6B54; font: 600 13px Inter, system-ui, sans-serif; text-anchor: middle; transition: fill 0.3s; }
+.cb .nd.on rect { stroke: #244B3C; fill: #E9E0CC; }
+.cb .nd.on .ic { color: #244B3C; }
+.cb .lotus { fill: #5A6B54; transition: fill 0.3s; }
+.cb .nd.on .lotus { fill: #244B3C; }
+.cb .nd.on text { fill: #26352D; font-weight: 700; }
+.cb .halo { fill: none !important; stroke: #244B3C !important; stroke-width: 1.5; opacity: 0; transition: opacity 0.3s; filter: url(#cbGlow); }
+.cb .nd.on .halo { opacity: 0.85; }
+.cb-cap { position: absolute; bottom: 10vh; left: 0; right: 0; text-align: center; font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; color: #5A6B54; letter-spacing: 0.04em; }
+.cb-cap b { color: #244B3C; font-weight: 700; }
 
 /* ==========================================================================
-   Print-Optimized Stylesheet (@media print) (future.md §1.5)
+   Print-Optimized Stylesheet (@media print)
    ========================================================================== */
 @media print {
   @page {
@@ -197,14 +140,13 @@ html {
 
   body {
     background: white !important;
-    color: #0f172a !important;
+    color: #26352D !important;
     font-size: 11pt !important;
     line-height: 1.4 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Hide app navigation chrome, interactive widgets, floating toasts, modals */
   nav,
   aside,
   header,
@@ -217,7 +159,6 @@ html {
     display: none !important;
   }
 
-  /* Reset layout constraints for full paper usage */
   .lg\:pl-64,
   main,
   .max-w-6xl {
@@ -227,16 +168,14 @@ html {
     width: 100% !important;
   }
 
-  /* Ensure card backgrounds and borders are clean high-contrast */
   .border,
   .rounded-xl,
   .rounded-2xl {
     box-shadow: none !important;
-    border-color: #cbd5e1 !important;
+    border-color: #C8BEAA !important;
     break-inside: avoid;
   }
 
-  /* Page breaks between distinct institutional claim schedules */
   .page-break-after,
   .institutional-schedule {
     page-break-after: always !important;

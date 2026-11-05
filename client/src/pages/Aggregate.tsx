@@ -169,7 +169,7 @@ export default function Aggregate() {
       <div className="space-y-6">
         <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
           <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-            STEP 02 / AGGREGATE
+            
           </div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
             Connect your financial assets.
@@ -235,7 +235,7 @@ export default function Aggregate() {
       {/* STEP 3 — Page Header */}
       <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
         <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-          STEP 02 / AGGREGATE
+          
         </div>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
           Connect your financial assets.
@@ -506,7 +506,7 @@ export default function Aggregate() {
                   type="button"
                   onClick={() => setReg('all')}
                   className={cx(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
+                    'px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
                     reg === 'all'
                       ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                       : 'text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -522,7 +522,7 @@ export default function Aggregate() {
                       type="button"
                       onClick={() => setReg(r)}
                       className={cx(
-                        'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
+                        'px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
                         reg === r
                           ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                           : 'text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -680,7 +680,7 @@ export default function Aggregate() {
                     setDownloadingPdf(false);
                   }
                 }}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#244B3C] text-white hover:bg-[#1E3E32] text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 title="Download consolidated statutory claim dossier PDF"
               >
                 {downloadingPdf ? (
@@ -728,7 +728,7 @@ export default function Aggregate() {
                 <span>Ask AI Guide</span>
               </Button>
               <Button size="sm" onClick={() => nav('/app/alerts')}>
-                <span>Next: Review Alerts (Step 03)</span>
+                <span>Next: Review Alerts</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </div>

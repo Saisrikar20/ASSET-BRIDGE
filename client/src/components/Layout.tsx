@@ -22,20 +22,19 @@ import { useLive, useLiveStatus } from '../lib/live';
 import { api, type Alert, type User } from '../lib/api';
 import { Logo, cx, useToast } from './ui';
 import { AvatarFace } from './kokonutui/avatar-picker';
-import { ThemeToggle } from '../lib/theme';
 import { isRouteVisible } from '../lib/features';
 
 const NAV = [
   { to: '/app', label: 'Financial twin', icon: LayoutDashboard, end: true },
-  { to: '/app/verify', label: 'Verify', step: '01', icon: ShieldCheck },
-  { to: '/app/aggregate', label: 'Aggregate', step: '02', icon: Layers },
-  { to: '/app/alerts', label: 'Alerts', step: '03', icon: Bell },
+  { to: '/app/verify', label: 'Verify', icon: ShieldCheck },
+  { to: '/app/aggregate', label: 'Aggregate', icon: Layers },
+  { to: '/app/alerts', label: 'Alerts', icon: Bell },
   { to: '/app/plan', label: 'Life plan', icon: Compass },
   { to: '/app/forecast', label: 'Forecast & analysis', icon: TrendingUp },
   { to: '/app/invest', label: 'Investment options', icon: Sprout },
   { to: '/app/heirs', label: 'Heirs', icon: Users },
-  { to: '/app/reunite', label: 'Reunite', step: '04', icon: HeartHandshake },
-  { to: '/app/cases', label: 'Transfer', step: '05', icon: FileCheck2 },
+  { to: '/app/reunite', label: 'Reunite', icon: HeartHandshake },
+  { to: '/app/cases', label: 'Transfer', icon: FileCheck2 },
   { to: '/app/guide', label: 'AI succession guide', icon: BookOpen },
 ];
 
@@ -164,7 +163,7 @@ export default function Layout() {
       <div className="mb-6 px-2 pt-1">
         <Logo light tagline onClick={() => setOpen(false)} />
       </div>
-      {NAV.filter(({ to }) => isRouteVisible(to)).map(({ to, label, step, icon: Icon, end }) => (
+      {NAV.filter(({ to }) => isRouteVisible(to)).map(({ to, label, icon: Icon, end }) => (
         <NavLink
           key={to}
           to={to}
@@ -182,7 +181,7 @@ export default function Layout() {
           {label === 'Alerts' && openAlerts > 0 && (
             <span className="rounded-full bg-rose-500 px-1.5 text-[11px] font-bold text-white">{openAlerts}</span>
           )}
-          {step && <span className="text-[10px] font-bold text-[#b9d3f5]/50">{step}</span>}
+          
         </NavLink>
       ))}
 
@@ -220,8 +219,7 @@ export default function Layout() {
           >
             <LogOut className="h-3.5 w-3.5" /> Sign out
           </button>
-          <ThemeToggle onDark />
-        </div>
+                  </div>
       </div>
     </nav>
   );
@@ -229,7 +227,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen lg:pl-64">
       {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-gradient-to-b from-brand-900 to-night lg:block print:hidden">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-[#183329] lg:block print:hidden">
         {sidebar}
       </aside>
 
@@ -237,7 +235,7 @@ export default function Layout() {
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden print:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-64 bg-gradient-to-b from-brand-900 to-night">
+          <aside className="absolute inset-y-0 left-0 w-64 bg-[#183329]">
             <button className="absolute right-3 top-4 text-white" onClick={() => setOpen(false)} aria-label="Close menu">
               <X />
             </button>
@@ -260,9 +258,7 @@ export default function Layout() {
 
         <div className="flex items-center gap-3">
           {personaDropdown}
-          <div className="hidden sm:block">
-            <ThemeToggle />
-          </div>
+          
         </div>
       </header>
 

@@ -13,7 +13,7 @@ export default function Cases() {
 
   return (
     <>
-      <PageHeader step="Step 05 · Transfer" title="Estate cases" subtitle="Every case breaks succession into concrete steps — per holding, per regulator, for the right state." />
+      <PageHeader step="Transfer" title="Estate cases" subtitle="Every case breaks succession into concrete steps — per holding, per regulator, for the right state." />
       {cases && cases.length === 0 && (
         <Empty icon={<FileCheck2 />} title="No estate cases" body="A case opens automatically when a death registration matches a twin. You can simulate one on the Reunite step." action={<Link to="/app/reunite"><Button>Go to Reunite</Button></Link>} />
       )}

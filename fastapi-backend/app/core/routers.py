@@ -11,6 +11,10 @@ from app.core.identity import REGULATORS, STATES, STATE_HEIR_DOC, DEMO_IDENTITY,
 router = APIRouter(prefix="/api")
 PAN_RE = re.compile(r"^[A-Z]{5}[0-9]{4}[A-Z]$")
 
+@router.get("/health")
+def api_health():
+    return {"ok": True, "service": "asset-bridge-fastapi-unified", "status": "healthy"}
+
 class SignupBody(BaseModel):
     name: str
     email: str
@@ -129,13 +133,32 @@ def demo_login(persona: Optional[str] = None):
             from app.core.seeder import seed_persona
             seed_persona(pkey)
             user = store.find("users", lambda u: u.get("email") == email)
-        if not user:
+        else:
             user = store.insert("users", {
-                "id": uid("u_"), "email": email, "name": DEMO_IDENTITY["name"],
-                "passwordHash": hash_password(uid()), "identity": None, "verification": None, "deceased": None,
+                "id": "u_demo", "email": email, "name": "Raghavan",
+                "passwordHash": hash_password(uid()), "identity": DEMO_IDENTITY,
+                "verification": {"at": "2026-11-04T12:00:00Z", "results": []},
+                "deceased": None,
+                "avatar": {"displayName": "Raghavan", "variant": 2, "seed": "senior-male"},
                 "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
             })
             seed_demo_heirs(user["id"])
+            for r in DEMO_RECORDS:
+                store.insert("holdings", {
+                    "id": uid("h_"),
+                    "userId": user["id"],
+                    "regulator": r["regulator"],
+                    "type": r["type"],
+                    "institution": r["institution"],
+                    "ref": r["ref"],
+                    "value": r["value"],
+                    "status": "active",
+                    "registeredName": "Raghavan Sundaram",
+                    "lastActivity": "2026-01-15",
+                    "kycUpdated": "2025-08-20",
+                    "nominee": {"name": "Meenakshi Sundaram", "relation": "Spouse", "status": "valid"}
+                })
+
     return {"token": sign_token(user["id"]), "user": public_user(user)}
 
 @router.get("/me")
