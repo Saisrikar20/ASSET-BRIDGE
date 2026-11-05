@@ -341,7 +341,7 @@ export async function api<T>(
   const data = await res.json().catch(() => ({}));
   if (!res.ok)
     throw new ApiError(
-      data.error || `Request failed (${res.status})`,
+      data.detail || data.error || `Request failed (${res.status})`,
       res.status,
     );
   return data as T;

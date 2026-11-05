@@ -349,10 +349,9 @@ def api_get_consolidated_report(user: dict = Depends(get_current_user)):
 # -------------------------------------------------------------
 
 class ConsentCreateBody(BaseModel):
-
     regulators: List[str]
-
     months: Optional[int] = 12
+    purpose: Optional[str] = "STATUTORY_SUCCESSION_AUDIT"
 
 
 
@@ -465,6 +464,42 @@ async def create_consent(body: ConsentCreateBody, user: dict = Depends(get_curre
     return {"consent": consent, "holdingsCount": len(created_holdings)}
 
 
+
+
+@router.post("/consents/fetch")
+async def fetch_consents(user: dict = Depends(get_current_user)):
+    uid_val = user["id"]
+    active = store.find("consents", lambda c: c.get("userId") == uid_val and c.get("status") == "ACTIVE")
+    if not active:
+        raise HTTPException(status_code=404, detail="No active consent found to fetch data")
+    identity = user.get("identity") or DEMO_IDENTITY
+    raw_records = discover_assets(identity, active.get("regulators", []))
+    normalized = normalize_assets(raw_records, identity)
+    deduped_assets, duplicates = detect_duplicates(normalized)
+    
+    store.remove("holdings", lambda h: h.get("userId") == uid_val)
+    created_holdings = []
+    for a in deduped_assets:
+        h_dict = a.model_dump()
+        h_dict["userId"] = uid_val
+        h_dict["consentId"] = active.get("id")
+        store.insert("holdings", h_dict)
+        created_holdings.append(h_dict)
+        
+    analysis = analyze_financials(deduped_assets, identity)
+    store.remove("alerts", lambda al: al.get("userId") == uid_val)
+    for al in analysis.alerts:
+        al_dict = al.model_dump()
+        al_dict["userId"] = uid_val
+        store.insert("alerts", al_dict)
+        await live_manager.push(uid_val, "alert", al_dict)
+        
+    return {"ok": True, "holdingsCount": len(created_holdings), "totalValue": sum(h.get("value", 0) for h in created_holdings)}
+
+
+@router.post("/holdings/sync")
+async def sync_holdings(user: dict = Depends(get_current_user)):
+    return await fetch_consents(user=user)
 
 @router.post("/consents/{consent_id}/revoke")
 
