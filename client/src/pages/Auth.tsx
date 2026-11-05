@@ -218,31 +218,33 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F3ED] flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-      {/* Background Interactive CursorGrid */}
-      <CursorGrid
-        cellSize={50}
-        color="#55C6B0"
-        gridColor="#DDD7CA"
-        highlight="area"
-        gridStyle="lines"
-        radius={140}
-        holdTime={400}
-        fadeDuration={800}
-        fillOpacity={0.035}
-        gridOpacity={0.065}
-        spotlight={0.45}
-        clickPulse
-        lightMode={true}
-        className="fixed inset-0 pointer-events-none z-0"
-      />
+    <div className="min-h-screen w-full bg-[#F5F3ED] relative flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+      {/* Background Interactive CursorGrid wrapped in fixed container */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <CursorGrid
+          cellSize={50}
+          color="#55C6B0"
+          gridColor="#DDD7CA"
+          highlight="area"
+          gridStyle="lines"
+          radius={140}
+          holdTime={400}
+          fadeDuration={800}
+          fillOpacity={0.035}
+          gridOpacity={0.065}
+          spotlight={0.45}
+          clickPulse
+          lightMode={true}
+          className="w-full h-full"
+        />
+      </div>
 
       {/* Subtle Ambient Brand Glows */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#55C6B0]/15 blur-[100px] pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#101D2B]/10 blur-[100px] pointer-events-none" />
+      <div className="fixed -top-40 -left-40 w-96 h-96 rounded-full bg-[#55C6B0]/15 blur-[100px] pointer-events-none z-0" />
+      <div className="fixed -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#101D2B]/10 blur-[100px] pointer-events-none z-0" />
 
       {/* Centered Main Authentication Card */}
-      <div className="relative z-10 w-full max-w-lg rounded-3xl bg-white shadow-xl overflow-hidden p-6 sm:p-8 border border-[#DDD7CA] transition-all my-auto">
+      <div className="relative z-10 w-full max-w-lg mx-auto rounded-3xl bg-white shadow-xl overflow-hidden p-6 sm:p-8 border border-[#DDD7CA] transition-all">
         {/* Card Header: Brand Logo & Title */}
         <div className="flex flex-col items-center text-center pb-4 border-b border-[#DDD7CA]">
           <div className="flex items-center gap-2.5 mb-1.5">
