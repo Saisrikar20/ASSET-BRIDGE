@@ -538,6 +538,10 @@ def send_claiming_dossier_email(
         recipient_name=recipient_name
     )
 
+    # Always archive an RFC 822 audit copy to the local OUTBOX_DIR
+    outbox_file = OUTBOX_DIR / f"{tracking_id}_{filename}.eml"
+    outbox_file.write_bytes(msg.as_bytes())
+
     is_mock = True
     status = "sent"
     provider = "mock"
