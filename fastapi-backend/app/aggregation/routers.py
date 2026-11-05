@@ -483,6 +483,9 @@ async def fetch_consents(user: dict = Depends(get_current_user)):
         h_dict = a.model_dump()
         h_dict["userId"] = uid_val
         h_dict["consentId"] = active.get("id")
+        st = h_dict.get("status") or h_dict.get("recordStatus") or "active"
+        h_dict["status"] = st
+        h_dict["recordStatus"] = st
         store.insert("holdings", h_dict)
         created_holdings.append(h_dict)
         
@@ -530,6 +533,10 @@ def get_holdings(user: dict = Depends(get_current_user)):
     uid_val = user["id"]
 
     holdings = store.all("holdings", lambda h: h.get("userId") == uid_val)
+    for h in holdings:
+        st = h.get("status") or h.get("recordStatus") or "active"
+        h["status"] = st
+        h["recordStatus"] = st
 
     
 

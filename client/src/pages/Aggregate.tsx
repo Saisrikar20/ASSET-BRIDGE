@@ -299,7 +299,7 @@ export default function Aggregate() {
         h.ref,
         h.registeredName || user?.name || '',
         h.value,
-        h.status,
+        h.status || (h as any).recordStatus || 'active',
         h.nominee?.name || 'None',
         h.nominee?.relation || '',
         h.nominee?.status || 'missing',
@@ -896,11 +896,15 @@ export default function Aggregate() {
                         <span className="font-bold text-sm text-[#101D2B]">
                           {h.type}
                         </span>
-                        {h.status !== 'active' && (
-                          <Badge tone={h.status === 'inoperative' ? 'amber' : 'red'}>
-                            {h.status.toUpperCase()}
-                          </Badge>
-                        )}
+                        {(() => {
+                          const st = (h.status || (h as any).recordStatus || 'active').toLowerCase();
+                          if (st === 'active') return null;
+                          return (
+                            <Badge tone={st === 'inoperative' ? 'amber' : 'red'}>
+                              {st.toUpperCase()}
+                            </Badge>
+                          );
+                        })()}
                         {h.isDuplicate && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#C58B3C]/10 text-[#C58B3C] border border-[#C58B3C]/30">
                             Duplicate Detected

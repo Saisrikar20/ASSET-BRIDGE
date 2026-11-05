@@ -108,6 +108,48 @@ def test_api_integration():
     print(f"[PASS] 7-Step pipeline dynamically executed for Priya Sharma.")
     print(f"       Total Assets: {priya_report.summary['totalAssets']}, Verifiable Total: INR {priya_report.summary['verifiableTotal']:,.2f}")
 
+
+
+def test_raghavan_demonstration_scenario():
+    print("\n--- 5. Testing Raghavan Synthetic Scenario and Integrity ---")
+    seed_persona("raghavan", reset=False)
+    
+    # 1. Identity & Persona Check
+    user = store.find("users", lambda u: u.get("id") == "u_raghavan")
+    assert user is not None, "Raghavan user record missing"
+    assert user["name"] == "Raghavan"
+    assert user["identity"]["pan"] == "ABCPI1234K"
+    assert user["identity"]["state"] == "Tamil Nadu"
+    
+    # 2. Holdings Portfolio Check
+    holdings = store.all("holdings", lambda h: h.get("userId") == "u_raghavan")
+    assert len(holdings) == 16, f"Expected 16 holdings, got {len(holdings)}"
+    total_val = sum(h["value"] for h in holdings)
+    assert total_val == 15675230, f"Expected valuation 15,675,230, got {total_val}"
+    
+    # 3. Status and Nominee Breakdown
+    inoperative = [h for h in holdings if (h.get("status") or h.get("recordStatus")) == "inoperative"]
+    unclaimed = [h for h in holdings if (h.get("status") or h.get("recordStatus")) == "unclaimed"]
+    assert len(inoperative) == 2, f"Expected 2 inoperative, got {len(inoperative)}"
+    assert len(unclaimed) == 4, f"Expected 4 unclaimed, got {len(unclaimed)}"
+    
+    # 4. Deceased and Minor Nominees
+    deceased_nominees = [h for h in holdings if isinstance(h.get("nominee"), dict) and h["nominee"].get("status") == "deceased"]
+    minor_nominees = [h for h in holdings if isinstance(h.get("nominee"), dict) and h["nominee"].get("status") == "minor"]
+    assert len(deceased_nominees) == 3, f"Expected 3 deceased nominee holdings, got {len(deceased_nominees)}"
+    assert len(minor_nominees) == 1, f"Expected 1 minor nominee holding, got {len(minor_nominees)}"
+    
+    # 5. Active AA Consent Check
+    consents = store.all("consents", lambda c: c.get("userId") == "u_raghavan")
+    assert any(c.get("status") == "ACTIVE" for c in consents), "Missing ACTIVE consent handle for Raghavan"
+    
+    # 6. Heirs Share Reconciliation (100% total)
+    heirs = store.all("heirs", lambda hr: hr.get("userId") == "u_raghavan")
+    assert len(heirs) == 2, f"Expected 2 surviving legal heirs, got {len(heirs)}"
+    total_share = sum(hr.get("share", 0) for hr in heirs)
+    assert total_share == 100.0, f"Heir shares must sum to 100%, got {total_share}"
+    print("[PASS] Raghavan scenario validation passed: 16 holdings, INR 15.67M, 7 regulators, 100% heir shares.")
+
 if __name__ == "__main__":
     print("=" * 60)
     print("TESTING ASSET BRIDGE MOCK DATA SUITE & PROCEDURAL GENERATOR")
