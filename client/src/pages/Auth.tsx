@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import LogoMark from '../components/LogoMark';
+import CursorGrid from '../components/reactbits/CursorGrid';
 import { api, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useSplash } from '../lib/splash';
@@ -111,12 +112,29 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
 
   return (
     <div className="min-h-screen bg-[#F5F3ED] flex items-center justify-center p-3 sm:p-6 lg:p-8 relative overflow-hidden">
+      {/* Background Interactive CursorGrid */}
+      <CursorGrid
+        cellSize={50}
+        color="#55C6B0"
+        gridColor="#DDD7CA"
+        highlight="area"
+        gridStyle="lines"
+        radius={140}
+        holdTime={400}
+        fadeDuration={800}
+        fillOpacity={0.035}
+        gridOpacity={0.065}
+        spotlight={0.45}
+        clickPulse
+        lightMode={true}
+        className="fixed inset-0 pointer-events-none z-0"
+      />
       {/* Subtle Ambient Glows */}
       <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#55C6B0]/15 blur-[100px] pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#101D2B]/10 blur-[100px] pointer-events-none" />
 
       {/* Main Split Floating Modal Card (Compact & Proportionate) */}
-      <div className="relative w-full max-w-3xl rounded-[24px] bg-white shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 p-3 sm:p-3.5 border border-[#DDD7CA] transition-all">
+      <div className="relative z-10 w-full max-w-3xl rounded-[24px] bg-white shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 p-3 sm:p-3.5 border border-[#DDD7CA] transition-all">
         
         {/* =========================================================================
             LEFT COLUMN: Compact Cosmic Visual Card (5 cols)

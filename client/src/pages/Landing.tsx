@@ -8,6 +8,8 @@ import { Button, Logo, RegChip, cx } from '../components/ui';
 import { GlowingEffect } from '../components/aceternity/glowing-effect';
 import DetentDial from '../components/kokonutui/detent-dial';
 import LampHero from '../components/landing/LampHero';
+import CursorGrid from '../components/reactbits/CursorGrid';
+import PillNav from '../components/reactbits/PillNav';
 import Reveal from '../components/landing/Reveal';
 import Coverflow, { type FlowCard } from '../components/landing/Coverflow';
 import LiveShowcase, { type ShowcaseTab } from '../components/landing/LiveShowcase';
@@ -194,16 +196,48 @@ export default function Landing() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
+    <div className="min-h-screen bg-slate-50 text-slate-800 relative">
+      {/* Interactive Background CursorGrid */}
+      <CursorGrid
+        cellSize={60}
+        color="#55C6B0"
+        gridColor="#DDD7CA"
+        highlight="area"
+        gridStyle="lines"
+        radius={140}
+        holdTime={400}
+        fadeDuration={800}
+        fillOpacity={0.03}
+        gridOpacity={0.06}
+        spotlight={0.4}
+        clickPulse
+        lightMode={true}
+        className="fixed inset-0 pointer-events-none z-0"
+      />
       <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-slate-50/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
           <Logo />
-          <nav className="ml-6 hidden gap-5 text-sm font-medium text-slate-600 md:flex">
-            <a href="#how" className="hover:text-ink">How it works</a>
-            <a href="#features" className="hover:text-ink">Capabilities</a>
-            <a href="#live" className="hover:text-ink">Live demo</a>
-            <a href="#built" className="hover:text-ink">Built with</a>
-          </nav>
+          <div className="ml-6 hidden md:flex items-center">
+            <PillNav
+              items={[
+                { label: 'How it works', href: '#how' },
+                { label: 'Capabilities', href: '#features' },
+                { label: 'Live demo', href: '#live' },
+                { label: 'Built with', href: '#built' },
+              ]}
+              layout="joined"
+              size="sm"
+              theme="light"
+              surface="glass"
+              itemStyle="pill"
+              hoverEffect="glide"
+              indicator="pill"
+              highlightColor="#101D2B"
+              highlightTextColor="#FFFFFF"
+              barColor="#F5F3ED"
+              textColor="#17232E"
+            />
+          </div>
           <div className="ml-auto flex items-center gap-2">
                         <Link to="/heir" className="hidden px-2 text-sm font-semibold text-slate-600 hover:text-ink sm:block">I'm an heir</Link>
             {user ? <Button onClick={() => open(async () => '/app')}>Open my twin</Button> : <Button onClick={demo} loading={busy}>Open the demo <ArrowRight className="h-4 w-4" /></Button>}

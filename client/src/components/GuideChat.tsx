@@ -49,8 +49,7 @@ import {
 import { useAuth } from '../lib/auth';
 
 import { cx } from './ui';
-
-
+import CrystalizedBall from './reactbits/CrystalizedBall';
 
 interface Msg {
 
@@ -67,8 +66,6 @@ interface Msg {
   error?: boolean;
 
 }
-
-
 
 const ACTION_SUGGESTIONS = [
 
@@ -114,8 +111,6 @@ const ACTION_SUGGESTIONS = [
 
 ];
 
-
-
 // Minimal markdown parser: **bold**, numbered / bulleted lines, paragraphs, and citations
 
 function render(md: string) {
@@ -137,8 +132,6 @@ function render(md: string) {
         '<span classNone="inline-block px-1.5 py-0.2 mx-0.5 text-[11px] font-semibold bg-[#EAE6DC] text-[#101D2B] border border-[#DDD7CA] rounded">[$1]</span>'
 
       );
-
-
 
   const out: string[] = [];
 
@@ -179,8 +172,6 @@ function render(md: string) {
   return out.join('');
 
 }
-
-
 
 export default function GuideChat({
 
@@ -226,8 +217,6 @@ export default function GuideChat({
 
   const initialTriggered = useRef(false);
 
-
-
   // Greeting computation
 
   const hour = new Date().getHours();
@@ -242,15 +231,11 @@ export default function GuideChat({
 
     'there';
 
-
-
   useEffect(() => {
 
     end.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 
   }, [msgs, busy]);
-
-
 
   // Handle URL query parameter ?q=
 
@@ -267,8 +252,6 @@ export default function GuideChat({
     }
 
   }, [params]);
-
-
 
   // Listen to custom in-page window event for cross-component triggers
 
@@ -292,8 +275,6 @@ export default function GuideChat({
 
   }, [activeSessionId, state, caseId]);
 
-
-
   // Load chat sessions and user document count from SQLite vault
 
   useEffect(() => {
@@ -303,8 +284,6 @@ export default function GuideChat({
       .then((r) => setDocCount(r.documents?.length || 0))
 
       .catch(() => {});
-
-
 
     api<{ sessions: ChatSession[] }>('/assistant/sessions')
 
@@ -327,8 +306,6 @@ export default function GuideChat({
       .catch(() => {});
 
   }, []);
-
-
 
   // When active session changes, load messages
 
@@ -368,8 +345,6 @@ export default function GuideChat({
 
   }, [activeSessionId]);
 
-
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 
     const file = e.target.files?.[0];
@@ -387,8 +362,6 @@ export default function GuideChat({
       fd.append('docType', 'User Supporting Document');
 
       if (caseId) fd.append('caseId', caseId);
-
-
 
       const res = await uploadDocument(fd);
 
@@ -438,8 +411,6 @@ export default function GuideChat({
 
   };
 
-
-
   const startNewSession = () => {
 
     setActiveSessionId(null);
@@ -447,8 +418,6 @@ export default function GuideChat({
     setMsgs([]);
 
   };
-
-
 
   const ask = async (question: string) => {
 
@@ -465,8 +434,6 @@ export default function GuideChat({
     setQ('');
 
     setBusy(true);
-
-
 
     try {
 
@@ -488,8 +455,6 @@ export default function GuideChat({
 
       });
 
-
-
       if (r.sessionId && r.sessionId !== activeSessionId) {
 
         setActiveSessionId(r.sessionId);
@@ -501,8 +466,6 @@ export default function GuideChat({
           .catch(() => {});
 
       }
-
-
 
       setMsgs((m) => [
 
@@ -542,8 +505,6 @@ export default function GuideChat({
 
   };
 
-
-
   const submit = (e: FormEvent) => {
 
     e.preventDefault();
@@ -551,8 +512,6 @@ export default function GuideChat({
     ask(q);
 
   };
-
-
 
   return (
 
@@ -635,8 +594,6 @@ export default function GuideChat({
           </div>
 
         </div>
-
-
 
         {/* Sessions & Vault Upload Controls */}
 
@@ -722,8 +679,6 @@ export default function GuideChat({
 
       </div>
 
-
-
       {/* Main Conversation Stream */}
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
@@ -734,35 +689,28 @@ export default function GuideChat({
 
           <div className="h-full min-h-[380px] flex flex-col items-center justify-center py-6 px-4 max-w-2xl mx-auto select-none">
 
-            
-
             {/* Radiant Ambient Orb Container with Floating Pills */}
 
             <div className="relative w-full max-w-md h-64 flex items-center justify-center my-2">
-
-              
 
               {/* Outer Glowing Blur Corona */}
 
               <div className="absolute w-44 h-44 rounded-full bg-gradient-to-tr from-cyan-400/35 via-fuchsia-400/35 to-rose-400/30 blur-3xl animate-pulse pointer-events-none" />
 
-
-
-              {/* Middle Floating Animated Gradient Orb */}
-
-              <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-full shadow-2xl flex items-center justify-center overflow-hidden transition-all duration-700 hover:scale-105">
-
-                {/* Radial iridescent core */}
-
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#38bdf8] via-[#a855f7] to-[#ec4899] opacity-90 blur-xs" />
-
-                <div className="absolute inset-2 rounded-full bg-gradient-to-b from-white/40 via-transparent to-black/20" />
-
-                <div className="absolute inset-4 rounded-full bg-gradient-to-tl from-cyan-300/40 via-transparent to-pink-300/40 blur-xs" />
-
+              {/* Interactive CrystalizedBall from React Bits */}
+              <div className="relative w-44 h-44 sm:w-52 sm:h-52 rounded-full overflow-hidden flex items-center justify-center transition-all duration-700 hover:scale-105 shadow-2xl">
+                <CrystalizedBall
+                  preset="aurora"
+                  color="#55C6B0"
+                  theme="light"
+                  size={0.82}
+                  crackle={0.7}
+                  fill={0.5}
+                  glow={0.9}
+                  interactive
+                  hoverStrength={0.8}
+                />
               </div>
-
-
 
               {/* Pill 1: Top-Left (Claim bank deposits) */}
 
@@ -782,8 +730,6 @@ export default function GuideChat({
 
               </button>
 
-
-
               {/* Pill 2: Top-Right (Draft claim intimation) */}
 
               <button
@@ -802,8 +748,6 @@ export default function GuideChat({
 
               </button>
 
-
-
               {/* Pill 3: Bottom-Left (Missing nominee succession) */}
 
               <button
@@ -821,8 +765,6 @@ export default function GuideChat({
                 <span className="truncate">Missing nominee rules</span>
 
               </button>
-
-
 
               {/* Pill 4: Bottom-Right (EPFO pension checklist) */}
 
@@ -843,8 +785,6 @@ export default function GuideChat({
               </button>
 
             </div>
-
-
 
             {/* Greeting Headline */}
 
@@ -873,8 +813,6 @@ export default function GuideChat({
           </div>
 
         )}
-
-
 
         {/* Message Thread */}
 
@@ -924,8 +862,6 @@ export default function GuideChat({
 
               />
 
-
-
               {/* Action Navigation Buttons */}
 
               {m.actions && m.actions.length > 0 && (
@@ -957,8 +893,6 @@ export default function GuideChat({
                 </div>
 
               )}
-
-
 
               {/* Citations & Evidence Grounding */}
 
@@ -1038,8 +972,6 @@ export default function GuideChat({
 
         )}
 
-
-
         {busy && (
 
           <div className="w-16 animate-pulse rounded-2xl bg-white border border-[#DDD7CA] px-3.5 py-2 text-xs text-[#101D2B] font-mono shadow-xs">
@@ -1053,8 +985,6 @@ export default function GuideChat({
         <div ref={end} />
 
       </div>
-
-
 
       {/* Sleek Bottom Floating Input Bar */}
 
@@ -1086,8 +1016,6 @@ export default function GuideChat({
 
           </button>
 
-
-
           {/* Prompt Input */}
 
           <input
@@ -1104,8 +1032,6 @@ export default function GuideChat({
 
           />
 
-
-
           {/* Model Tag Pill */}
 
           <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F5F3ED] border border-[#DDD7CA] text-[11px] font-medium text-[#71808C] select-none whitespace-nowrap">
@@ -1115,8 +1041,6 @@ export default function GuideChat({
             <span className="text-[10px] text-[#71808C]">▾</span>
 
           </div>
-
-
 
           {/* Voice Indicator (Visual) */}
 
@@ -1133,8 +1057,6 @@ export default function GuideChat({
             <Mic className="h-3.5 w-3.5" />
 
           </button>
-
-
 
           {/* Rounded Send Button */}
 
@@ -1155,8 +1077,6 @@ export default function GuideChat({
           </button>
 
         </form>
-
-
 
         <div className="text-[10px] text-center text-[#71808C] mt-2">
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell,
   BookOpen,
@@ -23,6 +23,8 @@ import { api, type Alert, type User } from '../lib/api';
 import { Logo, cx, useToast } from './ui';
 import { AvatarFace } from './kokonutui/avatar-picker';
 import { isRouteVisible } from '../lib/features';
+import CursorGrid from './reactbits/CursorGrid';
+import PillNav from './reactbits/PillNav';
 
 const NAV = [
   { to: '/app', label: 'Financial twin', icon: LayoutDashboard, end: true },
@@ -41,6 +43,7 @@ const NAV = [
 export default function Layout() {
   const { user, meta, logout, setSession } = useAuth();
   const nav = useNavigate();
+  const location = useLocation();
   const connected = useLiveStatus();
   const { toast, success, error } = useToast();
   const [open, setOpen] = useState(false);
@@ -225,7 +228,24 @@ export default function Layout() {
   );
 
   return (
-    <div className="min-h-screen lg:pl-64 bg-[#F5F3ED] text-[#17232E]">
+    <div className="min-h-screen lg:pl-64 bg-[#F5F3ED] text-[#17232E] relative">
+      {/* Interactive Background CursorGrid */}
+      <CursorGrid
+        cellSize={54}
+        color="#55C6B0"
+        gridColor="#DDD7CA"
+        highlight="area"
+        gridStyle="lines"
+        radius={140}
+        holdTime={400}
+        fadeDuration={800}
+        fillOpacity={0.035}
+        gridOpacity={0.065}
+        spotlight={0.45}
+        clickPulse
+        lightMode={true}
+        className="fixed inset-0 pointer-events-none z-0"
+      />
       {/* Desktop Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-[#101D2B] lg:block print:hidden">
         {sidebar}
@@ -253,7 +273,36 @@ export default function Layout() {
           <div className="lg:hidden">
             <Logo />
           </div>
+        </div>
 
+        {/* React Bits PillNav for Desktop Quick Navigation */}
+        <div className="hidden md:flex items-center">
+          <PillNav
+            items={[
+              { label: 'Twin', href: '/app' },
+              { label: 'Verify', href: '/app/verify' },
+              { label: 'Aggregate', href: '/app/aggregate' },
+              { label: 'Alerts', href: '/app/alerts' },
+              { label: 'AI Guide', href: '/app/guide' },
+              { label: 'Cases', href: '/app/cases' },
+            ]}
+            activeHref={location.pathname}
+            layout="joined"
+            size="sm"
+            theme="light"
+            surface="solid"
+            itemStyle="pill"
+            hoverEffect="glide"
+            indicator="pill"
+            highlightColor="#101D2B"
+            highlightTextColor="#FFFFFF"
+            barColor="#F5F3ED"
+            textColor="#17232E"
+            linkComponent={({ href, ...rest }: any) => (
+              <NavLink to={href} {...rest} />
+            )}
+            className="shadow-xs border border-[#DDD7CA]"
+          />
         </div>
 
         <div className="flex items-center gap-3">
@@ -263,7 +312,7 @@ export default function Layout() {
       </header>
 
       {/* Main Content Area */}
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
+      <main className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-8">
         <Outlet />
       </main>
     </div>

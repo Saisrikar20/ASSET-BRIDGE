@@ -4,11 +4,11 @@ if (typeof document !== 'undefined') {
   document.documentElement.classList.remove('dark');
   try {
     localStorage.removeItem('ab_theme');
-  } catch {}
+  } catch { }
 }
 
 export function useTheme() {
-  return ['light', () => {}] as const;
+  return ['light', () => { }] as const;
 }
 
 export function ThemeToggle(_props: { onDark?: boolean; className?: string }) {
