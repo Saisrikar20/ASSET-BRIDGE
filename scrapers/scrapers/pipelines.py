@@ -1,129 +1,49 @@
 """
 Asset Bridge Item Pipelines for Scrapy.
-Ingests crawled statutory circulars into:
-1. Redis Storage Engine (assetbridge:regulation:* hashes, seen_urls set, queue)
-2. SQLite Document Vault and FTS5 search index
-3. Local JSONL archive (data/regulations.jsonl)
+Ingests crawled statutory circulars into the SQLite Document Vault and FTS5 search index.
 """
 
 import os
 import sys
-import json
-import hashlib
-import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import httpx
 from itemadapter import ItemAdapter
 
-# Ensure backend and scraper roots are accessible
-ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+# Ensure root and backend directories are in sys.path
+PIPELINE_FILE = Path(__file__).resolve()
+ROOT_DIR = PIPELINE_FILE.parent.parent.parent
 BACKEND_DIR = ROOT_DIR / "fastapi-backend"
-SCRAPERS_DIR = ROOT_DIR / "scrapers"
 
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
-if str(SCRAPERS_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRAPERS_DIR))
+for _dir in [ROOT_DIR, BACKEND_DIR]:
+    _dir_str = str(_dir)
+    if _dir.exists() and _dir_str not in sys.path:
+        sys.path.insert(0, _dir_str)
 
 try:
-    from app.ai_bot import ingest_regulation_document
+    from app.aggregation.documents import ingest_regulation_document
     HAS_LOCAL_BACKEND = True
-except Exception:
+    BACKEND_IMPORT_ERROR = None
+except Exception as _e:
     try:
-        from app.aggregation.documents import ingest_regulation_document
+        import importlib
+        _mod = importlib.import_module("app.aggregation.documents")
+        ingest_regulation_document = getattr(_mod, "ingest_regulation_document")
         HAS_LOCAL_BACKEND = True
-    except Exception:
+        BACKEND_IMPORT_ERROR = None
+    except Exception as _inner_e:
+        ingest_regulation_document = None
         HAS_LOCAL_BACKEND = False
+        BACKEND_IMPORT_ERROR = str(_inner_e)
 
-try:
-    from .redis_store import redis_store
-except (ImportError, ValueError):
-    try:
-        from scrapers.redis_store import redis_store
-    except ImportError:
-        try:
-            from scrapers.scrapers.redis_store import redis_store
-        except ImportError:
-            redis_store = None
-
-
-class RedisRegulationPipeline:
-    """
-    Pipeline that persists scraped circulars into Redis and appends to local JSONL:
-    - Redis Hash: assetbridge:regulation:<sha256>
-    - Redis Set: assetbridge:regulations:seen_urls (O(1) deduplication)
-    - Redis Queue: assetbridge:regulations:queue
-    - Local JSONL: scrapers/data/regulations.jsonl
-    """
-
-    def __init__(self):
-        self.data_dir = ROOT_DIR / "scrapers" / "data"
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-        self.jsonl_path = self.data_dir / "regulations.jsonl"
-        self.cached_count = 0
-        self.crawler = None
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        pipeline = cls()
-        pipeline.crawler = crawler
-        return pipeline
-
-    def process_item(self, item, spider=None):
-        spider_inst = spider or (self.crawler and getattr(self.crawler, "spider", None))
-        logger = getattr(spider_inst, "logger", None) or logging.getLogger("scrapers.pipelines.redis")
-        adapter = ItemAdapter(item)
-        
-        reg_clean = (adapter.get("regulator") or "GOV").strip().upper()
-        circular_no = (adapter.get("circular_no") or "").strip()
-        source_url = (adapter.get("source_url") or "").strip()
-        title_clean = (adapter.get("title") or "Regulatory Circular").strip()
-
-        # Aligned deduplication hash consistent with SQLite Document Vault and rag.py
-        dedup_input = f"{reg_clean}|{circular_no}|{source_url}|{title_clean}".encode("utf-8")
-        sha256 = hashlib.sha256(dedup_input).hexdigest()
-
-        try:
-            adapter["sha256"] = sha256
-        except (KeyError, TypeError):
-            pass
-
-        reg_dict = dict(adapter)
-        reg_dict["sha256"] = sha256
-
-        # 1. Store in Redis (if online / enabled)
-        if redis_store and redis_store.is_connected():
-            res = redis_store.store_regulation(reg_dict)
-            if res.get("stored_in_redis"):
-                self.cached_count += 1
-                logger.info(f"[Redis] Cached regulation {circular_no or title_clean[:30]} ({sha256[:10]})")
-        else:
-            # Standby mode: Redis offline/disabled
-            pass
-
-        # 2. Append to local JSONL archive
-        try:
-            with open(self.jsonl_path, "a", encoding="utf-8") as f:
-                f.write(json.dumps(reg_dict, ensure_ascii=False) + "\n")
-        except Exception as e:
-            logger.warning(f"Failed to append to JSONL: {e}")
-
-        return item
-
-    def close_spider(self, spider=None):
-        spider_inst = spider or (self.crawler and getattr(self.crawler, "spider", None))
-        logger = getattr(spider_inst, "logger", None) or logging.getLogger("scrapers.pipelines.redis")
-        name = getattr(spider_inst, "name", "all_spiders")
-        logger.info(f"[RedisPipeline] Spider {name} finished. Total cached in Redis: {self.cached_count}")
-
+import logging
 
 class AssetBridgeVaultPipeline:
     """
-    Pipeline that processes each statutory regulation item into SQLite Document Vault:
-    1. Ingests and deduplicates the circular in the Asset Bridge Document Vault.
-    2. Chunks and indexes the circular into SQLite FTS5 for AI RAG retrieval.
+    Pipeline that processes each statutory regulation item:
+    1. Extracts PDF text if a direct PDF URL is provided.
+    2. Ingests and deduplicates the circular in the Asset Bridge Document Vault.
     3. Triggers succession alerts for high-impact legal policy changes.
     """
 
@@ -152,11 +72,6 @@ class AssetBridgeVaultPipeline:
         date = adapter.get("date")
         category = adapter.get("category")
 
-        # Skip empty items lacking title and source_url
-        if not title and not source_url:
-            logger.warning("Skipping empty regulation item missing title and source_url")
-            return item
-
         logger.info(f"Processing regulation: [{regulator}] {title[:60]}")
 
         # Method 1: Direct backend function if running locally inside monorepo
@@ -177,10 +92,10 @@ class AssetBridgeVaultPipeline:
                     logger.info(f"Duplicate circular skipped: {title[:40]}")
                 else:
                     self.ingested_count += 1
-                    logger.info(f"Successfully ingested and indexed: {title[:40]} (Doc ID: {res.get('docId')})")
+                    spider.logger.info(f"Successfully ingested and indexed: {title[:40]} (Doc ID: {res.get('docId')})")
                 return item
             except Exception as e:
-                logger.warning(f"Local ingestion error: {e}. Falling back to HTTP API.")
+                spider.logger.warning(f"Local ingestion error: {e}. Falling back to HTTP API.")
 
         # Method 2: HTTP API fallback (for containerized or CI/CD runs)
         try:
@@ -206,9 +121,9 @@ class AssetBridgeVaultPipeline:
                 else:
                     self.ingested_count += 1
             else:
-                logger.warning(f"HTTP ingestion returned {resp.status_code}: {resp.text[:100]}")
+                spider.logger.warning(f"HTTP ingestion returned {resp.status_code}: {resp.text[:100]}")
         except Exception as e:
-            logger.warning(f"Failed to post regulation to Asset Bridge API: {e}")
+            spider.logger.warning(f"HTTP ingestion connection failed: {e}")
 
         return item
 
@@ -217,5 +132,7 @@ class AssetBridgeVaultPipeline:
         logger = getattr(spider_inst, "logger", None) or logging.getLogger("scrapers.pipelines.vault")
         name = getattr(spider_inst, "name", "all_spiders")
         logger.info(
-            f"[VaultPipeline] Spider {name} finished. Ingested: {self.ingested_count}, Duplicates skipped: {self.duplicate_count}"
+            f"Spider {name} finished. Ingested: {self.ingested_count}, "
+            f"Already Present (Deduplicated): {self.duplicate_count}."
         )
+

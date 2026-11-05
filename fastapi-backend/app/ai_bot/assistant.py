@@ -13,7 +13,7 @@ from app.config import (
     NVIDIA_KEY, NVIDIA_BASE_URL, NVIDIA_MODEL
 )
 from app.core.store import store, uid
-from app.ai_bot.rag import search_user_documents
+from app.aggregation.documents import search_user_documents
 
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
@@ -271,25 +271,10 @@ def generate_action_links(
         target = f"/app/cases/{cid}" if cid else "/app/cases"
         actions.append({"label": "Upload Estate Document", "url": target, "type": "upload"})
         
-    if any(k in q_lower for k in ["dossier", "pdf", "download", "schedule", "report"]):
-        actions.append({"label": "Export Claiming Dossier (PDF)", "url": "/app/aggregate", "type": "navigate"})
-
-    if any(k in q_lower for k in ["email", "send", "mail", "sms", "notify"]):
-        actions.append({"label": "Email Statutory Dossier", "url": "/app/aggregate", "type": "navigate"})
-
-    if any(k in q_lower for k in ["unclaimed", "udgam", "iepf", "search", "reunite"]):
-        actions.append({"label": "Search Unclaimed Assets (Reunite)", "url": "/app/reunite", "type": "navigate"})
-
-    if any(k in q_lower for k in ["regulation", "circular", "rbi", "sebi", "rule", "statutory"]):
-        actions.append({"label": "View Statutory Circulars", "url": "/app/alerts", "type": "navigate"})
-
-    if any(k in q_lower for k in ["heir", "family", "nominee", "succession", "share"]):
-        actions.append({"label": "Manage Heirs & Shares", "url": "/app/heirs", "type": "navigate"})
-
     if any(k in q_lower for k in ["aggregate", "holding", "portfolio", "bank", "epf", "discover"]):
         actions.append({"label": "Review Discovered Assets", "url": "/app/aggregate", "type": "navigate"})
         
-    return actions[:4]
+    return actions[:3]
 
 class GuideIn(BaseModel):
     question: str

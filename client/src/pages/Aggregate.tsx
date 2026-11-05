@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown, Mail, Database, Loader2 } from 'lucide-react';
+import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown, Mail } from 'lucide-react';
 import EmailDossierModal from '../components/EmailDossierModal';
 import { downloadCsv } from '../lib/csv';
-import { api, downloadClaimingDossierPdf, saveClaimingDossierToVault, type Consent, type Holding, type Regulator } from '../lib/api';
+import { api, downloadClaimingDossierPdf, type Consent, type Holding, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date, inr } from '../lib/format';
-import { Badge, Button, ErrorNote, Input, RegChip, Select, cx, useToast } from '../components/ui';
+import { Badge, Button, ErrorNote, Input, RegChip, Select, cx } from '../components/ui';
 
 const ALL: Regulator[] = ['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC', 'PFRDA', 'DOP'];
 
@@ -75,8 +75,6 @@ export default function Aggregate() {
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [savingVault, setSavingVault] = useState(false);
-  const { success: toastSuccess, error: toastError } = useToast();
 
   const load = async () => {
     try {
@@ -169,7 +167,7 @@ export default function Aggregate() {
       <div className="space-y-6">
         <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
           <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-            
+            STEP 02 / AGGREGATE
           </div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
             Connect your financial assets.
@@ -235,7 +233,7 @@ export default function Aggregate() {
       {/* STEP 3 — Page Header */}
       <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
         <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-          
+          STEP 02 / AGGREGATE
         </div>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
           Connect your financial assets.
@@ -506,7 +504,7 @@ export default function Aggregate() {
                   type="button"
                   onClick={() => setReg('all')}
                   className={cx(
-                    'px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
                     reg === 'all'
                       ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                       : 'text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -522,7 +520,7 @@ export default function Aggregate() {
                       type="button"
                       onClick={() => setReg(r)}
                       className={cx(
-                        'px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
+                        'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
                         reg === r
                           ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                           : 'text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -667,8 +665,10 @@ export default function Aggregate() {
                 <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
                 <span>Email Dossier</span>
               </Button>
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={downloadingPdf}
                 disabled={downloadingPdf}
                 onClick={async () => {
                   try {
@@ -680,37 +680,11 @@ export default function Aggregate() {
                     setDownloadingPdf(false);
                   }
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#244B3C] text-white hover:bg-[#1E3E32] text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                title="Download consolidated statutory claim dossier PDF"
-              >
-                {downloadingPdf ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-400 dark:text-brand-600" />
-                ) : (
-                  <FileDown className="h-3.5 w-3.5 text-brand-400 dark:text-brand-600" />
-                )}
-                <span>{downloadingPdf ? 'Generating PDF…' : 'Download Claim Dossier (PDF)'}</span>
-              </button>
-              <Button
-                variant="secondary"
-                size="sm"
-                loading={savingVault}
-                disabled={savingVault}
-                onClick={async () => {
-                  try {
-                    setSavingVault(true);
-                    const res = await saveClaimingDossierToVault({ pan: user?.identity?.pan });
-                    toastSuccess('Dossier Saved to AI Vault', res.message || 'Indexed in SQLite document vault for AI consultation.');
-                  } catch (e) {
-                    toastError('Failed to save to vault', (e as Error).message);
-                  } finally {
-                    setSavingVault(false);
-                  }
-                }}
                 className="gap-1.5"
-                title="Index official claim schedule into SQLite Document Vault for AI consultation"
+                title="Export statutory claim schedule as PDF"
               >
-                <Database className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>{savingVault ? 'Indexing…' : 'Save to Vault'}</span>
+                <FileDown className="h-3.5 w-3.5" />
+                <span>{downloadingPdf ? 'Generating…' : 'Export Claim Schedule (PDF)'}</span>
               </Button>
               <Button
                 variant="secondary"
@@ -728,7 +702,7 @@ export default function Aggregate() {
                 <span>Ask AI Guide</span>
               </Button>
               <Button size="sm" onClick={() => nav('/app/alerts')}>
-                <span>Next: Review Alerts</span>
+                <span>Next: Review Alerts (Step 03)</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </div>

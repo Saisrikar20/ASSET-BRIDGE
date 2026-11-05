@@ -159,8 +159,7 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
   if (opts.heirPan) headers['x-heir-pan'] = opts.heirPan;
   let res: Response;
   try {
-    const cleanPath = path.startsWith('/api/') ? path.slice(4) : path.startsWith('/') ? path : `/${path}`;
-    res = await fetch(`${API_BASE}/api${cleanPath}`, {
+    res = await fetch(`${API_BASE}/api${path}`, {
       method: opts.method || (opts.body !== undefined ? 'POST' : 'GET'),
       headers,
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
@@ -170,23 +169,11 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
   }
   // A static host answering for a missing backend returns its HTML 404 page, not JSON.
   if (!(res.headers.get('content-type') || '').includes('application/json')) {
-    throw new ApiError(res.ok ? 'Unexpected response from the server.' : "The Asset Bridge backend is unreachable on port 8000. Start the server using 'npm run dev' (or 'npm run dev:backend').", res.status || 0);
+    throw new ApiError(res.ok ? 'Unexpected response from the server.' : "The Asset Bridge server isn't connected to this site yet.", res.status || 0);
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError(data.error || `Request failed (${res.status})`, res.status);
   return data as T;
-}
-
-export async function checkBackendHealth(): Promise<{ ok: boolean; status?: string; service?: string }> {
-  try {
-    const res = await fetch(`${API_BASE}/api/health`);
-    if (res.ok) return await res.json();
-  } catch {}
-  try {
-    const res = await fetch(`${API_BASE}/health`);
-    if (res.ok) return await res.json();
-  } catch {}
-  return { ok: false };
 }
 
 export async function uploadDocument(formData: FormData): Promise<{ duplicate: boolean; document: UserDocument; chunks_indexed: number; message: string }> {
@@ -286,7 +273,7 @@ export async function saveClaimingDossierToVault(params?: { pan?: string; person
   if (params?.caseId) query.set('caseId', params.caseId);
   const qs = query.toString();
   return api<{ ok: boolean; message: string; document: any; chunks_indexed: number }>(
-    `/reports/claiming-dossier/vault${qs ? `?${qs}` : ''}`,
+    `/api/reports/claiming-dossier/vault${qs ? `?${qs}` : ''}`,
     { method: 'POST' }
   );
 }
@@ -365,18 +352,4 @@ export async function pollRegulations(params?: { regulator?: string }): Promise<
   if (params?.regulator) query.set('regulator', params.regulator);
   const qs = query.toString();
   return api(`/documents/regulations/poll${qs ? `?${qs}` : ''}`, { method: 'POST' });
-}
-
-export async function crawlRegulations(params?: { spider?: string; limit?: number }): Promise<{
-  ok: boolean;
-  engine: string;
-  spidersRun: number;
-  totalRegulationsInVault: number;
-  results: Array<{ spider: string; status: string; returncode: number; outputSnippet: string }>;
-}> {
-  const query = new URLSearchParams();
-  if (params?.spider) query.set('spider', params.spider);
-  if (params?.limit) query.set('limit', String(params.limit));
-  const qs = query.toString();
-  return api(`/documents/regulations/crawl${qs ? `?${qs}` : ''}`, { method: 'POST' });
 }

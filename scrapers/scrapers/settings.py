@@ -1,9 +1,6 @@
 """
 Scrapy configuration settings for Asset Bridge regulatory web scrapers.
-Supports hybrid Redis caching and SQLite Document Vault persistence.
 """
-
-import os
 
 BOT_NAME = "asset_bridge_regulations"
 
@@ -24,13 +21,8 @@ AUTOTHROTTLE_START_DELAY = 1.0
 AUTOTHROTTLE_MAX_DELAY = 10.0
 AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 
-# Redis Storage Configuration (Optional: defaults to SQLite Document Vault if offline)
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-REDIS_ENABLED = os.getenv("REDIS_ENABLED", "false").lower() in ("true", "1", "yes")
-
-# Pipelines: Redis caching (200), SQLite Document Vault (300)
+# Pipelines
 ITEM_PIPELINES = {
-    "scrapers.pipelines.RedisRegulationPipeline": 200,
     "scrapers.pipelines.AssetBridgeVaultPipeline": 300,
 }
 

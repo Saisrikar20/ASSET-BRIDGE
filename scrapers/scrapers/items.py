@@ -14,4 +14,4 @@ class RegulationItem(scrapy.Item):
     raw_text = scrapy.Field()        # Plain text content extracted from circular or PDF
     category = scrapy.Field()        # Subject category (e.g. "Deceased Depositor Settlement")
     scraped_at = scrapy.Field()      # ISO timestamp
-    sha256 = scrapy.Field()          # SHA-256 deduplication checksum
+
