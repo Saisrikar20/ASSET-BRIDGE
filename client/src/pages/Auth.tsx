@@ -1,58 +1,69 @@
-import { useState, type FormEvent } from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
-import LogoMark from '../components/LogoMark';
-import CursorGrid from '../components/reactbits/CursorGrid';
-import { api, type User } from '../lib/api';
-import { useAuth } from '../lib/auth';
-import { useSplash } from '../lib/splash';
-import { AvatarFace } from '../components/AvatarMatrix';
+import { useState, type FormEvent } from "react";
+import { Link, Navigate } from "react-router-dom";
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
+import LogoMark from "../components/LogoMark";
+import CursorGrid from "../components/reactbits/CursorGrid";
+import { api, type User } from "../lib/api";
+import { useAuth } from "../lib/auth";
+import { useSplash } from "../lib/splash";
+import { AvatarFace } from "../components/AvatarMatrix";
 
 const SHOWCASE_SLIDES = [
   {
-    name: 'Andrew.ui',
-    role: 'UI & Illustration',
-    avatarSeed: 'adult-male',
-    email: 'raghavan@demo.local',
-    title: 'Selected Works',
+    name: "Andrew.ui",
+    role: "UI & Illustration",
+    avatarSeed: "adult-male",
+    email: "raghavan@demo.local",
+    title: "Selected Works",
   },
   {
-    name: 'Priya.heir',
-    role: 'Succession & Claims',
-    avatarSeed: 'adult-female',
-    email: 'priya@demo.local',
-    title: 'Statutory Registry',
+    name: "Priya.heir",
+    role: "Succession & Claims",
+    avatarSeed: "adult-female",
+    email: "priya@demo.local",
+    title: "Statutory Registry",
   },
   {
-    name: 'Raghavan.twin',
-    role: 'Financial Estate Twin',
-    avatarSeed: 'senior-male',
-    email: 'raghavan@demo.local',
-    title: 'Consolidated Ledger',
+    name: "Raghavan.twin",
+    role: "Financial Estate Twin",
+    avatarSeed: "senior-male",
+    email: "raghavan@demo.local",
+    title: "Consolidated Ledger",
   },
 ];
 
-export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
+export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const { user, setSession } = useAuth();
   const open = useSplash();
   const [slideIdx, setSlideIdx] = useState(0);
   const currentSlide = SHOWCASE_SLIDES[slideIdx];
 
   const [form, setForm] = useState({
-    name: '',
-    email: 'raghavan@demo.local',
-    password: 'password123',
+    name: "",
+    email: "raghavan@demo.local",
+    password: "password123",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [busy, setBusy] = useState<'form' | 'demo' | null>(null);
+  const [busy, setBusy] = useState<"form" | "demo" | null>(null);
 
   if (user) return <Navigate to="/app" replace />;
 
-  const nextSlide = () => setSlideIdx((prev) => (prev + 1) % SHOWCASE_SLIDES.length);
-  const prevSlide = () => setSlideIdx((prev) => (prev - 1 + SHOWCASE_SLIDES.length) % SHOWCASE_SLIDES.length);
+  const nextSlide = () =>
+    setSlideIdx((prev) => (prev + 1) % SHOWCASE_SLIDES.length);
+  const prevSlide = () =>
+    setSlideIdx(
+      (prev) => (prev - 1 + SHOWCASE_SLIDES.length) % SHOWCASE_SLIDES.length,
+    );
 
-  const go = async (path: string, body: object, kind: 'form' | 'demo') => {
+  const go = async (path: string, body: object, kind: "form" | "demo") => {
     setErr(null);
     setBusy(kind);
     try {
@@ -60,25 +71,32 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
       try {
         r = await api<{ token: string; user: User }>(path, { body });
       } catch (apiErr) {
-        if (kind === 'demo') {
-          console.warn('Backend unavailable, using fallback demo session:', apiErr);
+        if (kind === "demo") {
+          console.warn(
+            "Backend unavailable, using fallback demo session:",
+            apiErr,
+          );
           r = {
-            token: 'demo-session-token-' + Date.now(),
+            token: "demo-session-token-" + Date.now(),
             user: {
-              id: 'u_raghavan',
-              email: form.email || 'raghavan@demo.local',
-              name: form.name || 'Raghavan Sundaram',
+              id: "u_raghavan",
+              email: form.email || "raghavan@demo.local",
+              name: form.name || "Raghavan Sundaram",
               identity: {
-                name: 'Raghavan Sundaram',
-                pan: 'ABCPI1234K',
-                dob: '1970-01-01',
-                aadhaarLast4: '4417',
-                mobile: '9876543210',
-                state: 'Karnataka',
+                name: "Raghavan Sundaram",
+                pan: "ABCPI1234K",
+                dob: "1970-01-01",
+                aadhaarLast4: "4417",
+                mobile: "9876543210",
+                state: "Karnataka",
               },
               verification: null,
               deceased: null,
-              avatar: { displayName: 'Raghavan', variant: 2, seed: 'senior-male' },
+              avatar: {
+                displayName: "Raghavan",
+                variant: 2,
+                seed: "senior-male",
+              },
             },
           };
         } else {
@@ -88,14 +106,14 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
 
       setSession(r.token, r.user);
       const destination = !r.user.avatar
-        ? `/app/avatar?next=${r.user.identity ? '/app' : '/app/verify'}`
+        ? `/app/avatar?next=${r.user.identity ? "/app" : "/app/verify"}`
         : r.user.identity
-          ? '/app'
-          : '/app/verify';
+          ? "/app"
+          : "/app/verify";
 
       await open(async () => destination);
     } catch (e) {
-      setErr((e as Error).message || 'Authentication failed');
+      setErr((e as Error).message || "Authentication failed");
     } finally {
       setBusy(null);
     }
@@ -103,11 +121,11 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!form.email || !form.password || (mode === 'signup' && !form.name)) {
-      setErr('Please fill in all required fields.');
+    if (!form.email || !form.password || (mode === "signup" && !form.name)) {
+      setErr("Please fill in all required fields.");
       return;
     }
-    go(mode === 'login' ? '/auth/login' : '/auth/signup', form, 'form');
+    go(mode === "login" ? "/auth/login" : "/auth/signup", form, "form");
   };
 
   return (
@@ -135,12 +153,10 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
 
       {/* Main Split Floating Modal Card (Compact & Proportionate) */}
       <div className="relative z-10 w-full max-w-3xl rounded-[24px] bg-white shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 p-3 sm:p-3.5 border border-[#DDD7CA] transition-all">
-        
         {/* =========================================================================
             LEFT COLUMN: Compact Cosmic Visual Card (5 cols)
             ========================================================================= */}
         <div className="lg:col-span-4 rounded-[18px] overflow-hidden relative min-h-[200px] lg:min-h-[380px] flex flex-col justify-between p-4 bg-[#101D2B] text-white shadow-inner select-none">
-          
           {/* Deep Cosmic Background Vector Illustration */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <svg
@@ -151,36 +167,54 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
               xmlns="http://www.w3.org/2000/svg"
             >
               <defs>
-                <linearGradient id="skyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#080a12" />
-                  <stop offset="45%" stopColor="#0e1422" />
-                  <stop offset="70%" stopColor="#161522" />
-                  <stop offset="100%" stopColor="#241014" />
+                <linearGradient
+                  id="skyGrad"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#0B131C" />
+                  <stop offset="45%" stopColor="#101D2B" />
+                  <stop offset="70%" stopColor="#1C3041" />
+                  <stop offset="100%" stopColor="#142636" />
                 </linearGradient>
 
                 <radialGradient id="nebulaGlow" cx="20%" cy="25%" r="55%">
-                  <stop offset="0%" stopColor="#e14d2a" stopOpacity="0.75" />
-                  <stop offset="30%" stopColor="#9a251b" stopOpacity="0.45" />
-                  <stop offset="65%" stopColor="#3d1428" stopOpacity="0.2" />
+                  <stop offset="0%" stopColor="#55C6B0" stopOpacity="0.55" />
+                  <stop offset="35%" stopColor="#D5C5A1" stopOpacity="0.30" />
+                  <stop offset="70%" stopColor="#1C3041" stopOpacity="0.15" />
                   <stop offset="100%" stopColor="transparent" stopOpacity="0" />
                 </radialGradient>
 
                 <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#67e8f9" stopOpacity="0.8" />
-                  <stop offset="50%" stopColor="#0284c7" stopOpacity="0.3" />
+                  <stop offset="0%" stopColor="#55C6B0" stopOpacity="0.8" />
+                  <stop offset="50%" stopColor="#1C3041" stopOpacity="0.3" />
                   <stop offset="100%" stopColor="transparent" stopOpacity="0" />
                 </radialGradient>
 
-                <linearGradient id="mountainFront" x1="50%" y1="0%" x2="50%" y2="100%">
-                  <stop offset="0%" stopColor="#333b4d" />
-                  <stop offset="35%" stopColor="#1e2330" />
-                  <stop offset="100%" stopColor="#0d1017" />
+                <linearGradient
+                  id="mountainFront"
+                  x1="50%"
+                  y1="0%"
+                  x2="50%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#253A4D" />
+                  <stop offset="45%" stopColor="#182A3A" />
+                  <stop offset="100%" stopColor="#101D2B" />
                 </linearGradient>
 
-                <linearGradient id="mountainRidge" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ea580c" stopOpacity="0.85" />
-                  <stop offset="50%" stopColor="#9a3412" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#1e293b" stopOpacity="0.1" />
+                <linearGradient
+                  id="mountainRidge"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#55C6B0" stopOpacity="0.85" />
+                  <stop offset="50%" stopColor="#D5C5A1" stopOpacity="0.45" />
+                  <stop offset="100%" stopColor="#1C3041" stopOpacity="0.1" />
                 </linearGradient>
               </defs>
 
@@ -192,10 +226,10 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
               <circle cx="210" cy="140" r="1" fill="#ffffff" opacity="0.65" />
               <circle cx="340" cy="95" r="1.5" fill="#bae6fd" opacity="0.9" />
               <circle cx="480" cy="160" r="1.1" fill="#ffffff" opacity="0.7" />
-              <circle cx="150" cy="230" r="1.4" fill="#fed7aa" opacity="0.85" />
+              <circle cx="150" cy="230" r="1.4" fill="#D5C5A1" opacity="0.85" />
               <circle cx="420" cy="280" r="1" fill="#ffffff" opacity="0.6" />
               <circle cx="520" cy="340" r="1.2" fill="#ffffff" opacity="0.75" />
-              <circle cx="270" cy="380" r="1" fill="#38bdf8" opacity="0.7" />
+              <circle cx="270" cy="380" r="1" fill="#55C6B0" opacity="0.7" />
 
               {/* Glowing Nebula Cloud Masses */}
               <path
@@ -205,10 +239,10 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
 
               {/* Celestial Orb / Moon with Corona */}
               <circle cx="380" cy="380" r="34" fill="url(#moonGlow)" />
-              <circle cx="380" cy="380" r="16" fill="#0c1829" />
+              <circle cx="380" cy="380" r="16" fill="#101D2B" />
               <path
                 d="M380 364 A 16 16 0 0 1 394 388 A 16 16 0 0 0 380 364 Z"
-                fill="#38bdf8"
+                fill="#55C6B0"
                 opacity="0.95"
               />
 
@@ -244,14 +278,14 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
             </span>
             <div className="flex items-center gap-2">
               <Link
-                to={mode === 'signup' ? '/login' : '/signup'}
+                to={mode === "signup" ? "/login" : "/signup"}
                 className="text-[11px] font-medium text-white/80 hover:text-white transition-colors px-2 py-0.5"
               >
-                {mode === 'signup' ? 'Sign In' : 'Sign Up'}
+                {mode === "signup" ? "Sign In" : "Sign Up"}
               </Link>
               <button
                 type="button"
-                onClick={() => go('/auth/demo', {}, 'demo')}
+                onClick={() => go("/auth/demo", {}, "demo")}
                 className="rounded-full border border-white/30 bg-white/10 hover:bg-white/20 text-white px-3 py-0.5 text-[11px] font-medium transition cursor-pointer backdrop-blur-sm shadow-xs"
               >
                 Demo
@@ -308,7 +342,6 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
             RIGHT COLUMN: Clean Minimal Form Panel (7 cols)
             ========================================================================= */}
         <div className="lg:col-span-8 flex flex-col justify-between p-4 sm:p-7 bg-white text-[#17232E]">
-          
           {/* Top Bar: Brand Logo */}
           <div className="flex items-center justify-between pb-4">
             <div className="flex items-center gap-2">
@@ -328,7 +361,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
           <div className="max-w-sm w-full mx-auto my-auto space-y-4">
             <div className="text-center space-y-0.5">
               <h1 className="text-2xl font-extrabold tracking-tight text-[#17232E]">
-                {mode === 'signup' ? 'Create Account' : 'Welcome'}
+                {mode === "signup" ? "Create Account" : "Welcome"}
               </h1>
               <p className="text-xs text-[#71808C]">
                 Financial Intelligence & Estate Succession
@@ -339,11 +372,11 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
             <button
               type="button"
               disabled={busy !== null}
-              onClick={() => go('/auth/demo', {}, 'demo')}
+              onClick={() => go("/auth/demo", {}, "demo")}
               className="w-full py-2.5 px-4 rounded-full border border-[#101D2B]/20 bg-[#F5F3ED] hover:bg-[#EAE6DC] text-[#101D2B] font-semibold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
               title="Instantly sign in with Raghavan Sundaram's complete preloaded estate holdings, alerts, and heirs"
             >
-              {busy === 'demo' ? (
+              {busy === "demo" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-[#101D2B]" />
               ) : (
                 <Sparkles className="h-3.5 w-3.5 text-[#101D2B]" />
@@ -359,7 +392,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
             </div>
 
             <form onSubmit={submit} className="space-y-3">
-              {mode === 'signup' && (
+              {mode === "signup" && (
                 <div>
                   <input
                     type="text"
@@ -387,20 +420,28 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
               <div>
                 <div className="relative">
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     required
                     placeholder="Password"
                     value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
                     className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-[#DDD7CA] bg-white text-[#17232E] placeholder:text-[#71808C] text-xs outline-none transition focus:border-[#101D2B] focus:ring-1 focus:ring-[#55C6B0]/20"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#71808C] hover:text-[#17232E] cursor-pointer"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
-                    {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-3.5 w-3.5" />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5" />
+                    )}
                   </button>
                 </div>
 
@@ -409,7 +450,10 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
                     href="#forgot"
                     onClick={(e) => {
                       e.preventDefault();
-                      alert('Password recovery link has been dispatched to ' + (form.email || 'your email'));
+                      alert(
+                        "Password recovery link has been dispatched to " +
+                          (form.email || "your email"),
+                      );
                     }}
                     className="text-[10px] font-medium text-[#101D2B] hover:underline transition cursor-pointer"
                   >
@@ -430,15 +474,17 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
                 disabled={busy !== null}
                 className="w-full py-2.5 px-4 rounded-full bg-[#101D2B] hover:bg-[#1C3041] text-white font-semibold text-xs tracking-wide shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
               >
-                {busy === 'form' && <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />}
-                <span>{mode === 'signup' ? 'Create Account' : 'Login'}</span>
+                {busy === "form" && (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                )}
+                <span>{mode === "signup" ? "Create Account" : "Login"}</span>
               </button>
 
               {/* Google Social SSO Button */}
               <button
                 type="button"
                 disabled={busy !== null}
-                onClick={() => go('/auth/demo', {}, 'demo')}
+                onClick={() => go("/auth/demo", {}, "demo")}
                 className="w-full py-2 px-4 rounded-full border border-[#DDD7CA] bg-white hover:bg-[#F5F3ED] text-[#17232E] text-xs font-medium flex items-center justify-center gap-2 transition cursor-pointer shadow-xs disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <svg className="h-3.5 w-3.5" viewBox="0 0 24 24">
@@ -465,9 +511,9 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
 
             {/* Toggle Sign Up / Sign In */}
             <div className="text-center text-xs text-[#71808C]">
-              {mode === 'login' ? (
+              {mode === "login" ? (
                 <span>
-                  Don't have an account?{' '}
+                  Don't have an account?{" "}
                   <Link
                     to="/signup"
                     className="font-semibold text-[#101D2B] hover:underline transition"
@@ -477,7 +523,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
                 </span>
               ) : (
                 <span>
-                  Already have an account?{' '}
+                  Already have an account?{" "}
                   <Link
                     to="/login"
                     className="font-semibold text-[#101D2B] hover:underline transition"
@@ -492,24 +538,39 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
           {/* Bottom Social / Trust Icons */}
           <div className="pt-4 flex items-center justify-center gap-5 text-[#71808C]">
             {/* Facebook */}
-            <svg className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z" />
             </svg>
             {/* Twitter */}
-            <svg className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
             {/* LinkedIn */}
-            <svg className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
             </svg>
             {/* Instagram */}
-            <svg className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-3.5 w-3.5 hover:text-[#17232E] transition cursor-pointer"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
             </svg>
           </div>
         </div>
-
       </div>
     </div>
   );
