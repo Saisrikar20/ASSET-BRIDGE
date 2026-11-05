@@ -62,13 +62,13 @@ export default function Heirs() {
   return (
     <div className="space-y-6">
       {/* STEP 2 — Header */}
-      <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800 flex flex-wrap items-end justify-between gap-4">
+      <div className="pb-4 border-b border-slate-200/60 flex flex-wrap items-end justify-between gap-4">
         <div>
           
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
             Your heirs
           </h1>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-0.5 text-xs text-slate-500">
             Manage the people connected to your estate.
           </p>
         </div>
@@ -91,19 +91,19 @@ export default function Heirs() {
         <div className="space-y-4">
           {/* STEP 4 — Estate Share Distribution */}
           {heirs.length > 0 && (
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5 shadow-sm">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-4 space-y-2.5 shadow-sm">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-slate-700 dark:text-slate-300">
+                <span className="font-medium text-slate-700">
                   Estate share allocation
                 </span>
                 <span
                   className={cx(
                     'font-mono font-semibold tabular-nums text-xs',
                     totalShare === 100
-                      ? 'text-emerald-600 dark:text-emerald-400'
+                      ? 'text-emerald-600'
                       : totalShare > 100
-                        ? 'text-rose-600 dark:text-rose-400'
-                        : 'text-amber-600 dark:text-amber-400'
+                        ? 'text-rose-600'
+                        : 'text-amber-600'
                   )}
                 >
                   {totalShare}% of 100%
@@ -111,7 +111,7 @@ export default function Heirs() {
               </div>
 
               {/* Multi-segment distribution bar */}
-              <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex">
+              <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden flex">
                 {heirs.map((h, i) => {
                   const colors = [
                     'bg-brand-600',
@@ -133,13 +133,13 @@ export default function Heirs() {
               </div>
 
               {/* Distribution helper note */}
-              <div className="text-xs text-slate-500 dark:text-slate-400">
+              <div className="text-xs text-slate-500">
                 {totalShare === 100 ? (
-                  <span className="text-emerald-600 dark:text-emerald-400">
+                  <span className="text-emerald-600">
                     Complete estate distribution ({heirs.length} heir{heirs.length === 1 ? '' : 's'}).
                   </span>
                 ) : totalShare > 100 ? (
-                  <span className="text-rose-600 dark:text-rose-400">
+                  <span className="text-rose-600">
                     Allocation exceeds 100% by {totalShare - 100}%. Please adjust shares.
                   </span>
                 ) : (
@@ -152,13 +152,13 @@ export default function Heirs() {
           )}
 
           {/* STEP 3 — Existing Heirs List */}
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm">
+          <div className="rounded-xl border border-slate-200/80 bg-white divide-y divide-slate-100 overflow-hidden shadow-sm">
             {heirs.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400 space-y-2">
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mb-2">
+              <div className="p-8 text-center text-xs text-slate-500 space-y-2">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-2">
                   <Users className="h-5 w-5" />
                 </div>
-                <p className="font-semibold text-slate-800 dark:text-slate-200">
+                <p className="font-semibold text-slate-800">
                   No heirs added yet
                 </p>
                 <p>
@@ -169,11 +169,11 @@ export default function Heirs() {
               heirs.map((h) => (
                 <div
                   key={h.id}
-                  className="p-3.5 sm:p-4 hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors flex items-center justify-between gap-3"
+                  className="p-3.5 sm:p-4 hover:bg-slate-50/70 transition-colors flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Initial / Avatar */}
-                    <div className="h-9 w-9 rounded-full bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 font-semibold text-xs flex items-center justify-center shrink-0 font-mono">
+                    <div className="h-9 w-9 rounded-full bg-brand-50 text-brand-700 font-semibold text-xs flex items-center justify-center shrink-0 font-mono">
                       {h.name
                         .split(' ')
                         .map((p) => p[0])
@@ -185,27 +185,27 @@ export default function Heirs() {
                     {/* Heir Details */}
                     <div className="min-w-0 space-y-0.5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">
+                        <span className="font-semibold text-sm text-slate-900 truncate">
                           {h.name}
                         </span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                        <span className="text-xs text-slate-500">
                           · {h.relation}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5 flex-wrap">
+                      <div className="text-xs text-slate-500 font-mono flex items-center gap-1.5 flex-wrap">
                         <span>
                           PAN {h.pan.length >= 10 ? `${h.pan.slice(0, 5)}••••${h.pan.slice(-1)}` : h.pan}
                         </span>
                         {h.mobile && (
                           <>
-                            <span className="text-slate-300 dark:text-slate-700">·</span>
-                            <span className="text-slate-700 dark:text-slate-300 font-medium">{h.mobile}</span>
+                            <span className="text-slate-300">·</span>
+                            <span className="text-slate-700 font-medium">{h.mobile}</span>
                           </>
                         )}
                         {h.email && (
                           <>
-                            <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">·</span>
-                            <span className="hidden sm:inline text-slate-700 dark:text-slate-300 font-medium">{h.email}</span>
+                            <span className="text-slate-300 hidden sm:inline">·</span>
+                            <span className="hidden sm:inline text-slate-700 font-medium">{h.email}</span>
                           </>
                         )}
                       </div>
@@ -216,10 +216,10 @@ export default function Heirs() {
                   <div className="flex items-center gap-3 shrink-0">
                     {h.share > 0 && (
                       <div className="text-right">
-                        <div className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">
+                        <div className="text-sm font-semibold text-slate-900 tabular-nums">
                           {h.share}%
                         </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-semibold">
+                        <div className="text-[10px] text-slate-500 uppercase font-mono font-semibold">
                           share
                         </div>
                       </div>
@@ -227,7 +227,7 @@ export default function Heirs() {
                     <button
                       type="button"
                       onClick={() => remove(h.id)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:text-slate-400 dark:hover:text-rose-400 dark:hover:bg-rose-950/30 transition cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                       aria-label={`Remove ${h.name}`}
                       title={`Remove ${h.name}`}
                     >
@@ -241,12 +241,12 @@ export default function Heirs() {
 
           {/* STEP 6 — Succession Simulation Banner */}
           {heirs.length > 0 && (
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 text-xs shadow-sm">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 text-xs shadow-sm">
               <div className="space-y-0.5">
-                <div className="text-xs font-semibold text-slate-900 dark:text-white">
+                <div className="text-xs font-semibold text-slate-900">
                   Ready to simulate estate transfer?
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">
+                <div className="text-xs text-slate-500">
                   Test how the Civil Registration System (CRS) flow notifies registered heirs ({heirs.length} registered).
                 </div>
               </div>
@@ -281,10 +281,10 @@ export default function Heirs() {
         </div>
 
         {/* Right Column: STEP 5 — Add an Heir Form */}
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-            <UserPlus className="h-4 w-4 text-brand-700 dark:text-brand-400" />
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 space-y-4 shadow-sm">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <UserPlus className="h-4 w-4 text-brand-700" />
+            <h2 className="text-sm font-semibold text-slate-900">
               Add an heir
             </h2>
           </div>

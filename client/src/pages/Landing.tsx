@@ -219,7 +219,7 @@ export default function Landing() {
               <span className="size-2 rounded-full bg-[#f59a73] shadow-[0_0_10px_2px_rgba(214,69,17,.7)]" />
               ₹94,000+ crore of Indian families' money sits unclaimed
             </span>
-            <h1 className="mt-6 max-w-5xl bg-gradient-to-br from-white to-slate-400 bg-clip-text pb-2 text-4xl font-extrabold leading-[1.05] tracking-tight text-transparent sm:text-6xl lg:text-7xl dark:from-[#ffffff] dark:to-[#94a3b8]">
+            <h1 className="mt-6 max-w-5xl bg-gradient-to-br from-white to-slate-400 bg-clip-text pb-2 text-4xl font-extrabold leading-[1.05] tracking-tight text-transparent sm:text-6xl lg:text-7xl">
               Every rupee mapped, <span className="bg-gradient-to-r from-[#f59a73] to-white bg-clip-text text-transparent">and found</span> by your family.
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">

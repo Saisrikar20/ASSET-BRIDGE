@@ -26,7 +26,7 @@ export function Logo({ light = false, size = 'md', tagline = size === 'lg', onCl
       <LogoMark onDark={light} className={cx('shrink-0', lg ? 'h-9 w-9' : 'h-6 w-6')} />
       <div className="leading-none">
         <div className={cx('font-sans font-bold whitespace-nowrap', lg ? 'text-xl tracking-tight' : 'text-sm tracking-tight', light ? 'text-white' : 'text-[#17232E]')}>ASSET BRIDGE</div>
-        {tagline && <div className={cx('mt-0.5 font-mono font-semibold whitespace-nowrap uppercase', lg ? 'text-[9.5px] tracking-[0.22em]' : 'text-[7.5px] tracking-[0.18em]', light ? 'text-sky-300' : 'text-[#71808C] dark:text-slate-400')}>RECOVERING FAMILY LEGACY</div>}
+        {tagline && <div className={cx('mt-0.5 font-mono font-semibold whitespace-nowrap uppercase', lg ? 'text-[9.5px] tracking-[0.22em]' : 'text-[7.5px] tracking-[0.18em]', light ? 'text-sky-300' : 'text-[#71808C]')}>RECOVERING FAMILY LEGACY</div>}
       </div>
     </Link>
   );
@@ -224,17 +224,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div className="fixed bottom-5 right-5 z-[100] flex w-88 max-w-[calc(100vw-2.5rem)] flex-col gap-2.5 pointer-events-none" aria-live="polite">
         {toasts.map((t) => {
           const variantStyles = {
-            success: 'border-emerald-200/80 bg-surface dark:border-emerald-800/60 shadow-emerald-950/5',
-            warning: 'border-amber-200/80 bg-surface dark:border-amber-800/60 shadow-amber-950/5',
-            error: 'border-rose-200/80 bg-surface dark:border-rose-800/60 shadow-rose-950/5',
-            info: 'border-brand-200/80 bg-surface dark:border-brand-800/60 shadow-brand-950/5',
+            success: 'border-emerald-200/80 bg-surface shadow-emerald-950/5',
+            warning: 'border-amber-200/80 bg-surface shadow-amber-950/5',
+            error: 'border-rose-200/80 bg-surface shadow-rose-950/5',
+            info: 'border-brand-200/80 bg-surface shadow-brand-950/5',
           }[t.variant || 'info'];
 
           const icon = {
-            success: <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />,
-            warning: <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />,
-            error: <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />,
-            info: <Info className="h-4 w-4 shrink-0 text-brand-600 dark:text-brand-400" />,
+            success: <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />,
+            warning: <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />,
+            error: <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />,
+            info: <Info className="h-4 w-4 shrink-0 text-brand-600" />,
           }[t.variant || 'info'];
 
           return (
@@ -249,14 +249,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <div className="mt-0.5">{icon}</div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold text-[#17232E] leading-snug">{t.title}</div>
-                {t.detail && <div className="mt-0.5 text-xs text-[#71808C] dark:text-slate-300 leading-relaxed break-words">{t.detail}</div>}
+                {t.detail && <div className="mt-0.5 text-xs text-[#71808C] leading-relaxed break-words">{t.detail}</div>}
                 {t.action && (
                   <button
                     onClick={() => {
                       t.action?.onClick();
                       dismiss(t.id);
                     }}
-                    className="mt-2 inline-flex items-center text-xs font-bold text-[#55C6B0] dark:text-brand-400 hover:underline cursor-pointer"
+                    className="mt-2 inline-flex items-center text-xs font-bold text-[#55C6B0] hover:underline cursor-pointer"
                   >
                     {t.action.label} â†’
                   </button>
@@ -264,7 +264,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               </div>
               <button
                 onClick={() => dismiss(t.id)}
-                className="shrink-0 rounded-md p-1 text-slate-400 hover:text-[#17232E] dark:hover:text-slate-200 cursor-pointer"
+                className="shrink-0 rounded-md p-1 text-slate-400 hover:text-[#17232E] cursor-pointer"
                 aria-label="Close notification"
               >
                 <X className="h-3.5 w-3.5" />

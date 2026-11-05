@@ -98,32 +98,32 @@ export default function TransmissionsDrawer({
       <div className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity" onClick={onClose} />
 
       <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
-        <div className="w-screen max-w-md border-l border-slate-200 dark:border-slate-800 bg-surface shadow-2xl flex flex-col">
+        <div className="w-screen max-w-md border-l border-slate-200 bg-surface shadow-2xl flex flex-col">
           {/* Drawer Header */}
-          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 px-5 py-4">
+          <div className="flex items-center justify-between border-b border-slate-200/80 px-5 py-4">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
                 <Inbox className="h-4 w-4" />
               </div>
               <div>
-                <h2 id="outbox-drawer-title" className="text-sm font-bold text-slate-900 dark:text-white">
+                <h2 id="outbox-drawer-title" className="text-sm font-bold text-slate-900">
                   Transmission History
                 </h2>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-[11px] text-slate-500">
                   {caseId ? `Audit trail for Case ${caseId}` : 'All dispatched claiming dossiers'}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
           {/* Action Bar */}
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/60 dark:bg-slate-900/40 px-5 py-2 text-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/60 px-5 py-2 text-xs">
             <span className="font-medium text-slate-500">
               {history.length} {history.length === 1 ? 'dispatch' : 'dispatches'} recorded
             </span>
@@ -131,7 +131,7 @@ export default function TransmissionsDrawer({
               <button
                 onClick={loadHistory}
                 disabled={loading}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
               >
                 <RotateCcw className={cx('h-3 w-3', loading && 'animate-spin')} />
                 Refresh
@@ -142,7 +142,7 @@ export default function TransmissionsDrawer({
                     onClose();
                     onOpenEmailModal();
                   }}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-700 dark:text-brand-400 hover:underline cursor-pointer"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-700 hover:underline cursor-pointer"
                 >
                   <Mail className="h-3 w-3" />
                   New Dispatch
@@ -156,14 +156,14 @@ export default function TransmissionsDrawer({
             {loading && history.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-400">Loading transmission audit log…</div>
             ) : history.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center space-y-2.5">
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">
+              <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center space-y-2.5">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
                   <Mail className="h-5 w-5" />
                 </div>
-                <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                <div className="text-xs font-semibold text-slate-800">
                   No transmissions sent yet
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
                   When you email the statutory claiming packet to banks, EPFO, or legal heirs, the cryptographically verified transmission log and tracking IDs appear here.
                 </p>
                 {onOpenEmailModal && (
@@ -186,20 +186,20 @@ export default function TransmissionsDrawer({
                 return (
                   <div
                     key={record.id}
-                    className="rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs space-y-3"
+                    className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs space-y-3"
                   >
                     {/* Header Row */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-xs text-slate-900 dark:text-white">
+                          <span className="font-bold text-xs text-slate-900">
                             {record.recipientName || 'Statutory Recipient'}
                           </span>
                           <Badge tone={record.isMock ? 'amber' : 'green'}>
                             {record.isMock ? 'Local Outbox Mock' : 'SMTP Active'}
                           </Badge>
                         </div>
-                        <div className="font-mono text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[240px]">
+                        <div className="font-mono text-[11px] text-slate-500 truncate max-w-[240px]">
                           {record.toEmail}
                         </div>
                       </div>
@@ -215,8 +215,8 @@ export default function TransmissionsDrawer({
                     </div>
 
                     {/* Subject & Attached File */}
-                    <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-2.5 text-xs space-y-1">
-                      <div className="text-slate-700 dark:text-slate-300 font-medium truncate">
+                    <div className="rounded-lg bg-slate-50 p-2.5 text-xs space-y-1">
+                      <div className="text-slate-700 font-medium truncate">
                         {record.subject}
                       </div>
                       <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono">
@@ -226,13 +226,13 @@ export default function TransmissionsDrawer({
                     </div>
 
                     {/* Tracking ID & Action Row */}
-                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
                       <div className="flex items-center gap-1 font-mono text-[10px] text-slate-500">
                         <span className="text-slate-400">REF:</span>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">{record.id}</span>
+                        <span className="font-semibold text-slate-700">{record.id}</span>
                         <button
                           onClick={() => handleCopy(record.id)}
-                          className="ml-1 p-0.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+                          className="ml-1 p-0.5 text-slate-400 hover:text-slate-700 cursor-pointer"
                           title="Copy tracking ID"
                         >
                           {isCopied ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
@@ -243,7 +243,7 @@ export default function TransmissionsDrawer({
                         <button
                           onClick={() => handleInspect(record)}
                           disabled={inspecting}
-                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:text-brand-600 cursor-pointer"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-brand-600 cursor-pointer"
                         >
                           <ExternalLink className="h-3 w-3" />
                           Inspect MIME
@@ -254,7 +254,7 @@ export default function TransmissionsDrawer({
                               onClose();
                               onOpenEmailModal();
                             }}
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-700 dark:text-brand-400 hover:underline cursor-pointer"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-700 hover:underline cursor-pointer"
                           >
                             <RotateCcw className="h-3 w-3" />
                             Re-send
@@ -269,14 +269,14 @@ export default function TransmissionsDrawer({
           </div>
 
           {/* Drawer Footer */}
-          <div className="border-t border-slate-200/80 dark:border-slate-800 bg-surface p-4 text-xs text-slate-500 flex items-center justify-between">
+          <div className="border-t border-slate-200/80 bg-surface p-4 text-xs text-slate-500 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
               RFC 5322 & Section 65B Audit Compliant
             </span>
             <button
               onClick={onClose}
-              className="font-semibold text-slate-700 dark:text-slate-300 hover:underline cursor-pointer"
+              className="font-semibold text-slate-700 hover:underline cursor-pointer"
             >
               Done
             </button>
@@ -287,15 +287,15 @@ export default function TransmissionsDrawer({
       {/* Raw MIME Inspector Modal */}
       {inspectEml && (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface p-5 shadow-2xl flex flex-col max-h-[85vh]">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-surface p-5 shadow-2xl flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Raw RFC 822 MIME Inspector</h3>
+                <h3 className="text-sm font-bold text-slate-900">Raw RFC 822 MIME Inspector</h3>
                 <p className="font-mono text-xs text-slate-500">{inspectEml.filename}</p>
               </div>
               <button
                 onClick={() => setInspectEml(null)}
-                className="rounded-lg p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+                className="rounded-lg p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>

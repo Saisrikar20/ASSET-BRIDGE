@@ -267,19 +267,19 @@ export default function CaseBody({
 
       <div className="space-y-6">
         {/* STEP 2 & 3 — Estate Overview & Claim Progress */}
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 space-y-4 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-100">
             <div className="space-y-1">
-              <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase flex items-center gap-2">
+              <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-500 uppercase flex items-center gap-2">
                 <span>ESTATE CLAIM WORKSPACE</span>
                 <span>·</span>
-                <span className="text-slate-600 dark:text-slate-300 font-mono">
+                <span className="text-slate-600 font-mono">
                   {c.id}
                 </span>
                 <button
                   type="button"
                   onClick={copyRef}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer"
+                  className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
                   title="Copy Case ID"
                 >
                   {copiedRef ? (
@@ -289,10 +289,10 @@ export default function CaseBody({
                   )}
                 </button>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                 Estate of {c.deceasedName}
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-2 flex-wrap">
+              <p className="text-xs text-slate-500 font-mono flex items-center gap-2 flex-wrap">
                 <span>Died: {date(c.deceased.dateOfDeath)}</span>
                 <span>·</span>
                 <span>CRS Reg: {c.deceased.registrationNo}</span>
@@ -311,7 +311,7 @@ export default function CaseBody({
                 className="gap-1.5 text-xs py-2"
                 title="Index statutory claim dossier into SQLite Document Vault for AI guidance"
               >
-                <Sparkles className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                <Sparkles className="h-3.5 w-3.5 text-brand-600" />
                 <span>{vaultFeedback || 'Index in AI Vault'}</span>
               </Button>
               <Button
@@ -330,7 +330,7 @@ export default function CaseBody({
                 className="gap-1.5 text-xs py-2 cursor-pointer"
                 title="Inspect transmission outbox audit log and tracking IDs"
               >
-                <Mail className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
+                <Mail className="h-3.5 w-3.5 text-slate-600" />
                 <span>Transmissions</span>
               </Button>
               <Button
@@ -340,7 +340,7 @@ export default function CaseBody({
                 className="gap-1.5 text-xs py-2 cursor-pointer"
                 title="Interactive pre-fill wizard for claimant IFSC, branch and employer codes"
               >
-                <FileText className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                <FileText className="h-3.5 w-3.5 text-indigo-600" />
                 <span>Pre-Fill Wizard</span>
               </Button>
               <Button
@@ -350,7 +350,7 @@ export default function CaseBody({
                 className="gap-1.5 text-xs py-2 cursor-pointer"
                 title="Print hardcopy packet optimized for bank branch submission"
               >
-                <Printer className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
+                <Printer className="h-3.5 w-3.5 text-slate-600" />
                 <span>Print Hardcopy</span>
               </Button>
               <Button
@@ -360,7 +360,7 @@ export default function CaseBody({
                 className="gap-1.5 text-xs py-2"
                 title="Send official statutory claim dossier with PDF attachment via email"
               >
-                <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                <Mail className="h-3.5 w-3.5 text-brand-600" />
                 <span>Email Dossier</span>
               </Button>
               <Button
@@ -381,10 +381,10 @@ export default function CaseBody({
           {/* Metrics & Progress Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-1">
             <div>
-              <div className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
+              <div className="text-[10px] font-mono uppercase font-semibold text-slate-500">
                 Estate Total
               </div>
-              <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-white mt-0.5 tabular-nums">
+              <div className="text-lg font-bold tracking-tight text-slate-900 mt-0.5 tabular-nums">
                 {inr(total)}
               </div>
               <div className="text-[11px] text-slate-500 font-mono">
@@ -393,20 +393,20 @@ export default function CaseBody({
             </div>
 
             <div>
-              <div className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
+              <div className="text-[10px] font-mono uppercase font-semibold text-slate-500">
                 Total Holdings
               </div>
-              <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-white mt-0.5 tabular-nums">
+              <div className="text-lg font-bold tracking-tight text-slate-900 mt-0.5 tabular-nums">
                 {c.holdings.length}
               </div>
               <div className="text-[11px] text-slate-500">Across 7 regulators</div>
             </div>
 
             <div>
-              <div className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
+              <div className="text-[10px] font-mono uppercase font-semibold text-slate-500">
                 Registered Heirs
               </div>
-              <div className="text-lg font-bold tracking-tight text-slate-900 dark:text-white mt-0.5 tabular-nums">
+              <div className="text-lg font-bold tracking-tight text-slate-900 mt-0.5 tabular-nums">
                 {c.heirs.length}
               </div>
               <div
@@ -419,10 +419,10 @@ export default function CaseBody({
 
             <div>
               <div className="flex justify-between items-baseline mb-1">
-                <span className="text-[10px] font-mono uppercase font-semibold text-slate-500 dark:text-slate-400">
+                <span className="text-[10px] font-mono uppercase font-semibold text-slate-500">
                   Claim Progress
                 </span>
-                <span className="text-xs font-semibold text-slate-900 dark:text-white tabular-nums">
+                <span className="text-xs font-semibold text-slate-900 tabular-nums">
                   {done}/{c.tasks.length} ({pct}%)
                 </span>
               </div>
@@ -436,13 +436,13 @@ export default function CaseBody({
 
         {/* Statutory Name Discrepancy Advisory Banner */}
         {nameDiscrepancy && (
-          <div className="flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/30 p-4 text-amber-900 dark:text-amber-200 text-xs shadow-sm">
+          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-amber-900 text-xs shadow-sm">
             <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
             <div className="space-y-0.5">
               <div className="font-semibold text-xs">
                 Statutory Advisory: Minor Name Variation Detected
               </div>
-              <p className="text-amber-800 dark:text-amber-300 leading-relaxed text-[11px]">
+              <p className="text-amber-800 leading-relaxed text-[11px]">
                 Registered name on {nameDiscrepancy.institution} is "{nameDiscrepancy.registeredName}" while PAN records "{c.deceasedName}". An Annexure-I Indemnity Bond and Notarized Name Affidavit are pre-appended to your Claim Dossier.
               </p>
             </div>
@@ -451,11 +451,11 @@ export default function CaseBody({
 
         {/* Duplicate Warning or Upload Errors */}
         {duplicateWarning && (
-          <div className="flex items-center justify-between rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/30 p-3 text-xs text-rose-800 dark:text-rose-200">
+          <div className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50/70 p-3 text-xs text-rose-800">
             <span className="font-medium">{duplicateWarning}</span>
             <button
               onClick={() => setDuplicateWarning(null)}
-              className="text-rose-600 hover:text-rose-800 dark:text-rose-400 font-bold ml-2 cursor-pointer"
+              className="text-rose-600 hover:text-rose-800 font-bold ml-2 cursor-pointer"
             >
               Dismiss
             </button>
@@ -470,10 +470,10 @@ export default function CaseBody({
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Step 1: Statutory Prerequisites
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-slate-500">
                     Core state civil documentation required before institutional asset release.
                   </p>
                 </div>
@@ -492,10 +492,10 @@ export default function CaseBody({
                   return (
                     <div
                       key={t.id}
-                      className="border border-slate-200/80 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
+                      className="border border-slate-200/80 rounded-xl bg-white overflow-hidden shadow-sm"
                     >
                       {/* Collapsed Header */}
-                      <div className="p-3.5 sm:p-4 flex items-start justify-between gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                      <div className="p-3.5 sm:p-4 flex items-start justify-between gap-3 hover:bg-slate-50/60 transition-colors">
                         <div className="flex items-start gap-3 min-w-0 flex-1">
                           <button
                             type="button"
@@ -509,7 +509,7 @@ export default function CaseBody({
                             ) : (
                               <Circle
                                 className={cx(
-                                  'h-5 w-5 text-slate-300 dark:text-slate-600 hover:text-brand-600',
+                                  'h-5 w-5 text-slate-300 hover:text-brand-600',
                                   pending === t.id && 'animate-pulse'
                                 )}
                               />
@@ -530,7 +530,7 @@ export default function CaseBody({
                                   'font-semibold text-sm',
                                   t.done
                                     ? 'text-slate-400 line-through'
-                                    : 'text-slate-900 dark:text-white'
+                                    : 'text-slate-900'
                                 )}
                               >
                                 {t.title}
@@ -543,7 +543,7 @@ export default function CaseBody({
                                 </span>
                               ) : null}
                             </div>
-                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                            <p className="mt-0.5 text-xs text-slate-500">
                               {t.detail}
                             </p>
                           </div>
@@ -557,7 +557,7 @@ export default function CaseBody({
                               [t.id]: !prev[t.id],
                             }))
                           }
-                          className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer shrink-0"
+                          className="p-1 rounded-lg text-slate-400 hover:text-slate-700 transition cursor-pointer shrink-0"
                           aria-label={isExpanded ? 'Collapse task' : 'Expand task'}
                         >
                           {isExpanded ? (
@@ -570,7 +570,7 @@ export default function CaseBody({
 
                       {/* Expanded Details */}
                       {isExpanded && (
-                        <div className="px-4 pb-4 pt-1 border-t border-slate-100 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-900/60 space-y-3 text-xs">
+                        <div className="px-4 pb-4 pt-1 border-t border-slate-100 bg-slate-50/40 space-y-3 text-xs">
                           {t.docs.length > 0 && (
                             <div className="space-y-1.5 pt-2">
                               <div className="flex items-center justify-between pb-1">
@@ -578,7 +578,7 @@ export default function CaseBody({
                                 <button
                                   type="button"
                                   onClick={() => setDropzoneForTask(dropzoneForTask === t.id ? null : t.id)}
-                                  className="text-[11px] font-semibold text-brand-700 dark:text-brand-400 hover:underline cursor-pointer"
+                                  className="text-[11px] font-semibold text-brand-700 hover:underline cursor-pointer"
                                 >
                                   {dropzoneForTask === t.id ? 'Hide Dropzone' : 'Drag & Drop Zone'}
                                 </button>
@@ -611,14 +611,14 @@ export default function CaseBody({
                                   return (
                                     <div
                                       key={d}
-                                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs"
+                                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs"
                                     >
                                       <FileText className="h-3.5 w-3.5 text-slate-400" />
-                                      <span className="font-medium text-slate-700 dark:text-slate-300">
+                                      <span className="font-medium text-slate-700">
                                         {d}
                                       </span>
                                       {uploaded ? (
-                                        <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold ml-1">
+                                        <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold ml-1">
                                           <ShieldCheck className="h-3 w-3 text-emerald-600" />
                                           <span>
                                             {(uploaded.fileSize / 1024).toFixed(0)}KB
@@ -642,7 +642,7 @@ export default function CaseBody({
                                             });
                                             fileInputRef.current?.click();
                                           }}
-                                          className="inline-flex items-center gap-1 text-brand-700 dark:text-brand-400 hover:underline font-semibold ml-1 cursor-pointer"
+                                          className="inline-flex items-center gap-1 text-brand-700 hover:underline font-semibold ml-1 cursor-pointer"
                                         >
                                           <Upload className="h-3 w-3" />
                                           Attach
@@ -667,7 +667,7 @@ export default function CaseBody({
                                     href={portal.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-700 dark:text-brand-400 hover:underline ml-1"
+                                    className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-700 hover:underline ml-1"
                                     title={`Launch official ${portal.name} portal`}
                                   >
                                     <span>· Launch {portal.name}</span>
@@ -685,7 +685,7 @@ export default function CaseBody({
                                   })
                                 );
                               }}
-                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-700 dark:text-brand-400 hover:underline cursor-pointer"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-700 hover:underline cursor-pointer"
                             >
                               <BookOpen className="h-3.5 w-3.5" />
                               <span>Ask AI Guide</span>
@@ -703,10 +703,10 @@ export default function CaseBody({
             <div className="space-y-3 pt-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div>
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Step 2: Holdings & Individual Claims ({filteredHoldings.length})
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-slate-500">
                     Individual transmission workflows based on nominee status and asset class.
                   </p>
                 </div>
@@ -719,8 +719,8 @@ export default function CaseBody({
                     className={cx(
                       'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
                       filterReg === 'all'
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                     )}
                   >
                     All ({c.holdings.length})
@@ -735,8 +735,8 @@ export default function CaseBody({
                         className={cx(
                           'px-2 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer',
                           filterReg === r
-                            ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                            ? 'bg-slate-900 text-white shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                         )}
                       >
                         <span>{r}</span>
@@ -754,7 +754,7 @@ export default function CaseBody({
               {/* Collapsed/Expandable Holdings List */}
               <div className="space-y-2">
                 {filteredHoldings.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-slate-500 border border-dashed rounded-xl bg-white dark:bg-slate-900">
+                  <div className="p-8 text-center text-xs text-slate-500 border border-dashed rounded-xl bg-white">
                     No holdings match regulator filter "{filterReg}".
                     <div className="mt-2">
                       <button
@@ -788,7 +788,7 @@ export default function CaseBody({
                     return (
                       <div
                         key={h.id}
-                        className="border border-slate-200/80 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
+                        className="border border-slate-200/80 rounded-xl bg-white overflow-hidden shadow-sm"
                       >
                         {/* Collapsed Holding Row */}
                         <div
@@ -798,12 +798,12 @@ export default function CaseBody({
                               [h.id]: !prev[h.id],
                             }))
                           }
-                          className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                          className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors cursor-pointer"
                         >
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <RegChip code={h.regulator} />
-                              <span className="font-semibold text-sm text-slate-900 dark:text-white">
+                              <span className="font-semibold text-sm text-slate-900">
                                 {h.type}
                               </span>
                               <span className="text-xs text-slate-500 font-mono">
@@ -834,9 +834,9 @@ export default function CaseBody({
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60">
+                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                             <div className="text-right">
-                              <div className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
+                              <div className="text-sm font-semibold tracking-tight text-slate-900 tabular-nums">
                                 {inr(h.value)}
                               </div>
                               <div className="text-[10px] uppercase font-mono text-slate-400">
@@ -845,7 +845,7 @@ export default function CaseBody({
                             </div>
                             <button
                               type="button"
-                              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition"
+                              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 transition"
                               aria-label={isExpanded ? 'Collapse holding' : 'Expand holding'}
                             >
                               {isExpanded ? (
@@ -859,8 +859,8 @@ export default function CaseBody({
 
                         {/* Expanded Details: Claim Checklist */}
                         {isExpanded && (
-                          <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/60 space-y-3 text-xs">
-                            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 pb-1 border-b border-slate-200/60 dark:border-slate-800">
+                          <div className="p-4 border-t border-slate-100 bg-slate-50/40 space-y-3 text-xs">
+                            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 pb-1 border-b border-slate-200/60">
                               Holding Transmission & Claim Checklist
                             </div>
 
@@ -880,7 +880,7 @@ export default function CaseBody({
                                 return (
                                   <div
                                     key={t.id}
-                                    className="p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/50 space-y-2"
+                                    className="p-3 rounded-lg border border-slate-200/80 bg-white space-y-2"
                                   >
                                     <div className="flex items-start gap-3">
                                       <button
@@ -897,7 +897,7 @@ export default function CaseBody({
                                         ) : (
                                           <Circle
                                             className={cx(
-                                              'h-4 w-4 text-slate-300 dark:text-slate-600 hover:text-brand-600',
+                                              'h-4 w-4 text-slate-300 hover:text-brand-600',
                                               pending === t.id && 'animate-pulse'
                                             )}
                                           />
@@ -909,12 +909,12 @@ export default function CaseBody({
                                             'font-semibold text-xs',
                                             t.done
                                               ? 'text-slate-400 line-through'
-                                              : 'text-slate-900 dark:text-white'
+                                              : 'text-slate-900'
                                           )}
                                         >
                                           {t.title}
                                         </div>
-                                        <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                                        <p className="mt-0.5 text-[11px] text-slate-500">
                                           {t.detail}
                                         </p>
                                       </div>
@@ -933,14 +933,14 @@ export default function CaseBody({
                                             return (
                                               <div
                                                 key={d}
-                                                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-2 py-0.5 text-[11px]"
+                                                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px]"
                                               >
                                                 <FileText className="h-3 w-3 text-slate-400" />
-                                                <span className="font-medium text-slate-700 dark:text-slate-300">
+                                                <span className="font-medium text-slate-700">
                                                   {d}
                                                 </span>
                                                 {uploaded ? (
-                                                  <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold ml-1">
+                                                  <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold ml-1">
                                                     <ShieldCheck className="h-3 w-3 text-emerald-600" />
                                                     <span>
                                                       {(
@@ -969,7 +969,7 @@ export default function CaseBody({
                                                       });
                                                       fileInputRef.current?.click();
                                                     }}
-                                                    className="inline-flex items-center gap-1 text-brand-700 dark:text-brand-400 hover:underline font-semibold ml-1 cursor-pointer"
+                                                    className="inline-flex items-center gap-1 text-brand-700 hover:underline font-semibold ml-1 cursor-pointer"
                                                   >
                                                     <Upload className="h-3 w-3" />
                                                     Attach
@@ -982,7 +982,7 @@ export default function CaseBody({
                                       </div>
                                     )}
 
-                                    <div className="pl-7 flex items-center justify-between gap-2 pt-1 text-[11px] text-slate-400 border-t border-slate-100 dark:border-slate-800">
+                                    <div className="pl-7 flex items-center justify-between gap-2 pt-1 text-[11px] text-slate-400 border-t border-slate-100">
                                       <div className="flex items-center gap-1">
                                         <Landmark className="h-3 w-3" />
                                         <span>Authority: {t.authority}</span>
@@ -996,7 +996,7 @@ export default function CaseBody({
                                             })
                                           );
                                         }}
-                                        className="inline-flex items-center gap-1 font-semibold text-brand-700 dark:text-brand-400 hover:underline cursor-pointer"
+                                        className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline cursor-pointer"
                                       >
                                         <BookOpen className="h-3 w-3" />
                                         <span>Ask AI Guide</span>
@@ -1020,16 +1020,16 @@ export default function CaseBody({
           <div className="space-y-6">
             {/* STEP 7 — AI Succession Navigator */}
             <div className="space-y-2">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 AI Succession Navigator
               </div>
               <GuideChat state={c.state} caseId={c.id} compact />
             </div>
 
             {/* STEP 8 — Registered Heirs */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3 shadow-sm">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-xs font-semibold text-slate-900 dark:text-white">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-4 space-y-3 shadow-sm">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="text-xs font-semibold text-slate-900">
                   Registered Heirs
                 </span>
                 <span className="text-[11px] font-mono text-slate-400">
@@ -1040,10 +1040,10 @@ export default function CaseBody({
                 {c.heirs.map((h) => (
                   <div
                     key={h.id}
-                    className="flex justify-between items-center py-1 border-b border-slate-50 dark:border-slate-800/60 last:border-0"
+                    className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0"
                   >
                     <div>
-                      <div className="font-semibold text-slate-800 dark:text-slate-200">
+                      <div className="font-semibold text-slate-800">
                         {h.name}
                       </div>
                       <div className="text-[11px] text-slate-400 font-mono">
@@ -1054,7 +1054,7 @@ export default function CaseBody({
                       <span className="text-[11px] text-slate-500 font-medium">
                         {h.relation}
                       </span>
-                      <div className="text-xs text-brand-700 dark:text-brand-400 font-semibold tabular-nums">
+                      <div className="text-xs text-brand-700 font-semibold tabular-nums">
                         {h.share}% share
                       </div>
                     </div>
@@ -1069,15 +1069,15 @@ export default function CaseBody({
             </div>
 
             {/* STEP 9 — Succession Timeline */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3 shadow-sm">
-              <div className="pb-2 border-b border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-900 dark:text-white">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-4 space-y-3 shadow-sm">
+              <div className="pb-2 border-b border-slate-100 text-xs font-semibold text-slate-900">
                 Succession Timeline
               </div>
-              <ol className="space-y-3 border-l border-slate-200 dark:border-slate-800 pl-3.5 text-xs">
+              <ol className="space-y-3 border-l border-slate-200 pl-3.5 text-xs">
                 {[...c.timeline].reverse().map((e, i) => (
                   <li key={i} className="relative">
                     <span className="absolute -left-[19px] top-1.5 h-1.5 w-1.5 rounded-full bg-brand-600" />
-                    <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-[11px]">
+                    <div className="text-slate-700 leading-relaxed text-[11px]">
                       {e.text}
                     </div>
                     <div className="text-[10px] text-slate-400 mt-0.5 font-mono">

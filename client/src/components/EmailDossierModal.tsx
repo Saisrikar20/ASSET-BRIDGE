@@ -129,18 +129,18 @@ export default function EmailDossierModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-2xl border border-slate-200 dark:border-slate-800">
+      <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 text-slate-900 shadow-2xl border border-slate-200">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
+        <div className="flex items-start justify-between border-b border-slate-100 pb-3 mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="rounded-lg bg-brand-50 dark:bg-brand-950/60 p-2 text-brand-700 dark:text-brand-300">
+            <div className="rounded-lg bg-brand-50 p-2 text-brand-700">
               <Mail className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              <h3 className="text-base font-bold text-slate-900">
                 {title}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500">
                 {subtitle || (caseId ? `Case Reference: ${caseId} · Statutory Claiming Dossier Dispatch` : 'Statutory Claiming Dossier Dispatch · Statutory PDF Attached')}
               </p>
             </div>
@@ -148,7 +148,7 @@ export default function EmailDossierModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -158,7 +158,7 @@ export default function EmailDossierModal({
           {/* Quick Select from Registered Heirs (if provided) */}
           {heirs && heirs.length > 0 && (
             <div>
-              <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                 Quick Select Registered Heir / Claimant
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -177,11 +177,11 @@ export default function EmailDossierModal({
                     className={cx(
                       "rounded-md border px-2.5 py-1 text-xs font-medium transition cursor-pointer flex items-center gap-1",
                       toEmail === h.email
-                        ? "border-brand-500 bg-brand-50 text-brand-700 dark:border-brand-400 dark:bg-brand-950/40 dark:text-brand-300 font-semibold"
-                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        ? "border-brand-500 bg-brand-50 text-brand-700 font-semibold"
+                        : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
                     )}
                   >
-                    {toEmail === h.email && <Check className="h-3 w-3 text-brand-600 dark:text-brand-400" />}
+                    {toEmail === h.email && <Check className="h-3 w-3 text-brand-600" />}
                     <span>{h.name} ({h.relation})</span>
                   </button>
                 ))}
@@ -192,11 +192,11 @@ export default function EmailDossierModal({
           {/* Email Input Field with Validation */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-medium text-slate-700">
                 Recipient Email Address <span className="text-rose-500">*</span>
               </label>
               {touched && isEmailValid && (
-                <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" /> Valid email
                 </span>
               )}
@@ -214,15 +214,15 @@ export default function EmailDossierModal({
                 }}
                 onBlur={() => setTouched(true)}
                 className={cx(
-                  "w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none transition-colors",
+                  "w-full rounded-lg border px-3 py-2 text-sm bg-white text-slate-900 placeholder-slate-400 focus:outline-none transition-colors",
                   validationMessage
-                    ? "border-rose-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20"
-                    : "border-slate-200 dark:border-slate-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                    ? "border-rose-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
+                    : "border-slate-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                 )}
               />
             </div>
             {validationMessage && (
-              <p className="mt-1.5 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1 animate-in fade-in duration-100">
+              <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1 animate-in fade-in duration-100">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 <span>{validationMessage}</span>
               </p>
@@ -232,7 +232,7 @@ export default function EmailDossierModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Recipient Name Field */}
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Recipient Name (Optional)
               </label>
               <input
@@ -240,13 +240,13 @@ export default function EmailDossierModal({
                 placeholder="e.g. Meenakshi Sundaram"
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </div>
 
             {/* Recipient Mobile Phone (Optional Twilio SMS) */}
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1">
                 <Smartphone className="h-3.5 w-3.5 text-slate-400" />
                 <span>Twilio SMS Alert (Optional)</span>
               </label>
@@ -255,14 +255,14 @@ export default function EmailDossierModal({
                 placeholder="e.g. +91 98765 43210"
                 value={recipientPhone}
                 onChange={(e) => setRecipientPhone(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </div>
           </div>
 
           {/* Optional Message Notes */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Personal Message / Filing Instructions (Optional)
             </label>
             <textarea
@@ -270,35 +270,35 @@ export default function EmailDossierModal({
               placeholder="Add filing instructions or notes for the legal heir, bank nodal officer, or advocate..."
               value={customNote}
               onChange={(e) => setCustomNote(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
           </div>
 
           {/* Mock Mode Notice and Direct EML Downloader */}
           {dispatchResult && dispatchResult.isMock && (
-            <div className="rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-4 space-y-2.5 text-xs text-amber-900 dark:text-amber-200 animate-in fade-in duration-150">
+            <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 space-y-2.5 text-xs text-amber-900 animate-in fade-in duration-150">
               <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-semibold text-amber-950 dark:text-amber-100">
+                  <div className="font-semibold text-amber-950">
                     Twilio SendGrid Mock Mode Active (Local Outbox Delivery)
                   </div>
-                  <p className="mt-1 text-amber-800 dark:text-amber-300 leading-relaxed">
-                    Twilio SendGrid API key is not yet configured in your <code className="font-mono bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded">.env</code> file (<code className="font-mono">TWILIO_SENDGRID_API_KEY</code>).
+                  <p className="mt-1 text-amber-800 leading-relaxed">
+                    Twilio SendGrid API key is not yet configured in your <code className="font-mono bg-amber-100 px-1 py-0.5 rounded">.env</code> file (<code className="font-mono">TWILIO_SENDGRID_API_KEY</code>).
                     To prevent loss of documents, the complete RFC 822 email packet with the attached statutory PDF was generated and stored in the local server outbox:
                   </p>
-                  <p className="mt-1 font-mono text-[11px] text-amber-700 dark:text-amber-400 break-all">
+                  <p className="mt-1 font-mono text-[11px] text-amber-700 break-all">
                     Tracking ID: {dispatchResult.trackingId}
                   </p>
                   {dispatchResult.warning && (
-                    <p className="mt-1 text-[11px] text-rose-700 dark:text-rose-400 font-medium">
+                    <p className="mt-1 text-[11px] text-rose-700 font-medium">
                       Note: {dispatchResult.warning}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-amber-200/60 dark:border-amber-800/60 flex items-center justify-between flex-wrap gap-2">
+              <div className="pt-2 border-t border-amber-200/60 flex items-center justify-between flex-wrap gap-2">
                 <a
                   href={`/api/reports/claiming-dossier/outbox/${dispatchResult.trackingId}`}
                   target="_blank"
@@ -309,7 +309,7 @@ export default function EmailDossierModal({
                   <Download className="h-3.5 w-3.5" />
                   <span>Download .EML Email Packet</span>
                 </a>
-                <span className="text-[11px] text-amber-700/80 dark:text-amber-400">
+                <span className="text-[11px] text-amber-700/80">
                   Can be opened in Outlook, Apple Mail, or Thunderbird
                 </span>
               </div>
@@ -318,14 +318,14 @@ export default function EmailDossierModal({
 
           {/* Live Dispatch Success Banner */}
           {dispatchResult && !dispatchResult.isMock && emailSuccess && (
-            <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 p-3 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2 animate-in fade-in duration-150">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800 flex items-start gap-2 animate-in fade-in duration-150">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
                 <div className="font-semibold">
                   {dispatchResult.provider === 'twilio_sendgrid' ? 'Live Email Dispatched via Twilio SendGrid' : 'Live Email Dispatched'}
                 </div>
                 <div className="mt-0.5">{emailSuccess}</div>
-                <div className="mt-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-400">
+                <div className="mt-1 font-mono text-[11px] text-emerald-700">
                   Please check your inbox (or spam folder) for the statutory packet.
                 </div>
               </div>
@@ -334,14 +334,14 @@ export default function EmailDossierModal({
 
           {/* Error Banner */}
           {emailError && (
-            <div className="rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 p-3 text-xs text-rose-800 dark:text-rose-300 flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+            <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
               <span>{emailError}</span>
             </div>
           )}
 
           {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
             <Button
               type="button"
               variant="secondary"

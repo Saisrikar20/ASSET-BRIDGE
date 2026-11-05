@@ -48,16 +48,16 @@
   --color-ink: #17232E;
   --color-ink-muted: #71808C;
 
-  /* Neutrals mapped to official tokens */
+  /* Neutrals mapped to official tokens with calibrated high contrast */
   --color-slate-50: #F5F3ED;
   --color-slate-100: #EAE6DC;
   --color-slate-200: #DDD7CA;
   --color-slate-300: #D5C5A1;
-  --color-slate-400: #9BA7B2;
-  --color-slate-500: #71808C;
-  --color-slate-600: #4B5A66;
-  --color-slate-700: #2C3B47;
-  --color-slate-800: #1C3041;
+  --color-slate-400: #71808C;
+  --color-slate-500: #566775;
+  --color-slate-600: #3A4C59;
+  --color-slate-700: #253644;
+  --color-slate-800: #17232E;
   --color-slate-900: #101D2B;
   --color-slate-950: #0B131C;
 
