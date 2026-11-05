@@ -382,7 +382,7 @@ async def create_consent(body: ConsentCreateBody, user: dict = Depends(get_curre
 
     now = datetime.datetime.now(datetime.timezone.utc)
 
-    expires = now + datetime.timedelta(days=body.months * 30)
+    expires = now + datetime.timedelta(days=(body.months or 12) * 30)
 
     
 
@@ -502,7 +502,7 @@ def get_holdings(user: dict = Depends(get_current_user)):
 
     total = sum(h.get("value", 0) for h in holdings if not h.get("isDuplicate"))
 
-    at_risk = sum(h.get("value", 0) for h in holdings if not h.get("isDuplicate") and (not h.get("nominee") or h.get("recordStatus") != "active" or (h.get("nominee") and h.get("nominee").get("status") != "valid")))
+    at_risk = sum(h.get("value", 0) for h in holdings if not h.get("isDuplicate") and (not h.get("nominee") or h.get("recordStatus") != "active" or (isinstance(h.get("nominee"), dict) and h.get("nominee", {}).get("status") != "valid")))
 
     
 
@@ -786,7 +786,7 @@ def get_cases(user: dict = Depends(get_current_user)):
 
     pan = (user.get("identity") or {}).get("pan")
 
-    cases = store.all("cases", lambda c: c.get("ownerId") == uid_val or (pan and any(h.get("pan") == pan for h in c.get("heirs", []))))
+    cases = store.all("cases", lambda c: bool(c.get("ownerId") == uid_val or (pan and any(h.get("pan") == pan for h in c.get("heirs", [])))))
 
     return {
 
@@ -1068,13 +1068,13 @@ def download_document(doc_id: str, user: dict = Depends(get_current_user)):
 
     from pathlib import Path
 
-    if not Path(file_path).exists():
+    if not Path(str(file_path)).exists():
 
         raise HTTPException(status_code=404, detail="Physical document file missing from disk")
 
         
 
-    return FileResponse(path=file_path, filename=doc.get("fileName"), media_type=doc.get("mimeType"))
+    return FileResponse(path=str(file_path), filename=doc.get("fileName"), media_type=doc.get("mimeType"))
 
 
 

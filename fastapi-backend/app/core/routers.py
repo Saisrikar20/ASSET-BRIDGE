@@ -160,6 +160,8 @@ def demo_login(persona: Optional[str] = None):
                     "nominee": {"name": "Meenakshi Sundaram", "relation": "Spouse", "status": "valid"}
                 })
 
+    if not user:
+        raise HTTPException(status_code=500, detail="Failed to initialize demo persona")
     return {"token": sign_token(user["id"]), "user": public_user(user)}
 
 @router.get("/me")
@@ -167,10 +169,10 @@ def get_me(user: dict = Depends(get_current_user)):
     return {"user": public_user(user)}
 
 @router.put("/me/avatar")
-def update_avatar(body: AvatarBody, user: dict = Depends(get_current_user)):
-    user = store.update("users", lambda u: u.get("id") == user["id"], {
+def update_avatar(body: AvatarBody, user_auth: dict = Depends(get_current_user)):
+    user = store.update("users", lambda u: u.get("id") == user_auth["id"], {
         "avatar": {"displayName": body.displayName.strip()[:32], "variant": body.variant, "seed": body.seed[:64]}
-    })
+    }) or user_auth
     return {"user": public_user(user)}
 
 @router.post("/demo/reset")
@@ -198,7 +200,7 @@ def api_seed_demo(body: SeedBody):
     return {"ok": True, "persona": body.persona, "message": f"Successfully seeded mock data for '{body.persona}'"}
 
 @router.post("/identity")
-def update_identity(body: IdentityBody, user: dict = Depends(get_current_user)):
+def update_identity(body: IdentityBody, user_auth: dict = Depends(get_current_user)):
     pan = body.pan.strip().upper()
     if not PAN_RE.match(pan):
         raise HTTPException(status_code=400, detail="PAN must look like ABCDE1234F")
@@ -212,7 +214,7 @@ def update_identity(body: IdentityBody, user: dict = Depends(get_current_user)):
         "at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "results": verify_identity(identity)
     }
-    user = store.update("users", lambda u: u.get("id") == user["id"], {"identity": identity, "verification": verification})
+    user = store.update("users", lambda u: u.get("id") == user_auth["id"], {"identity": identity, "verification": verification}) or user_auth
     return {"user": public_user(user)}
 
 # ==============================================================================
