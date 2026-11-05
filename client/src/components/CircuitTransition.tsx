@@ -35,12 +35,12 @@ function nodeSvg(k: string, [x, y, label, icon]: [number, number, string, string
   const twin = icon === 'twin';
   const r = twin ? 26 : 20;
   const inner = twin
-    ? `<g classNone="lotus" transform="translate(-16 -16)" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    ? `<g class="lotus" transform="translate(-16 -16)" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M10.5 23.7L20.9 8.3M3.8 14.6C6.6 12.9 10.6 12.7 15.7 13.4M19.0 13.6C21.5 13.8 25.0 13.1 28.2 11.8M3.8 18.8C6.6 17.1 10.6 16.9 13.6 17.3M16.8 17.7C19.3 18.0 25.0 17.3 28.2 16.1"/>
       </g>`
-    : `<g classNone="ic" transform="translate(-9 -9) scale(.75)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[icon]}</g>`;
-  return `<g classNone="nd" data-k="${k}" transform="translate(${x} ${y})">
-    <rect classNone="halo" x="${-r - 6}" y="${-r - 6}" width="${(r + 6) * 2}" height="${(r + 6) * 2}" rx="${twin ? 18 : 14}"/>
+    : `<g class="ic" transform="translate(-9 -9) scale(.75)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[icon]}</g>`;
+  return `<g class="nd" data-k="${k}" transform="translate(${x} ${y})">
+    <rect class="halo" x="${-r - 6}" y="${-r - 6}" width="${(r + 6) * 2}" height="${(r + 6) * 2}" rx="${twin ? 18 : 14}"/>
     <rect x="${-r}" y="${-r}" width="${r * 2}" height="${r * 2}" rx="${twin ? 14 : 10}"/>
     ${inner}
     <text y="${r + 20}">${label}</text></g>`;
@@ -96,9 +96,9 @@ export default function CircuitTransition({ leaving }: { leaving: boolean }) {
   const paths = STAGES.flat().map(([, d]) => d);
   const svg = `<svg viewBox="40 20 580 300" aria-hidden="true">
     <defs><filter id="cbGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-    ${paths.map((d) => `<path classNone="tr" d="${d}"/>`).join('')}
-    ${paths.map((d) => `<path classNone="pl" d="${d}"/>`).join('')}
-    <circle cx="210" cy="170" r="3.5" classNone="jn" opacity="0"/>
+    ${paths.map((d) => `<path class="tr" d="${d}"/>`).join('')}
+    ${paths.map((d) => `<path class="pl" d="${d}"/>`).join('')}
+    <circle cx="210" cy="170" r="3.5" class="jn" opacity="0"/>
     ${Object.entries(NODES).map(([k, v]) => nodeSvg(k, v)).join('')}</svg>`;
 
   return (
