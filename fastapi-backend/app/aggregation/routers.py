@@ -941,7 +941,7 @@ async def update_case_task(case_id: str, task_id: str, body: TaskUpdateBody, use
 # -------------------------------------------------------------
 
 @router.post("/assistant")
-
+@router.post("/ai/ask")
 async def api_assistant(body: GuideIn, authorization: Optional[str] = Header(None)):
 
     """Multi-source AI Navigator searching statutory law, user documents, and live portfolio."""
