@@ -258,7 +258,124 @@ The crawler subsystem monitors Indian government and regulatory portals for upda
 
 ---
 
-## 5. Multi-Regulator Statutory Framework
+## 5. Comprehensive Feature-by-Feature Deep Dive
+
+This section provides an exhaustive technical and functional breakdown of all eleven primary modules in Asset Bridge:
+
+### 5.1 Multi-Regulator Identity Cross-Check Engine (`/app/verify`)
+* **Purpose**: Verifies claimant and deceased identities across Indian statutory databases without relying on brittle exact-match strings.
+* **Technical Mechanism**:
+  - Validates PAN structure via `^[A-Z]{5}[0-9]{4}[A-Z]$` and extracts entity codes (`P` for Individual, `H` for Hindu Undivided Family).
+  - Sanitizes Aadhaar entries to strictly preserve only the last 4 digits (`^\d{4}$`), adhering to UIDAI data privacy standards.
+  - Computes Jaro-Winkler string similarity scores and Soundex phonetic hash values to bridge common South Asian spelling variants (e.g., `Soundaram` vs `Sundaram` or initial-prefixed names like `R. Raghavan`).
+  - Records match confidence on a 0.0 to 1.0 spectrum; partial matches below 0.85 are surfaced for user confirmation and never elevated automatically.
+* **User Output**: Instant visual confidence badges, regulatory discovery logs, and one-click Claim Dossier PDF preview.
+
+### 5.2 ReBIT-Compliant Account Aggregator Discovery (`/app/aggregate`)
+* **Purpose**: Replicates the Reserve Bank of India Account Aggregator (AA) framework to discover and aggregate accounts under explicit user consent.
+* **Technical Mechanism**:
+  - Models consent lifecycle artefacts with timestamps, validity periods, and data access modes (one-time vs recurring).
+  - Simulates Financial Information Provider (FIP) nodes across 5 major regulators: commercial banks (FIP-Bank), central depositories (FIP-CDSL/NSDL), mutual fund RTAs (CAMS/KFintech), EPFO, and insurance repositories.
+  - Implements multi-thread parallel fetching with realistic network latency modeling.
+* **User Output**: Consolidated live asset ledger, regulatory source badges, and real-time WebSocket ingestion notifications.
+
+### 5.3 Real-Time Nominee Gap Auditing & Risk Engine (`/app/alerts`)
+* **Purpose**: Prevents wealth from sliding into inoperative and DEA fund custody by auditing nomination coverage during the depositor's lifetime.
+* **Technical Mechanism**:
+  - Evaluates each asset against statutory nomination rules:
+    - `NO_NOMINEE`: Flags accounts lacking registered nominees that would otherwise trigger mandatory civil court succession certification upon demise.
+    - `DECEASED_NOMINEE`: Identifies cases where the registered nominee has pre-deceased the account holder.
+    - `MINOR_NOMINEE`: Audits whether an adult statutory guardian has been formally designated under Section 45ZA of the Banking Regulation Act.
+    - `THRESHOLD_EXPOSURE`: Identifies single accounts exceeding the ₹5 Lakh threshold, warning users that tahsildar legal heir certificates will be insufficient and a court probate will be mandated.
+  - In-line nomination update handler: Allows users to assign or correct nominees directly, instantly updating the underlying database and recalculating portfolio risk in real time.
+* **User Output**: Priority-ordered alert cards, risk score metrics, and instant nomination assignment wizards.
+
+### 5.4 RBI Delayed Settlement & Penal Interest Calculator (`/app/alerts`)
+* **Purpose**: Protects claimants from unlawful institutional delays by calculating exact statutory penal interest.
+* **Technical Mechanism**:
+  - Codifies the Reserve Bank of India Master Direction on Deceased Depositors: Banks must settle claims within **15 calendar days** of receiving complete documentation.
+  - Any delay beyond 15 days mandates penal interest at **Bank Rate + 4%** per annum (compounded as per directive).
+  - Codifies IRDAI regulations: Insurers must settle death claims within **30 days**; delay attracts **Bank Rate + 2%**.
+  - Dynamic interest engine computes daily accruals from the submission date to the settlement date based on prevailing RBI policy rates.
+* **User Output**: Interactive delay timeline, statutory citation blocks, and auto-generated formal demand letters addressed to the bank ombudsman.
+
+### 5.5 Civil Registration System (CRS) Linkage & Case Opening (`/app/reunite`)
+* **Purpose**: Bridges the gap between civil death reporting and institutional asset distribution.
+* **Technical Mechanism**:
+  - Simulates municipal death registration ingestion via the Civil Registration System (CRS).
+  - Parses registration number, municipal corporation, date of demise, and cause of demise.
+  - Automatically instantiates an estate claim case in the SQLite `cases` table with a collision-free identifier (`case_XXXX`).
+  - Maps all confirmed assets from the deceased's portfolio into the active estate inventory.
+  - Triggers autonomous heir notifications with unique tracking tokens.
+* **User Output**: Case overview summary, estate net-worth tally, and automated legal heir onboarding invitations.
+
+### 5.6 State-Specific Succession Workspace & Settlement Roadmap (`/app/cases/:id`)
+* **Purpose**: Removes confusion surrounding conflicting state revenue laws and court jurisdictions across India.
+* **Technical Mechanism**:
+  - Detects state of residence from the deceased's profile and applies local revenue rules:
+    - **Tamil Nadu**: Routes through the Revenue Department portal for Tahsildar Legal Heir Certificates (G.O. Ms. No. 478); enforces Village Administrative Officer (VAO) enquiry and Revenue Inspector (RI) verification checklist.
+    - **Maharashtra**: Enforces Bombay High Court probate rules for assets exceeding ₹5 Lakhs, or Collector Heirship Certificates under Bombay Regulation VIII of 1827.
+    - **Delhi / Karnataka / Uttar Pradesh**: Applies specific district revenue authority succession limits and SDM certificate protocols.
+  - Form Wizard: Automatically generates statutory claim templates:
+    - **EPFO Form 20**: Death settlement claim form with EDLI life insurance ceiling calculations.
+    - **Banking Form DA-2**: Deceased depositor claim without nomination.
+    - **LIC Form A**: Claimant statement and medical attendant certificate schedules.
+* **User Output**: Step-by-step progress checklist, document dropzone for proof uploads, and integrated AI assistant guidance.
+
+### 5.7 Publication-Grade Legal Claiming Dossier PDF Engine (`/api/cases/:id/pdf`)
+* **Purpose**: Eliminates rejected claims by generating comprehensive, institution-ready legal claiming submissions.
+* **Technical Mechanism**:
+  - ReportLab Platypus vector rendering engine using strict typography and dimensional grids.
+  - Custom two-pass `NumberedCanvas` calculating running page headers, running footers, and page tallies.
+  - Institutional cover letter tailored to the specific bank branch manager or RTA nodal officer.
+  - Complete Schedule of Deceased Assets with masked account references, branch IFSCs, and valuation stamps.
+  - Legal Heir Distribution Table computing fractional percentage shares under Class I of the Hindu Succession Act (1956).
+  - Affidavit of Joint Discharge and Notary Public attestation blocks.
+* **User Output**: Clean, court-admissible vector PDF document automatically archived into the user's secure document vault.
+
+### 5.8 Multi-Tier Nodal Officer Email Dispatcher & Outbox (`/api/cases/:id/send-email`)
+* **Purpose**: Guarantees delivery of claiming dossiers and supporting documents to institutional nodal desks with verifiable proof of dispatch.
+* **Technical Mechanism**:
+  - Integrated modal dialog in the UI allowing claimants to verify the recipient nodal officer email, subject line, and attached PDF dossier.
+  - Four-tier fallback architecture:
+    1. Twilio SendGrid v3 REST API with Base64 JSON attachment payloads.
+    2. Twilio Comms Email API with HTTP Basic authentication.
+    3. Google App Password SMTP using direct SSL/TLS socket connections.
+    4. Developer Outbox Fallback writing RFC 822 MIME `.eml` archives to `data/outbox/`.
+  - Every attempt records an immutable entry in the `email_transmissions` table.
+* **User Output**: Real-time transmission drawer, delivery confirmation badges, and downloadable `.eml` files for legal audit trails.
+
+### 5.9 Statutory Document Vault & Hybrid FTS5 RAG Intelligence (`/app/guide`, `/api/documents`)
+* **Purpose**: Provides immediate, citation-backed answers to complex inheritance and succession questions.
+* **Technical Mechanism**:
+  - Ingests scanned evidence and statutory circulars; extracts text using `pypdf`.
+  - Splits text into 800-character semantic chunks with 150-character overlapping context boundaries.
+  - Computes SHA-256 hashes to prevent redundant processing.
+  - Indexes chunks into SQLite FTS5 with porter stemmers for sub-millisecond BM25 keyword and phrase retrieval.
+  - Hybrid AI Assistant: Formulates prompts combining retrieved statutory circular chunks with live user case context, querying Google Gemini with deterministic fallback responses when external APIs are unavailable.
+* **User Output**: Radiant Orb 3D desktop chatbot (`GuideChat.tsx`), highlighted statutory citation links, and document download vault.
+
+### 5.10 Dedicated Legal Heir Claimant Portal (`/heir`)
+* **Purpose**: Empowers family members who are not tech-savvy to review and track succession progress securely without seeing administrative controls.
+* **Technical Mechanism**:
+  - Secure entry using only Case ID (`AB-XXXX`) and Heir PAN.
+  - Role-based view filtering out admin levers, focusing solely on claimant responsibilities.
+  - Real-time checklist synchronization displaying completed institutional submissions and outstanding actions.
+  - Secure document upload gateway allowing heirs to upload their Aadhaar/PAN identity cards directly into the case vault.
+* **User Output**: Distraction-free mobile-responsive checklist, estate share summary, and upload dropzones.
+
+### 5.11 Monte Carlo Life & Stochastic Wealth Projection Engine (`/app/plan`, `/app/forecast`)
+* **Purpose**: Empowers depositors while alive to simulate multi-generational estate transfer and financial longevity.
+* **Technical Mechanism**:
+  - 300-path stochastic Monte Carlo life simulator modeling 19 Indian financial asset classes.
+  - Incorporates historical return distributions, inflation rates (CPI), volatility, and life expectancy curves.
+  - Simulates dynamic life events: career transitions, health emergencies, retirement drawdowns, and inheritance bequests.
+  - Computes Financial Independence (FIRE) age, probability of portfolio survival, and net legacy transfer efficiency.
+* **User Output**: Interactive probability fan charts, scenario toggles, and multi-generational legacy projections.
+
+---
+
+## 6. Multi-Regulator Statutory Framework
 
 Asset Bridge operates across all major Indian financial and revenue regulatory frameworks:
 
@@ -274,7 +391,7 @@ Asset Bridge operates across all major Indian financial and revenue regulatory f
 
 ---
 
-## 6. Monorepo Directory Structure
+## 7. Monorepo Directory Structure
 
 ```
 dexathon2026/
@@ -341,7 +458,7 @@ dexathon2026/
 
 ---
 
-## 7. Quick Start & Execution
+## 8. Quick Start & Execution
 
 ### Prerequisites
 * **Node.js**: v20 or higher
@@ -385,7 +502,7 @@ dexathon2026/
 
 ---
 
-## 8. Complete Command Reference
+## 9. Complete Command Reference
 
 | Command | Subsystem | Action |
 |---|---|---|
@@ -404,9 +521,9 @@ dexathon2026/
 
 ---
 
-## 9. API Endpoint Specification
+## 10. API Endpoint Specification
 
-### 9.1 Core Authentication & Management Endpoints (`app/core/routers.py`)
+### 10.1 Core Authentication & Management Endpoints (`app/core/routers.py`)
 
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
@@ -425,7 +542,7 @@ dexathon2026/
 | `GET` | `/api/dev/outbox/{filename}` | Download or view RFC 822 MIME `.eml` message | No |
 | `POST` | `/api/dev/backup` | Trigger an on-demand SQLite WAL database snapshot | No |
 
-### 9.2 Financial Aggregation & Succession Endpoints (`app/aggregation/routers.py`)
+### 10.2 Financial Aggregation & Succession Endpoints (`app/aggregation/routers.py`)
 
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
@@ -449,7 +566,7 @@ dexathon2026/
 
 ---
 
-## 10. Multi-Persona Evaluation Matrix
+## 11. Multi-Persona Evaluation Matrix
 
 Asset Bridge includes five pre-configured Indian demographic personas representing distinct financial and succession scenarios:
 
@@ -463,7 +580,7 @@ Asset Bridge includes five pre-configured Indian demographic personas representi
 
 ---
 
-## 11. Testing & Quality Verification
+## 12. Testing & Quality Verification
 
 The platform maintains an automated test harness covering all critical pathways:
 
@@ -485,7 +602,7 @@ fastapi-backend/tests/
 
 ---
 
-## 12. Project Contributors
+## 13. Project Contributors
 
 * **Asvand**: Product Architecture, Design Systems, Frontend Experience, and User Journey.
 * **Sai**: Backend Architecture, 7-Step Asset Pipeline, System Integration, Regulatory Crawlers, and Testing Infrastructure.
@@ -493,6 +610,6 @@ fastapi-backend/tests/
 
 ---
 
-## 13. Legal & Statutory Disclaimer
+## 14. Legal & Statutory Disclaimer
 
 *Asset Bridge generates educational guidance, succession roadmaps, and statutory claiming documents based on the Hindu Succession Act, Indian Succession Act, EPFO Guidelines, and RBI/SEBI Master Directions. It does not replace professional legal counsel. Users and institutional claimants must verify individual institutional requirements prior to formal paperwork submission.*
