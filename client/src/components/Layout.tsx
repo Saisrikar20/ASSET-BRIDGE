@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell,
   BookOpen,
@@ -23,6 +23,8 @@ import { api, type Alert, type User } from '../lib/api';
 import { Logo, cx, useToast } from './ui';
 import { AvatarFace } from './kokonutui/avatar-picker';
 import { isRouteVisible } from '../lib/features';
+import CursorGrid from './reactbits/CursorGrid';
+import PillNav from './reactbits/PillNav';
 
 const NAV = [
   { to: '/app', label: 'Financial twin', icon: LayoutDashboard, end: true },
@@ -41,6 +43,7 @@ const NAV = [
 export default function Layout() {
   const { user, meta, logout, setSession } = useAuth();
   const nav = useNavigate();
+  const location = useLocation();
   const connected = useLiveStatus();
   const { toast, success, error } = useToast();
   const [open, setOpen] = useState(false);
@@ -107,11 +110,11 @@ export default function Layout() {
       <button
         onClick={() => setPersonaOpen(!personaOpen)}
         disabled={switching}
-        className="flex items-center gap-2 rounded-lg border border-[#DDD7CA] bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+        className="flex items-center gap-2 rounded-lg border border-[#DDD7CA] bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 transition cursor-pointer"
         title="Switch Demo Persona Profile"
       >
         <span className="flex h-2 w-2 rounded-full bg-[#55C6B0]" />
-        <span className="truncate max-w-[140px] font-medium text-slate-900 dark:text-white">{currentPersona.name}</span>
+        <span className="truncate max-w-[140px] font-medium text-slate-900">{currentPersona.name}</span>
         <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
       </button>
 
@@ -122,7 +125,7 @@ export default function Layout() {
             <div className="px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Quick Switch Demographic Persona
             </div>
-            <div className="mt-1 divide-y divide-slate-100 dark:divide-slate-800/80">
+            <div className="mt-1 divide-y divide-slate-100">
               {personas.map((p) => {
                 const isSelected = p.name.toLowerCase() === user?.name?.toLowerCase();
                 return (
@@ -133,7 +136,7 @@ export default function Layout() {
                       'w-full text-left px-2.5 py-2 rounded-lg text-xs transition flex flex-col gap-0.5 cursor-pointer',
                       isSelected
                         ? 'bg-[#1C3041]/10 text-[#101D2B] font-semibold'
-                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        : 'hover:bg-slate-100 text-slate-700'
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -141,11 +144,11 @@ export default function Layout() {
                         {p.name}
                         {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-[#55C6B0]" />}
                       </span>
-                      <span className="text-[10px] rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-slate-500">
+                      <span className="text-[10px] rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-500">
                         {p.state}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[11px] text-slate-500 truncate">
                       {p.role} · PAN: {p.pan}
                     </div>
                   </button>
@@ -225,7 +228,24 @@ export default function Layout() {
   );
 
   return (
-    <div className="min-h-screen lg:pl-64">
+    <div className="min-h-screen lg:pl-64 bg-[#F5F3ED] text-[#17232E] relative">
+      {/* Interactive Background CursorGrid */}
+      <CursorGrid
+        cellSize={54}
+        color="#55C6B0"
+        gridColor="#DDD7CA"
+        highlight="area"
+        gridStyle="lines"
+        radius={140}
+        holdTime={400}
+        fadeDuration={800}
+        fillOpacity={0.035}
+        gridOpacity={0.065}
+        spotlight={0.45}
+        clickPulse
+        lightMode={true}
+        className="fixed inset-0 pointer-events-none z-0"
+      />
       {/* Desktop Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-[#101D2B] lg:block print:hidden">
         {sidebar}
@@ -253,7 +273,36 @@ export default function Layout() {
           <div className="lg:hidden">
             <Logo />
           </div>
+        </div>
 
+        {/* React Bits PillNav for Desktop Quick Navigation */}
+        <div className="hidden md:flex items-center">
+          <PillNav
+            items={[
+              { label: 'Twin', href: '/app' },
+              { label: 'Verify', href: '/app/verify' },
+              { label: 'Aggregate', href: '/app/aggregate' },
+              { label: 'Alerts', href: '/app/alerts' },
+              { label: 'AI Guide', href: '/app/guide' },
+              { label: 'Cases', href: '/app/cases' },
+            ]}
+            activeHref={location.pathname}
+            layout="joined"
+            size="sm"
+            theme="light"
+            surface="solid"
+            itemStyle="pill"
+            hoverEffect="glide"
+            indicator="pill"
+            highlightColor="#101D2B"
+            highlightTextColor="#FFFFFF"
+            barColor="#F5F3ED"
+            textColor="#17232E"
+            linkComponent={({ href, ...rest }: any) => (
+              <NavLink to={href} {...rest} />
+            )}
+            className="shadow-xs border border-[#DDD7CA]"
+          />
         </div>
 
         <div className="flex items-center gap-3">
@@ -263,7 +312,7 @@ export default function Layout() {
       </header>
 
       {/* Main Content Area */}
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
+      <main className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-8">
         <Outlet />
       </main>
     </div>

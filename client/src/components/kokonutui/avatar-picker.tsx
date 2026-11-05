@@ -679,7 +679,7 @@ function Coin({
         {[6, 5, 4, 3, 2, 1].map((z) => (
           <div
             aria-hidden="true"
-            className="absolute inset-0 rounded-full bg-zinc-300 dark:bg-zinc-600"
+            className="absolute inset-0 rounded-full bg-zinc-300"
             key={z}
             style={{ transform: `translateZ(-${z}px)` }}
           />
@@ -1008,14 +1008,14 @@ export default function AvatarPicker({
     <MotionConfig reducedMotion="user">
       <div
         className={cn(
-          "mx-auto w-full max-w-[360px] rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100",
+          "mx-auto w-full max-w-[360px] rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900",
           className
         )}
         ref={rootRef}
       >
         <div className="space-y-1">
           <h2 className="font-semibold text-base tracking-tight">{title}</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm text-zinc-500">
             {description}
           </p>
         </div>
@@ -1028,7 +1028,7 @@ export default function AvatarPicker({
             >
               <motion.svg
                 aria-hidden="true"
-                className="absolute inset-0 text-zinc-300 dark:text-zinc-700"
+                className="absolute inset-0 text-zinc-300"
                 style={{ transform: bezelRotate }}
                 viewBox={`0 0 ${BEZEL} ${BEZEL}`}
               >
@@ -1049,7 +1049,7 @@ export default function AvatarPicker({
               {/* Fixed index mark the bezel turns under. */}
               <div
                 aria-hidden="true"
-                className="absolute top-0 left-1/2 h-3 w-0.5 -translate-x-1/2 rounded-full bg-zinc-900 dark:bg-zinc-100"
+                className="absolute top-0 left-1/2 h-3 w-0.5 -translate-x-1/2 rounded-full bg-zinc-900"
               />
               <Coin
                 angle={spinner.angle}
@@ -1069,7 +1069,7 @@ export default function AvatarPicker({
               <span className="max-w-[180px] truncate font-medium">
                 {displayName.trim() || "Anonymous"}
               </span>
-              <span className="font-mono text-zinc-400 tabular-nums dark:text-zinc-500">
+              <span className="font-mono text-zinc-400 tabular-nums">
                 No. {pad3(shownVariant)}
               </span>
             </div>
@@ -1088,7 +1088,7 @@ export default function AvatarPicker({
                   <button
                     aria-label={`Option ${i + 1}: ${createFace(slotSeed).description}`}
                     aria-pressed={isSelected}
-                    className="group/slot relative size-10 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-zinc-100 dark:focus-visible:ring-offset-zinc-950"
+                    className="group/slot relative size-10 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     // biome-ignore lint/suspicious/noArrayIndexKey: slots are fixed positions.
                     key={i}
                     onClick={() => choose(i)}
@@ -1106,18 +1106,18 @@ export default function AvatarPicker({
                       className={cn(
                         "absolute inset-0 rounded-full border transition-colors duration-150 ease-out",
                         isSelected
-                          ? "border-zinc-300 border-dashed bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
+                          ? "border-zinc-300 border-dashed bg-zinc-50"
                           : "border-transparent"
                       )}
                     />
                     {isSelected ? (
                       <span
                         aria-hidden="true"
-                        className="absolute inset-0 m-auto size-1.5 rounded-full bg-zinc-400 dark:bg-zinc-500"
+                        className="absolute inset-0 m-auto size-1.5 rounded-full bg-zinc-400"
                       />
                     ) : (
                       <motion.span
-                        className="absolute inset-0 overflow-hidden rounded-full ring-1 ring-black/10 ring-inset transition-shadow duration-150 ease-out group-hover/slot:shadow-[0_0_0_2px_rgb(212_212_216)] dark:group-hover/slot:shadow-[0_0_0_2px_rgb(63_63_70)]"
+                        className="absolute inset-0 overflow-hidden rounded-full ring-1 ring-black/10 ring-inset transition-shadow duration-150 ease-out group-hover/slot:shadow-[0_0_0_2px_rgb(212_212_216)]"
                         layoutId={`face-${i}`}
                         transition={FLY}
                       >
@@ -1131,7 +1131,7 @@ export default function AvatarPicker({
 
             <button
               aria-label="Shuffle avatar"
-              className="grid size-10 shrink-0 place-items-center rounded-full border border-zinc-200 text-zinc-600 outline-none transition-colors duration-150 ease-out hover:bg-zinc-100 hover:text-zinc-900 focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-zinc-800 dark:text-zinc-400 dark:focus-visible:ring-zinc-100 dark:focus-visible:ring-offset-zinc-950 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+              className="grid size-10 shrink-0 place-items-center rounded-full border border-zinc-200 text-zinc-600 outline-none transition-colors duration-150 ease-out hover:bg-zinc-100 hover:text-zinc-900 focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               onClick={shuffle}
               title="Shuffle"
               type="button"
@@ -1155,7 +1155,7 @@ export default function AvatarPicker({
           </label>
           <input
             autoComplete="name"
-            className="h-10 w-full rounded-lg border border-zinc-200 bg-transparent px-3 text-sm outline-none transition-colors duration-150 ease-out placeholder:text-zinc-400 focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-900/10 dark:border-zinc-800 dark:focus-visible:border-zinc-600 dark:focus-visible:ring-zinc-100/10"
+            className="h-10 w-full rounded-lg border border-zinc-200 bg-transparent px-3 text-sm outline-none transition-colors duration-150 ease-out placeholder:text-zinc-400 focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-900/10"
             id={`${uid}-display-name`}
             maxLength={32}
             onChange={(e) => setName(e.target.value)}
@@ -1175,7 +1175,7 @@ export default function AvatarPicker({
         ) : null}
 
         <button
-          className="group/submit mt-4 flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 font-medium text-sm text-white outline-none transition-colors duration-150 ease-out hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900 dark:focus-visible:ring-zinc-100 dark:focus-visible:ring-offset-zinc-950 dark:hover:bg-white"
+          className="group/submit mt-4 flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 font-medium text-sm text-white outline-none transition-colors duration-150 ease-out hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
           disabled={!nameOk}
           onClick={() =>
             onComplete?.({

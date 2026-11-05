@@ -457,11 +457,11 @@ export default function DetentDial({
             <line
               className={cn(
                 "transition-[stroke] duration-150",
-                current && "stroke-orange-600 dark:stroke-orange-400",
+                current && "stroke-orange-600",
                 !current &&
                   (lit
-                    ? "stroke-zinc-900 dark:stroke-zinc-100"
-                    : "stroke-zinc-300 dark:stroke-zinc-700")
+                    ? "stroke-zinc-900"
+                    : "stroke-zinc-300")
               )}
               // biome-ignore lint/suspicious/noArrayIndexKey: ticks are positional.
               key={i}
@@ -496,7 +496,7 @@ export default function DetentDial({
 
       {compact && (
         <span
-          className="absolute left-1/2 -translate-x-1/2 truncate text-center font-medium text-zinc-500 dark:text-zinc-400"
+          className="absolute left-1/2 -translate-x-1/2 truncate text-center font-medium text-zinc-500"
           id={labelId}
           style={{ top: size + 4, maxWidth: size + 24, fontSize: clamp(size * 0.075, 10, 12) }}
         >
@@ -514,12 +514,12 @@ export default function DetentDial({
         aria-valuetext={formatValue(value)}
         className={cn(
           "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 touch-none rounded-full outline-none",
-          "border border-zinc-200 bg-white shadow-[0_1px_2px_rgb(0_0_0/0.06),0_12px_32px_-12px_rgb(0_0_0/0.25)] dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-[0_1px_2px_rgb(0_0_0/0.4),0_12px_32px_-12px_rgb(0_0_0/0.8)]",
-          "transition-[border-color] duration-150 focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-4 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-950",
+          "border border-zinc-200 bg-white shadow-[0_1px_2px_rgb(0_0_0/0.06),0_12px_32px_-12px_rgb(0_0_0/0.25)]",
+          "transition-[border-color] duration-150 focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-4 focus-visible:ring-offset-white",
           readOnly
             ? "cursor-default"
             : grabbing
-              ? "cursor-grabbing border-zinc-300 dark:border-zinc-700"
+              ? "cursor-grabbing border-zinc-300"
               : "cursor-grab",
           disabledProp && "cursor-not-allowed"
         )}
@@ -546,13 +546,13 @@ export default function DetentDial({
           className="absolute inset-0"
           style={{ rotate: rotation }}
         >
-          <span className="absolute top-2.5 left-1/2 h-3 w-[3px] -translate-x-1/2 rounded-full bg-zinc-900 dark:bg-zinc-100" />
+          <span className="absolute top-2.5 left-1/2 h-3 w-[3px] -translate-x-1/2 rounded-full bg-zinc-900" />
         </motion.div>
 
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           {!compact && (
             <span
-              className="max-w-[80%] truncate text-center text-xs text-zinc-500 dark:text-zinc-400"
+              className="max-w-[80%] truncate text-center text-xs text-zinc-500"
               id={labelId}
             >
               {label}
@@ -609,7 +609,7 @@ function RollingValue({
   return (
     <span
       aria-hidden="true"
-      className="relative flex font-medium text-zinc-900 tabular-nums tracking-tight dark:text-zinc-100"
+      className="relative flex font-medium text-zinc-900 tabular-nums tracking-tight"
       style={{ fontSize }}
     >
       {text.split("").map((char, index) => (

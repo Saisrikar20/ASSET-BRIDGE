@@ -20,19 +20,19 @@ import { Badge, Button, ErrorNote, RegChip, Select, cx } from '../components/ui'
 const STATUS = {
   verified: {
     icon: CheckCircle2,
-    cls: 'text-emerald-600 dark:text-emerald-400',
+    cls: 'text-emerald-600',
     label: 'Verified',
     tone: 'green' as const,
   },
   partial: {
     icon: CircleAlert,
-    cls: 'text-amber-500 dark:text-amber-400',
+    cls: 'text-amber-500',
     label: 'Partial match',
     tone: 'amber' as const,
   },
   mismatch: {
     icon: XCircle,
-    cls: 'text-rose-600 dark:text-rose-400',
+    cls: 'text-rose-600',
     label: 'Mismatch',
     tone: 'red' as const,
   },
@@ -91,13 +91,13 @@ export default function Verify() {
   return (
     <div className="space-y-6">
       {/* 1. Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200/80">
         <div>
           
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white mt-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 mt-1">
             Identity Verification
           </h1>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-0.5 text-xs text-slate-500">
             {results
               ? `Consolidated check across ${regulatorCount} statutory registries · ${totalRecords} matching records detected`
               : 'Authenticate identity credentials against central registries to map disparate financial holdings.'}
@@ -111,7 +111,7 @@ export default function Verify() {
             className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#DDD7CA] bg-white text-xs font-medium text-[#17232E] hover:bg-[#F5F3ED] transition cursor-pointer self-start sm:self-center shadow-xs"
             title="Edit verification parameters"
           >
-            <RotateCcw className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+            <RotateCcw className="h-3.5 w-3.5 text-slate-500" />
             <span>{showForm ? 'Hide credentials form' : 'Modify parameters'}</span>
           </button>
         )}
@@ -119,14 +119,14 @@ export default function Verify() {
 
       {/* 2. Structured Verification Form */}
       {(!results || showForm) && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs">
+        <div className="rounded-xl border border-slate-200/80 bg-white overflow-hidden shadow-xs">
           {/* Header & Persona Quick Fill */}
-          <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                 Statutory KYC Parameters
               </h2>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-[11px] text-slate-500 mt-0.5">
                 Inputs match Form 16, PAN database, and UIDAI validation standards.
               </p>
             </div>
@@ -155,8 +155,8 @@ export default function Verify() {
                       className={cx(
                         'px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer',
                         isActive
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
-                          : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
                       )}
                       title={`${p.name} (${p.state}): ${p.description}`}
                     >
@@ -172,16 +172,16 @@ export default function Verify() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Section 1: Demographics */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                  <User className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-                  <span className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                  <User className="h-4 w-4 text-brand-600" />
+                  <span className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
                     1. Particulars
                   </span>
                 </div>
 
                 <div className="space-y-3.5">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
                       Full Legal Name <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -190,13 +190,13 @@ export default function Verify() {
                       value={form.name}
                       onChange={set('name')}
                       placeholder="e.g. Raghavan Sundaram"
-                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
                     />
                     <p className="text-[10.5px] text-slate-400 mt-1">Exact name as registered with income tax records.</p>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
                       Date of Birth <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -204,7 +204,7 @@ export default function Verify() {
                       required
                       value={form.dob}
                       onChange={set('dob')}
-                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
                     />
                     <p className="text-[10.5px] text-slate-400 mt-1">Required for EPFO & pension record triangulation.</p>
                   </div>
@@ -213,16 +213,16 @@ export default function Verify() {
 
               {/* Section 2: Statutory Identifiers */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                  <CreditCard className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-                  <span className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                  <CreditCard className="h-4 w-4 text-brand-600" />
+                  <span className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
                     2. Identifiers
                   </span>
                 </div>
 
                 <div className="space-y-3.5">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
                       Permanent Account Number (PAN) <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -232,14 +232,14 @@ export default function Verify() {
                       onChange={(e) => setForm({ ...form, pan: e.target.value.toUpperCase() })}
                       placeholder="ABCDE1234F"
                       maxLength={10}
-                      className="w-full font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500 uppercase tracking-wider"
+                      className="w-full font-mono rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500 uppercase tracking-wider"
                     />
                     <p className="text-[10.5px] text-slate-400 mt-1">10-character alphanumeric PAN key.</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2.5">
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
                         Aadhaar (Last 4)
                       </label>
                       <input
@@ -249,11 +249,11 @@ export default function Verify() {
                         maxLength={4}
                         inputMode="numeric"
                         placeholder="4417"
-                        className="w-full font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
+                        className="w-full font-mono rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
                         Mobile Number
                       </label>
                       <input
@@ -262,7 +262,7 @@ export default function Verify() {
                         onChange={set('mobile')}
                         inputMode="tel"
                         placeholder="9876543210"
-                        className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500"
                       />
                     </div>
                   </div>
@@ -272,16 +272,16 @@ export default function Verify() {
 
               {/* Section 3: Geographic Jurisdiction */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                  <MapPin className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-                  <span className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                  <MapPin className="h-4 w-4 text-brand-600" />
+                  <span className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
                     3. Jurisdiction
                   </span>
                 </div>
 
                 <div className="space-y-3.5">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
                       State of Legal Domicile
                     </label>
                     <Select value={form.state} onChange={set('state')}>
@@ -296,12 +296,12 @@ export default function Verify() {
                     </p>
                   </div>
 
-                  <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3 border border-slate-200/80 dark:border-slate-800 text-[11px] space-y-1">
-                    <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+                  <div className="rounded-lg bg-slate-50 p-3 border border-slate-200/80 text-[11px] space-y-1">
+                    <div className="flex items-center gap-1.5 font-medium text-slate-700">
                       <Lock className="h-3.5 w-3.5 text-brand-600" />
                       <span>Statutory Privacy Assurance</span>
                     </div>
-                    <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-[10.5px]">
+                    <p className="text-slate-500 leading-relaxed text-[10.5px]">
                       Identity matching executes via 256-bit encrypted protocol directly against regulatory APIs.
                     </p>
                   </div>
@@ -312,8 +312,8 @@ export default function Verify() {
             <ErrorNote msg={err} />
 
             {/* Submit Action Row */}
-            <div className="pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-100 dark:border-slate-800">
-              <div className="text-xs text-slate-500 dark:text-slate-400">
+            <div className="pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-100">
+              <div className="text-xs text-slate-500">
                 Matches are cross-checked across 7 registries: RBI, EPFO, IRDAI, SEBI, LIC, PFRDA & DOP.
               </div>
               <Button loading={busy} className="px-6 py-2.5 text-xs font-semibold">
@@ -326,9 +326,9 @@ export default function Verify() {
 
       {/* 3. Multi-Regulator Results List */}
       {!results ? (
-        <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/20 p-8 text-center">
+        <div className="rounded-xl border border-dashed border-slate-200 bg-white/50 p-8 text-center">
           <Building2 className="h-8 w-8 text-slate-400 mx-auto mb-2 opacity-50" />
-          <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
+          <p className="text-xs font-medium text-slate-600">
             Awaiting credential verification.
           </p>
           <p className="text-[11px] text-slate-400 mt-0.5">
@@ -337,7 +337,7 @@ export default function Verify() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/80 overflow-hidden shadow-xs">
+          <div className="rounded-xl border border-slate-200/80 bg-white divide-y divide-slate-100 overflow-hidden shadow-xs">
             {results.map((r: VerifyResult) => {
               const s = STATUS[r.status] || STATUS.none;
               const Icon = s.icon;
@@ -350,18 +350,18 @@ export default function Verify() {
                   <button
                     type="button"
                     onClick={() => toggleExpand(r.regulator)}
-                    className="w-full flex items-center justify-between p-3.5 sm:px-5 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-between p-3.5 sm:px-5 text-left hover:bg-slate-50/70 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <Icon className={`h-4 w-4 shrink-0 ${s.cls}`} />
                       <RegChip code={r.regulator} />
-                      <span className="truncate text-xs font-semibold text-slate-900 dark:text-white">
+                      <span className="truncate text-xs font-semibold text-slate-900">
                         {regulatorTitle}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0 ml-3">
-                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400 tabular-nums">
+                      <span className="text-xs font-medium text-slate-500 tabular-nums">
                         {r.recordsFound} {r.recordsFound === 1 ? 'record' : 'records'}
                       </span>
                       <Badge tone={s.tone}>{s.label}</Badge>
@@ -377,7 +377,7 @@ export default function Verify() {
 
                   {/* Expanded State Details */}
                   {isExpanded && (
-                    <div className="border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/40 p-4 sm:px-5 space-y-2.5">
+                    <div className="border-t border-slate-100 bg-slate-50/50 p-4 sm:px-5 space-y-2.5">
                       <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold mb-1">
                         Registry Match Triangulation:
                       </div>
@@ -385,10 +385,10 @@ export default function Verify() {
                         r.checks.map((c) => (
                           <div
                             key={c.ref}
-                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs py-2 border-b border-slate-200/60 dark:border-slate-800/50 last:border-0"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs py-2 border-b border-slate-200/60 last:border-0"
                           >
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-900 dark:text-white">
+                              <span className="font-semibold text-slate-900">
                                 {c.institution}
                               </span>
                               <span className="font-mono text-[11px] text-slate-400">
@@ -397,12 +397,12 @@ export default function Verify() {
                             </div>
                             <div className="shrink-0">
                               {c.name === 'exact' && c.dob === 'exact' ? (
-                                <span className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded">
+                                <span className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded">
                                   <span>Name ✓</span>
                                   <span>DOB ✓</span>
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded">
+                                <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 font-medium bg-amber-50 px-2 py-0.5 rounded">
                                   Registered as “{c.registeredName}”
                                 </span>
                               )}

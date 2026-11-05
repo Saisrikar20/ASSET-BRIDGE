@@ -31,7 +31,7 @@ export default function CaseView() {
     <div className="space-y-4">
       <Link
         to="/app/cases"
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to all cases
       </Link>

@@ -13,7 +13,7 @@ const ALL: Regulator[] = ['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC', 'PFRDA', 'DOP']
 function NomineeIndicator({ nominee }: { nominee: Holding['nominee'] }) {
   if (!nominee) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-600">
         <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />
         <span>No nominee registered</span>
       </span>
@@ -22,7 +22,7 @@ function NomineeIndicator({ nominee }: { nominee: Holding['nominee'] }) {
 
   if (nominee.status === 'deceased') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-600">
         <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />
         <span>
           Nominee deceased · {nominee.name} ({nominee.relation})
@@ -33,7 +33,7 @@ function NomineeIndicator({ nominee }: { nominee: Holding['nominee'] }) {
 
   if (nominee.status === 'minor') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600">
         <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
         <span>
           Minor nominee · {nominee.name} ({nominee.relation})
@@ -44,14 +44,14 @@ function NomineeIndicator({ nominee }: { nominee: Holding['nominee'] }) {
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-xs text-slate-700 dark:text-slate-300 font-medium">
+    <span className="inline-flex items-center gap-1.5 text-xs text-xs text-slate-700 font-medium">
       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
       <span>
         Nominee:{' '}
-        <span className="font-medium text-slate-800 dark:text-slate-200">
+        <span className="font-medium text-slate-800">
           {nominee.name}
         </span>{' '}
-        <span className="text-slate-400 dark:text-slate-500">
+        <span className="text-slate-400">
           ({nominee.relation})
         </span>
       </span>
@@ -167,19 +167,19 @@ export default function Aggregate() {
   if (!user?.identity) {
     return (
       <div className="space-y-6">
-        <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
+        <div className="pb-4 border-b border-slate-200/60">
           <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
             
           </div>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
             Connect your financial assets.
           </h1>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-0.5 text-xs text-slate-500">
             Approve what Asset Bridge can access. You stay in control.
           </p>
         </div>
-        <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+        <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center bg-white">
+          <p className="text-xs text-slate-500">
             We need a verified identity before requesting consent from any regulator.
           </p>
           <div className="mt-4">
@@ -233,14 +233,14 @@ export default function Aggregate() {
   return (
     <div className="space-y-6">
       {/* STEP 3 — Page Header */}
-      <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
+      <div className="pb-4 border-b border-slate-200/60">
         <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
           
         </div>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
           Connect your financial assets.
         </h1>
-        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-0.5 text-xs text-slate-500">
           Approve what Asset Bridge can access. You stay in control.
         </p>
       </div>
@@ -326,8 +326,8 @@ export default function Aggregate() {
 
           {/* Revocation Confirmation Protection */}
           {confirmRevoke && (
-            <div className="p-3 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/30 flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2 text-rose-800 dark:text-rose-300">
+            <div className="p-3 rounded-lg border border-rose-200 bg-rose-50/70 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-rose-800">
                 <ShieldAlert className="h-4 w-4 shrink-0 text-rose-600" />
                 <span>
                   Are you sure you want to revoke consent? Mapped holdings and active monitoring will be stopped.
@@ -358,21 +358,21 @@ export default function Aggregate() {
 
       {/* Consent Configuration Box (when no active consent exists) */}
       {!active && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-2 p-3 sm:px-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 text-xs border border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 sm:p-6 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3 sm:px-4 rounded-lg bg-slate-50 text-xs border border-slate-100">
+            <div className="flex items-center gap-2 text-xs text-slate-700 font-medium">
               <span className="text-slate-400 uppercase font-mono text-[10px]">
                 From:
               </span>
-              <span className="font-medium text-slate-800 dark:text-slate-200">
+              <span className="font-medium text-slate-800">
                 Asset Bridge (FIU)
               </span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
+            <div className="flex items-center gap-2 text-xs text-slate-700 font-medium">
               <span className="text-slate-400 uppercase font-mono text-[10px]">
                 To:
               </span>
-              <span className="font-medium text-slate-800 dark:text-slate-200 font-mono">
+              <span className="font-medium text-slate-800 font-mono">
                 {user.identity.mobile || user.identity.pan || 'you'}@assetbridge-aa
               </span>
             </div>
@@ -380,7 +380,7 @@ export default function Aggregate() {
 
           <div className="grid gap-6 lg:grid-cols-12 items-start">
             <div className="lg:col-span-7 space-y-2">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
                 Information to fetch ({picked.length} of 7)
               </div>
               <div className="space-y-1.5">
@@ -394,8 +394,8 @@ export default function Aggregate() {
                       className={cx(
                         'flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 text-xs transition-colors',
                         isChecked
-                          ? 'border-brand-300 dark:border-brand-700 bg-brand-50/40 dark:bg-brand-950/20'
-                          : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-70 hover:opacity-100'
+                          ? 'border-brand-300 bg-brand-50/40'
+                          : 'border-slate-200/80 bg-white opacity-70 hover:opacity-100'
                       )}
                     >
                       <input
@@ -410,7 +410,7 @@ export default function Aggregate() {
                           )}
                       />
                       <RegChip code={r} />
-                      <span className="text-slate-700 dark:text-slate-300 font-medium">
+                      <span className="text-slate-700 font-medium">
                         {covers}
                       </span>
                       <span className="ml-auto font-mono text-[10px] text-slate-400">
@@ -422,29 +422,29 @@ export default function Aggregate() {
               </div>
             </div>
 
-            <div className="lg:col-span-5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 p-4 sm:p-5 text-xs space-y-3.5">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pb-2 border-b border-slate-200/60 dark:border-slate-800">
+            <div className="lg:col-span-5 rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 sm:p-5 text-xs space-y-3.5">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 pb-2 border-b border-slate-200/60">
                 Consent Parameters
               </div>
 
               <div className="space-y-2.5">
                 <div className="flex justify-between gap-2">
                   <span className="text-slate-500">Purpose</span>
-                  <span className="font-medium text-slate-800 dark:text-slate-200 text-right">
+                  <span className="font-medium text-slate-800 text-right">
                     Wealth mapping & succession planning
                   </span>
                 </div>
 
                 <div className="flex justify-between gap-2">
                   <span className="text-slate-500">Fetch type</span>
-                  <span className="font-medium text-slate-800 dark:text-slate-200 text-right">
+                  <span className="font-medium text-slate-800 text-right">
                     Periodic
                   </span>
                 </div>
 
                 <div className="flex justify-between gap-2">
                   <span className="text-slate-500">Data life</span>
-                  <span className="font-medium text-slate-800 dark:text-slate-200 text-right">
+                  <span className="font-medium text-slate-800 text-right">
                     1 year, then deleted
                   </span>
                 </div>
@@ -465,7 +465,7 @@ export default function Aggregate() {
                 </div>
               </div>
 
-              <div className="pt-2 text-[11px] text-slate-400 border-t border-slate-200/60 dark:border-slate-800">
+              <div className="pt-2 text-[11px] text-slate-400 border-t border-slate-200/60">
                 Data stays under your control. Encrypted in transit and revocable at any time.
               </div>
 
@@ -492,20 +492,20 @@ export default function Aggregate() {
           <div className="space-y-3">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+                <h2 className="text-sm font-semibold tracking-tight text-slate-900">
                   Mapped Holdings
                 </h2>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
+                <span className="text-xs text-slate-500">
                   {shown.length} {shown.length === 1 ? 'holding' : 'holdings'}
                   {shown.length !== holdings.length && ` (filtered from ${holdings.length})`}
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <span className="text-xs text-slate-500 dark:text-slate-400 mr-1.5">
+                  <span className="text-xs text-slate-500 mr-1.5">
                     Total mapped asset value:
                   </span>
-                  <span className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">
+                  <span className="text-sm font-semibold text-slate-900 tabular-nums">
                     {inr(totalValue)}
                   </span>
                 </div>
@@ -531,8 +531,8 @@ export default function Aggregate() {
                   className={cx(
                     'px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
                     reg === 'all'
-                      ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
-                      : 'text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-xs text-slate-700 font-medium hover:text-slate-900 hover:bg-slate-100'
                   )}
                 >
                   All ({holdings.length})
@@ -547,8 +547,8 @@ export default function Aggregate() {
                       className={cx(
                         'px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
                         reg === r
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
-                          : 'text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                          ? 'bg-slate-900 text-white shadow-sm'
+                          : 'text-xs text-slate-700 font-medium hover:text-slate-900 hover:bg-slate-100'
                       )}
                     >
                       <span>{r}</span>
@@ -557,8 +557,8 @@ export default function Aggregate() {
                           className={cx(
                             'text-[10px] tabular-nums px-1.5 py-0.2 rounded-full font-mono',
                             reg === r
-                              ? 'bg-slate-800 text-slate-200 dark:bg-black/10 dark:text-black'
-                              : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                              ? 'bg-slate-800 text-slate-200'
+                              : 'bg-slate-100 text-slate-500'
                           )}
                         >
                           {count}
@@ -582,9 +582,9 @@ export default function Aggregate() {
           </div>
 
           {/* STEP 6 & 7 — Minimal Holdings List */}
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm">
+          <div className="rounded-xl border border-slate-200/80 bg-white divide-y divide-slate-100 overflow-hidden shadow-sm">
             {shown.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+              <div className="p-8 text-center text-xs text-slate-500">
                 No holdings found matching {reg !== 'all' ? `regulator "${reg}"` : ''}{' '}
                 {q ? `query "${q}"` : ''}.
                 <div className="mt-2">
@@ -603,7 +603,7 @@ export default function Aggregate() {
               shown.map((h) => (
                 <div
                   key={h.id}
-                  className="p-4 sm:px-5 sm:py-3.5 hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors"
+                  className="p-4 sm:px-5 sm:py-3.5 hover:bg-slate-50/70 transition-colors"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
                     {/* Left Column: Details */}
@@ -611,7 +611,7 @@ export default function Aggregate() {
                       {/* Top line: Regulator & Holding Name */}
                       <div className="flex items-center gap-2 flex-wrap">
                         <RegChip code={h.regulator} />
-                        <span className="font-semibold text-sm text-slate-900 dark:text-white">
+                        <span className="font-semibold text-sm text-slate-900">
                           {h.type}
                         </span>
                         {h.status !== 'active' && (
@@ -622,16 +622,16 @@ export default function Aggregate() {
                       </div>
 
                       {/* Second line: Institution · Masked ID */}
-                      <div className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5 flex-wrap">
+                      <div className="text-xs text-slate-500 font-mono flex items-center gap-1.5 flex-wrap">
                         <span>{h.institution}</span>
-                        <span className="text-slate-300 dark:text-slate-600">·</span>
+                        <span className="text-slate-300">·</span>
                         <span>{h.ref}</span>
                         {h.registeredName && (
                           <>
-                            <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">
+                            <span className="text-slate-300 hidden sm:inline">
                               ·
                             </span>
-                            <span className="text-slate-500 dark:text-slate-400 text-xs font-sans hidden sm:inline">
+                            <span className="text-slate-500 text-xs font-sans hidden sm:inline">
                               Name: {h.registeredName}
                             </span>
                           </>
@@ -645,11 +645,11 @@ export default function Aggregate() {
                     </div>
 
                     {/* Right Column: Asset value & Last activity */}
-                    <div className="flex sm:flex-col items-baseline sm:items-end justify-between sm:justify-start gap-1 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60">
-                      <div className="text-base sm:text-sm font-semibold tracking-tight text-slate-900 dark:text-white tabular-nums">
+                    <div className="flex sm:flex-col items-baseline sm:items-end justify-between sm:justify-start gap-1 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                      <div className="text-base sm:text-sm font-semibold tracking-tight text-slate-900 tabular-nums">
                         {inr(h.value)}
                       </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                      <div className="text-xs text-slate-500 tabular-nums">
                         Last activity: {date(h.lastActivity)}
                       </div>
                     </div>
@@ -660,10 +660,10 @@ export default function Aggregate() {
           </div>
 
           {/* Connected Next-Step Action Banner */}
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 text-xs">
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-900 dark:text-white">
+                <span className="font-semibold text-slate-900">
                   Mapped {holdings.length} holdings ({inr(totalValue)})
                 </span>
                 {gapCount > 0 && (
@@ -675,7 +675,7 @@ export default function Aggregate() {
                   </span>
                 )}
               </div>
-              <p className="mt-0.5 text-slate-500 dark:text-slate-400">
+              <p className="mt-0.5 text-slate-500">
                 Holdings mapped under your consent. Review nominee gaps to protect your family.
               </p>
             </div>
@@ -687,7 +687,7 @@ export default function Aggregate() {
                 className="gap-1.5"
                 title="Send official statutory claim schedule with PDF attachment via email"
               >
-                <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                <Mail className="h-3.5 w-3.5 text-brand-600" />
                 <span>Email Dossier</span>
               </Button>
               <button
@@ -707,9 +707,9 @@ export default function Aggregate() {
                 title="Download consolidated statutory claim dossier PDF"
               >
                 {downloadingPdf ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-400 dark:text-brand-600" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-400" />
                 ) : (
-                  <FileDown className="h-3.5 w-3.5 text-brand-400 dark:text-brand-600" />
+                  <FileDown className="h-3.5 w-3.5 text-brand-400" />
                 )}
                 <span>{downloadingPdf ? 'Generating PDF…' : 'Download Claim Dossier (PDF)'}</span>
               </button>
@@ -732,7 +732,7 @@ export default function Aggregate() {
                 className="gap-1.5"
                 title="Index official claim schedule into SQLite Document Vault for AI consultation"
               >
-                <Database className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <Database className="h-3.5 w-3.5 text-emerald-600" />
                 <span>{savingVault ? 'Indexing…' : 'Save to Vault'}</span>
               </Button>
               <Button
@@ -761,7 +761,7 @@ export default function Aggregate() {
 
       {/* Loading state indicator */}
       {loading && holdings.length === 0 && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-xs text-slate-400">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-8 text-center text-xs text-slate-400">
           Loading mapped holdings…
         </div>
       )}

@@ -113,7 +113,7 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
           </button>
           <button
             onClick={reset}
-            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
             title="Reset demo data"
           >
             <RotateCcw className="h-3.5 w-3.5" />
@@ -124,22 +124,22 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
 
       {/* Deceased Estate Case Notice (if applicable) */}
       {user?.deceased && (
-        <div className="rounded-lg border border-amber-300/80 dark:border-amber-700/60 bg-amber-50/90 dark:bg-amber-950/40 p-3 text-xs text-amber-900 dark:text-amber-200 flex items-center justify-between">
+        <div className="rounded-lg border border-amber-300/80 bg-amber-50/90 p-3 text-xs text-amber-900 flex items-center justify-between">
           <span>A death registration was received for this twin ({user.deceased.registrationNo}).</span>
-          <Link to="/app/cases" className="font-semibold underline ml-2 text-amber-950 dark:text-amber-100 hover:text-amber-700 dark:hover:text-white">Transfer Case &rarr;</Link>
+          <Link to="/app/cases" className="font-semibold underline ml-2 text-amber-950 hover:text-amber-700">Transfer Case &rarr;</Link>
         </div>
       )}
 
       {/* B. Compact Setup progress */}
       {nextStep && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 transition-all">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-4 transition-all">
           <div className="flex items-center justify-between text-xs mb-2">
             <div className="flex items-center gap-2">
               <span className="font-mono text-[10px] font-semibold tracking-wider text-[#71808C] uppercase">
                 SETUP YOUR TWIN
               </span>
-              <span className="text-slate-300 dark:text-slate-700">·</span>
-              <span className="font-medium text-slate-800 dark:text-slate-200">
+              <span className="text-slate-300">·</span>
+              <span className="font-medium text-slate-800">
                 Step {completedCount + 1}: {nextStep.label}
               </span>
             </div>
@@ -148,9 +148,9 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
             </span>
           </div>
 
-          <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 mb-3">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100 mb-3">
             <div
-              className="h-full rounded-full bg-slate-900 dark:bg-brand-500 transition-all duration-500"
+              className="h-full rounded-full bg-slate-900 transition-all duration-500"
               style={{ width: `${(completedCount / 4) * 100}%` }}
             />
           </div>
@@ -158,7 +158,7 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
           <div className="flex items-center justify-end">
             <Link
               to={nextStep.to}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 transition-colors"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800 transition-colors"
             >
               <span>Continue</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -168,7 +168,7 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
       )}
 
       {/* C. Four Financial Metrics (Compact Single Row on Desktop) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800/80 overflow-hidden">
+      <div className="grid grid-cols-2 lg:grid-cols-4 rounded-xl border border-slate-200/80 bg-white divide-y sm:divide-y-0 sm:divide-x divide-slate-100 overflow-hidden">
         {/* Total mapped */}
         <div className="p-4 sm:p-5">
           <div className="text-[11px] font-semibold tracking-wider uppercase text-[#71808C]">
@@ -192,7 +192,7 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
           </div>
           <div className="mt-1 text-xs text-[#71808C]">
             {(data?.summary.atRisk || 0) > 0 ? (
-              <span className="text-rose-600 dark:text-rose-400 font-medium">No valid nominee</span>
+              <span className="text-rose-600 font-medium">No valid nominee</span>
             ) : (
               'Protected'
             )}
@@ -229,14 +229,14 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
       {/* D & E. Holdings by Regulator + Needs Attention */}
       <div className="grid gap-6 lg:grid-cols-12">
         {/* D. Holdings by regulator (7 cols) */}
-        <div className="lg:col-span-7 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="lg:col-span-7 rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-[#71808C]">
               Holdings by Regulator
             </h2>
             <Link
               to="/app/aggregate"
-              className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+              className="text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
             >
               All holdings &rarr;
             </Link>
@@ -247,13 +247,13 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
               <p>Nothing mapped yet.</p>
               <Link
                 to="/app/aggregate"
-                className="mt-2 inline-flex items-center gap-1 font-medium text-brand-700 dark:text-brand-400 hover:underline"
+                className="mt-2 inline-flex items-center gap-1 font-medium text-brand-700 hover:underline"
               >
                 Map holdings under consent &rarr;
               </Link>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+            <div className="divide-y divide-slate-100">
               {REGULATOR_CATALOG.map((reg) => {
                 const regData = (data?.summary.byRegulator || []).find((r) => r.regulator === reg.code);
                 const hasData = regData && regData.count > 0;
@@ -261,7 +261,7 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
                   <div key={reg.code} className="flex items-center justify-between py-2 text-xs">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <RegChip code={reg.code} />
-                      <span className="truncate text-slate-700 dark:text-slate-200 font-medium">{reg.category}</span>
+                      <span className="truncate text-slate-700 font-medium">{reg.category}</span>
                     </div>
                     <div className="text-right shrink-0 font-mono">
                       {hasData ? (
@@ -269,7 +269,7 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
                           {inrShort(regData.value)}
                         </span>
                       ) : (
-                        <span className="text-slate-300 dark:text-slate-600">—</span>
+                        <span className="text-slate-300">—</span>
                       )}
                     </div>
                   </div>
@@ -280,15 +280,15 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
         </div>
 
         {/* E. Needs attention (5 cols) */}
-        <div className="lg:col-span-5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 flex flex-col justify-between">
+        <div className="lg:col-span-5 rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-[#71808C]">
                 Needs Attention
               </h2>
               <Link
                 to="/app/alerts"
-                className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                className="text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
               >
                 View all ({open.length}) &rarr;
               </Link>
@@ -296,10 +296,10 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
 
             {open.length === 0 ? (
               <div className="py-8 text-center">
-                <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 mb-1.5">
+                <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-1.5">
                   <CheckCircle2 className="h-4 w-4" />
                 </div>
-                <div className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                <div className="text-xs font-medium text-slate-800">
                   You're all caught up.
                 </div>
                 <div className="text-[11px] text-slate-400 mt-0.5">
@@ -307,7 +307,7 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
                 </div>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+              <div className="divide-y divide-slate-100">
                 {open.slice(0, 3).map((a) => (
                   <div key={a.id} className="py-2.5 flex items-start gap-2.5 text-xs">
                     <span
@@ -337,10 +337,10 @@ className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#101D2B
           </div>
 
           {open.length > 3 && (
-            <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 mt-2 text-center">
+            <div className="pt-2.5 border-t border-slate-100 mt-2 text-center">
               <Link
                 to="/app/alerts"
-                className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                className="text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
               >
                 +{open.length - 3} more alerts in queue &rarr;
               </Link>

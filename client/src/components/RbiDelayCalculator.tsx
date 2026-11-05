@@ -108,28 +108,28 @@ Contact via Asset Bridge Case: ${caseId}`;
   };
 
   return (
-    <div className="rounded-xl border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20 p-3.5 sm:p-4 space-y-3">
+    <div className="rounded-xl border border-amber-200/80 bg-amber-50/40 p-3.5 sm:p-4 space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="grid size-7 place-items-center rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300">
+          <div className="grid size-7 place-items-center rounded-lg bg-amber-100 text-amber-800">
             <Scale className="h-4 w-4" />
           </div>
           <div>
-            <div className="font-semibold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+            <div className="font-semibold text-xs text-slate-900 flex items-center gap-1.5">
               <span>RBI Statutory Delay Compensation Calculator</span>
-              <span className="inline-flex rounded-full bg-amber-200/60 dark:bg-amber-900/40 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-900 dark:text-amber-200">
+              <span className="inline-flex rounded-full bg-amber-200/60 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-900">
                 RBI/DOR/2025-26/170
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] text-slate-500">
               Commercial banks must settle claims within 15 calendar days. Overdue balances accrue penal interest at Bank Rate + 4% ({TOTAL_PENALTY_RATE}% p.a.).
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1">
+          <label className="text-[11px] font-medium text-slate-600 flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5 text-slate-400" />
             <span>Claim Submitted:</span>
           </label>
@@ -137,24 +137,24 @@ Contact via Asset Bridge Case: ${caseId}`;
             type="date"
             value={submissionDate}
             onChange={(e) => setSubmissionDate(e.target.value)}
-            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500"
+            className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
           />
         </div>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-amber-200/50 dark:border-amber-900/40">
-        <div className="p-2.5 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-amber-200/50">
+        <div className="p-2.5 rounded-lg bg-white/80 border border-slate-200/60">
           <div className="text-[10px] uppercase font-mono text-slate-400">Elapsed Time</div>
-          <div className="text-sm font-bold text-slate-800 dark:text-slate-100">
+          <div className="text-sm font-bold text-slate-800">
             {metrics.elapsedDays} Days
           </div>
           <div className="text-[10px] text-slate-500">Statutory Limit: 15 Days</div>
         </div>
 
-        <div className="p-2.5 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800">
+        <div className="p-2.5 rounded-lg bg-white/80 border border-slate-200/60">
           <div className="text-[10px] uppercase font-mono text-slate-400">Overdue Status</div>
-          <div className={`text-sm font-bold ${metrics.isDelayed ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+          <div className={`text-sm font-bold ${metrics.isDelayed ? 'text-rose-600' : 'text-emerald-600'}`}>
             {metrics.isDelayed ? `${metrics.overdueDays} Days Delayed` : 'Within Window'}
           </div>
           <div className="text-[10px] text-slate-500">
@@ -162,22 +162,22 @@ Contact via Asset Bridge Case: ${caseId}`;
           </div>
         </div>
 
-        <div className="p-2.5 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800">
+        <div className="p-2.5 rounded-lg bg-white/80 border border-slate-200/60">
           <div className="text-[10px] uppercase font-mono text-slate-400">Statutory Penal Interest</div>
-          <div className="text-sm font-bold text-amber-600 dark:text-amber-400">
+          <div className="text-sm font-bold text-amber-600">
             {inr(metrics.penaltyInterest)}
           </div>
           <div className="text-[10px] text-slate-500">{TOTAL_PENALTY_RATE}% p.a. accrued</div>
         </div>
 
-        <div className="p-2.5 rounded-lg bg-amber-100/70 dark:bg-amber-900/30 border border-amber-300/60 dark:border-amber-800">
-          <div className="text-[10px] uppercase font-mono text-amber-800 dark:text-amber-300 font-semibold">
+        <div className="p-2.5 rounded-lg bg-amber-100/70 border border-amber-300/60">
+          <div className="text-[10px] uppercase font-mono text-amber-800 font-semibold">
             Total Bank Liability
           </div>
-          <div className="text-sm font-extrabold text-amber-950 dark:text-amber-100">
+          <div className="text-sm font-extrabold text-amber-950">
             {inr(metrics.totalPayable)}
           </div>
-          <div className="text-[10px] text-amber-800/80 dark:text-amber-300/80">Principal + Penal Sum</div>
+          <div className="text-[10px] text-amber-800/80">Principal + Penal Sum</div>
         </div>
       </div>
 
@@ -185,8 +185,8 @@ Contact via Asset Bridge Case: ${caseId}`;
       {metrics.isDelayed ? (
         <div className="rounded-lg bg-rose-500/10 border border-rose-500/20 p-3 space-y-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2 text-xs font-semibold text-rose-800 dark:text-rose-300">
-              <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-rose-800">
+              <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
               <span>
                 {holding.institution} is in statutory default by {metrics.overdueDays} calendar days. Owed penal compensation: {inr(metrics.penaltyInterest)}.
               </span>
@@ -195,7 +195,7 @@ Contact via Asset Bridge Case: ${caseId}`;
               <button
                 type="button"
                 onClick={() => setShowNoticePreview((prev) => !prev)}
-                className="inline-flex items-center gap-1 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition cursor-pointer"
+                className="inline-flex items-center gap-1 rounded-md bg-white border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
               >
                 <FileText className="h-3 w-3" />
                 <span>{showNoticePreview ? 'Hide Notice' : 'Inspect Demand Notice'}</span>
@@ -219,7 +219,7 @@ Contact via Asset Bridge Case: ${caseId}`;
           )}
         </div>
       ) : (
-        <div className="flex items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-400 bg-white/60 dark:bg-slate-900/50 p-2.5 rounded-lg border border-slate-200/50 dark:border-slate-800">
+        <div className="flex items-center justify-between gap-2 text-xs text-slate-600 bg-white/60 p-2.5 rounded-lg border border-slate-200/50">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
             <span>

@@ -24,7 +24,7 @@ export const AVATAR_OPTIONS: PersonaAvatar[] = [
     title: 'Teen · Male',
     role: 'Student / Heir',
     description: 'Youthful heir preparing for future estate stewardship.',
-    badgeBg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800/40',
+    badgeBg: 'bg-sky-50 text-sky-700 border-sky-200',
   },
   {
     id: 'teen-female',
@@ -34,7 +34,7 @@ export const AVATAR_OPTIONS: PersonaAvatar[] = [
     title: 'Teen · Female',
     role: 'Student / Heir',
     description: 'Youthful heir learning family financial succession.',
-    badgeBg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/40',
+    badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
   },
   {
     id: 'adult-male',
@@ -44,7 +44,7 @@ export const AVATAR_OPTIONS: PersonaAvatar[] = [
     title: 'Adult · Male',
     role: 'Primary Account Holder',
     description: 'Working professional managing family wealth & nominees.',
-    badgeBg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/40',
+    badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
   },
   {
     id: 'adult-female',
@@ -54,7 +54,7 @@ export const AVATAR_OPTIONS: PersonaAvatar[] = [
     title: 'Adult · Female',
     role: 'Primary Account Holder',
     description: 'Working professional consolidating holdings & coverage.',
-    badgeBg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800/40',
+    badgeBg: 'bg-teal-50 text-teal-700 border-teal-200',
   },
   {
     id: 'senior-male',
@@ -64,7 +64,7 @@ export const AVATAR_OPTIONS: PersonaAvatar[] = [
     title: 'Senior · Male',
     role: 'Patriarch / Estate Owner',
     description: 'Dignified elder orchestrating smooth wealth transmission.',
-    badgeBg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/40',
+    badgeBg: 'bg-amber-50 text-amber-700 border-amber-200',
   },
   {
     id: 'senior-female',
@@ -74,7 +74,7 @@ export const AVATAR_OPTIONS: PersonaAvatar[] = [
     title: 'Senior · Female',
     role: 'Matriarch / Estate Owner',
     description: 'Dignified elder securing family succession protections.',
-    badgeBg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40',
+    badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   },
 ];
 
