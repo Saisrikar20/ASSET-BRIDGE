@@ -50,14 +50,14 @@ export interface VerifiedPersonaData {
 export const DEMO_PERSONAS: VerifiedPersonaData[] = [
   {
     id: 'raghavan',
-    name: 'Raghavan',
+    name: 'Raghavan Sundaram',
     pan: 'ABCPI1234K',
     dob: '1984-03-14',
     aadhaarLast4: '4821',
     mobile: '9840012345',
     state: 'Tamil Nadu',
     role: 'Salaried IT Specialist',
-    label: 'Raghavan (TN)',
+    label: 'Raghavan Sundaram (TN)',
   },
   {
     id: 'priya',
@@ -627,6 +627,11 @@ export default function Verify() {
                                   <span>Name Exact ✓</span>
                                   <span>·</span>
                                   <span>DOB Match ✓</span>
+                                </span>
+                              ) : c.dob === 'mismatch' ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] text-[#C45D5D] font-medium bg-[#C45D5D]/10 border border-[#C45D5D]/20 px-2.5 py-0.5 rounded-full">
+                                  <span>DOB Typo:</span>
+                                  <strong className="font-semibold">{c.registeredDob || 'Record Mismatch'}</strong>
                                 </span>
                               ) : c.name === 'partial' ? (
                                 <span className="inline-flex items-center gap-1 text-[11px] text-[#C58B3C] font-medium bg-[#C58B3C]/10 border border-[#C58B3C]/20 px-2.5 py-0.5 rounded-full">

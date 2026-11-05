@@ -15,6 +15,7 @@ if str(BACKEND_ROOT) not in sys.path:
 from app.core.db import init_db
 from app.aggregation.personas import PERSONAS
 from app.core.seeder import seed_persona
+from scripts.poll_regulations import poll_all_regulators
 
 def main():
     parser = argparse.ArgumentParser(description="Asset Bridge Mock Data Seeder CLI")

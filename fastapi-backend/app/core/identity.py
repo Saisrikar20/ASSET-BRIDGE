@@ -11,7 +11,7 @@ REGULATORS = {
 }
 
 DEMO_IDENTITY = {
-    'name': 'Raghavan',
+    'name': 'Raghavan Sundaram',
     'pan': 'ABCPI1234K',
     'dob': '1984-03-14',
     'aadhaarLast4': '4821',
@@ -59,8 +59,8 @@ DEMO_RECORDS = [
     {'regulator': 'RBI', 'type': 'Sovereign Gold Bond', 'institution': 'RBI · via State Bank of India', 'ref': 'SGB 2019-20 S-IV', 'value': 412000, 'status': 'active', 'lastActivity': '2026-08-12', 'nominee': None, 'kycUpdated': '2019-10-01'},
     {'regulator': 'PFRDA', 'type': 'NPS Tier I', 'institution': 'PRAN 1100XXXX4471 · Protean CRA', 'ref': 'PRAN XXXX4471', 'value': 1640000, 'sip': 5000, 'status': 'active', 'lastActivity': '2026-09-05', 'nominee': {'name': 'Meenakshi', 'relation': 'Spouse', 'status': 'valid'}, 'kycUpdated': '2022-04-18'},
     {'regulator': 'DOP', 'type': 'Public Provident Fund', 'institution': 'India Post · Mylapore HPO', 'ref': 'PPF XXXX7781', 'value': 735000, 'sip': 12500, 'status': 'active', 'lastActivity': '2026-04-02', 'nominee': None, 'kycUpdated': '2016-11-23'},
-    {'regulator': 'DOP', 'type': 'National Savings Certificate (matured)', 'institution': 'India Post · Adyar SO', 'ref': 'NSC XXXX0318', 'value': 152000, 'status': 'unclaimed', 'lastActivity': '2018-06-30', 'nominee': {'name': 'Lakshmi', 'relation': 'Mother', 'status': 'deceased'}, 'kycUpdated': '2013-06-30'},
-    {'regulator': 'LIC', 'type': 'Matured policy (unpaid)', 'institution': 'LIC of India · Jeevan Saral', 'ref': 'POL 6630XX55', 'value': 287000, 'status': 'unclaimed', 'lastActivity': '2019-12-20', 'nominee': {'name': 'Lakshmi', 'relation': 'Mother', 'status': 'deceased'}, 'kycUpdated': '2004-06-30'},
+    {'regulator': 'DOP', 'type': 'National Savings Certificate (matured)', 'institution': 'India Post · Adyar SO', 'ref': 'NSC XXXX0318', 'value': 152000, 'status': 'unclaimed', 'lastActivity': '2018-06-30', 'nominee': {'name': 'Lakshmi', 'relation': 'Mother', 'status': 'deceased'}, 'kycUpdated': '2013-06-30', 'registeredName': 'Raghavan Sundaram', 'registeredDob': '1984-03-15'},
+    {'regulator': 'LIC', 'type': 'Matured policy (unpaid)', 'institution': 'LIC of India · Jeevan Saral', 'ref': 'POL 6630XX55', 'value': 287000, 'status': 'unclaimed', 'lastActivity': '2019-12-20', 'nominee': {'name': 'Lakshmi', 'relation': 'Mother', 'status': 'deceased'}, 'kycUpdated': '2004-06-30', 'registeredName': 'Sundaram Raghavan', 'registeredDob': '1984-03-14'},
 ]
 
 def clean_name(s: str) -> str:
@@ -73,13 +73,26 @@ def match_name_logic(given: str, registered: str) -> tuple[str, float]:
     if a == b:
         return 'exact', 1.0
     ap, bp = a.split(' '), b.split(' ')
+    # Exactly same tokens in different order (e.g. Sundaram Raghavan vs Raghavan Sundaram)
+    if set(ap) == set(bp) and len(ap) > 1:
+        return 'partial', 0.85
+    # Single name matches first token (e.g. Raghavan vs Raghavan Sundaram)
+    if (len(bp) == 1 and bp[0] == ap[0]) or (len(ap) == 1 and ap[0] == bp[0]):
+        return 'exact', 1.0
+    # Initial prefix: 'R Raghavan' vs 'Raghavan Sundaram' or 'Raghavan'
+    if (len(bp) == 2 and len(bp[0]) == 1 and bp[0] == ap[0][0] and bp[1] in ap):
+        return 'partial', 0.65
+    if (len(ap) == 2 and len(ap[0]) == 1 and ap[0] == bp[0][0] and ap[1] in bp):
+        return 'partial', 0.65
     if ap[-1] == bp[-1] and ap[0][0] == bp[0][0]:
         return 'partial', 0.65
-    # Token matching for single name vs full name or patronymic expansion
-    if (len(bp) == 1 and bp[0] in ap) or (len(ap) == 1 and ap[0] in bp):
-        return ('exact', 1.0) if (ap[0] == bp[0]) else ('partial', 0.85)
-    if ap[0] == bp[0] or (set(ap) & set(bp)):
+    # Middle/Last initial: 'Priya S' vs 'Priya Sharma' or 'Rajesh K Patel' vs 'Rajesh Patel'
+    if ap[0] == bp[0] and (len(bp[-1]) == 1 and bp[-1] == ap[-1][0]):
         return 'partial', 0.75
+    if ap[0] == bp[0] and (len(ap[-1]) == 1 and ap[-1] == bp[-1][0]):
+        return 'partial', 0.75
+    if set(ap) & set(bp):
+        return 'partial', 0.65
     return 'mismatch', 0.0
 
 def name_match(given: str, registered: str) -> str:
@@ -135,6 +148,7 @@ def verify_identity(identity: dict) -> list:
                 'institution': r.get('institution'),
                 'name': name_match(identity.get('name', ''), r.get('registeredName', '')),
                 'registeredName': r.get('registeredName'),
+                'registeredDob': r.get('registeredDob'),
                 'dob': 'exact' if r.get('registeredDob') == identity.get('dob') else 'mismatch',
             })
         worst = 'verified'

@@ -14,6 +14,7 @@ export interface Check {
   institution: string;
   name: "exact" | "partial" | "mismatch";
   registeredName: string;
+  registeredDob?: string;
   dob: "exact" | "mismatch";
 }
 export interface VerifyResult {

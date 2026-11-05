@@ -136,9 +136,9 @@ def demo_login(persona: Optional[str] = None):
             user = store.find("users", lambda u: u.get("email") == email)
         else:
             user = store.insert("users", {
-                "id": "u_demo", "email": email, "name": "Raghavan",
+                "id": "u_demo", "email": email, "name": "Raghavan Sundaram",
                 "passwordHash": hash_password(uid()), "identity": DEMO_IDENTITY,
-                "verification": {"at": "2026-11-04T12:00:00Z", "results": []},
+                "verification": {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "results": verify_identity(DEMO_IDENTITY)},
                 "deceased": None,
                 "avatar": {"displayName": "Raghavan", "variant": 2, "seed": "senior-male"},
                 "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -159,6 +159,20 @@ def demo_login(persona: Optional[str] = None):
                     "kycUpdated": "2025-08-20",
                     "nominee": {"name": "Meenakshi Sundaram", "relation": "Spouse", "status": "valid"}
                 })
+
+    if user:
+        # Guarantee identity and verification results are populated for smooth demo experience
+        id_data = user.get("identity") or DEMO_IDENTITY
+        ver_results = user.get("verification", {}).get("results") if user.get("verification") else None
+        if not user.get("identity") or not ver_results:
+            ver_data = {
+                "at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "results": verify_identity(id_data)
+            }
+            user = store.update("users", lambda u: u.get("id") == user["id"], {
+                "identity": id_data,
+                "verification": ver_data
+            }) or user
 
     if not user:
         raise HTTPException(status_code=500, detail="Failed to initialize demo persona")

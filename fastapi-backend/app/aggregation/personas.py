@@ -8,7 +8,7 @@ from typing import Dict, List, Any
 PERSONAS: Dict[str, Dict[str, Any]] = {
     "raghavan": {
         "id": "raghavan",
-        "name": "Raghavan",
+        "name": "Raghavan Sundaram",
         "pan": "ABCPI1234K",
         "dob": "1984-03-14",
         "aadhaarLast4": "4821",
@@ -37,8 +37,8 @@ PERSONAS: Dict[str, Dict[str, Any]] = {
             {'regulator': 'RBI', 'type': 'Sovereign Gold Bond', 'institution': 'RBI · via State Bank of India', 'ref': 'SGB 2019-20 S-IV', 'value': 412000, 'status': 'active', 'lastActivity': '2026-08-12', 'nominee': None, 'kycUpdated': '2019-10-01'},
             {'regulator': 'PFRDA', 'type': 'NPS Tier I', 'institution': 'PRAN 1100XXXX4471 · Protean CRA', 'ref': 'PRAN XXXX4471', 'value': 1640000, 'sip': 5000, 'status': 'active', 'lastActivity': '2026-09-05', 'nominee': {'name': 'Meenakshi', 'relation': 'Spouse', 'status': 'valid'}, 'kycUpdated': '2022-04-18'},
             {'regulator': 'DOP', 'type': 'Public Provident Fund', 'institution': 'India Post · Mylapore HPO', 'ref': 'PPF XXXX7781', 'value': 735000, 'sip': 12500, 'status': 'active', 'lastActivity': '2026-04-02', 'nominee': None, 'kycUpdated': '2016-11-23'},
-            {'regulator': 'DOP', 'type': 'National Savings Certificate (matured)', 'institution': 'India Post · Adyar SO', 'ref': 'NSC XXXX0318', 'value': 152000, 'status': 'unclaimed', 'lastActivity': '2018-06-30', 'nominee': {'name': 'Lakshmi', 'relation': 'Mother', 'status': 'deceased'}, 'kycUpdated': '2013-06-30'},
-            {'regulator': 'LIC', 'type': 'Matured policy (unpaid)', 'institution': 'LIC of India · Jeevan Saral', 'ref': 'POL 6630XX55', 'value': 287000, 'status': 'unclaimed', 'lastActivity': '2019-12-20', 'nominee': {'name': 'Lakshmi', 'relation': 'Mother', 'status': 'deceased'}, 'kycUpdated': '2004-06-30'}
+            {'regulator': 'DOP', 'type': 'National Savings Certificate (matured)', 'institution': 'India Post · Adyar SO', 'ref': 'NSC XXXX0318', 'value': 152000, 'status': 'unclaimed', 'lastActivity': '2018-06-30', 'nominee': {'name': 'Lakshmi', 'relation': 'Mother', 'status': 'deceased'}, 'kycUpdated': '2013-06-30', 'registeredName': 'Raghavan Sundaram', 'registeredDob': '1984-03-15'},
+            {'regulator': 'LIC', 'type': 'Matured policy (unpaid)', 'institution': 'LIC of India · Jeevan Saral', 'ref': 'POL 6630XX55', 'value': 287000, 'status': 'unclaimed', 'lastActivity': '2019-12-20', 'nominee': {'name': 'Lakshmi', 'relation': 'Mother', 'status': 'deceased'}, 'kycUpdated': '2004-06-30', 'registeredName': 'Sundaram Raghavan', 'registeredDob': '1984-03-14'}
         ]
     },
 
@@ -58,7 +58,7 @@ PERSONAS: Dict[str, Dict[str, Any]] = {
             {"name": "Anita Sharma", "relation": "Mother", "age": 60, "pan": "AABCS3344M"}
         ],
         "holdings": [
-            {'regulator': 'SEBI', 'type': 'Demat holdings (Equities)', 'institution': 'CDSL · Zerodha Broking', 'ref': 'BO 1208XXXX9912', 'value': 2450000, 'status': 'active', 'lastActivity': '2026-10-25', 'nominee': None, 'kycUpdated': '2024-05-10'},
+            {'regulator': 'SEBI', 'type': 'Demat holdings (Equities)', 'institution': 'CDSL · Zerodha Broking', 'ref': 'BO 1208XXXX9912', 'value': 2450000, 'status': 'active', 'lastActivity': '2026-10-25', 'nominee': None, 'kycUpdated': '2024-05-10', 'registeredName': 'Priya S.', 'registeredDob': '1994-08-22'},
             {'regulator': 'SEBI', 'type': 'Mutual fund folio', 'institution': 'Parag Parikh Flexi Cap · via CAMS', 'ref': 'FOLIO 8831XX90', 'value': 820000, 'sip': 15000, 'status': 'active', 'lastActivity': '2026-10-01', 'nominee': {'name': 'Anita Sharma', 'relation': 'Mother', 'status': 'valid'}, 'kycUpdated': '2023-11-15'},
             {'regulator': 'SEBI', 'type': 'Mutual fund folio', 'institution': 'HDFC Top 100 · via CAMS', 'ref': 'FOLIO 3320XX71', 'value': 580000, 'status': 'active', 'lastActivity': '2026-09-12', 'nominee': None, 'kycUpdated': '2022-04-10'},
             {'regulator': 'EPFO', 'type': 'EPF (Bengaluru Tech Park)', 'institution': 'UAN 1014XXXX8833', 'ref': 'KN/BNG/0074129', 'value': 850000, 'sip': 9600, 'status': 'active', 'lastActivity': '2026-10-15', 'nominee': {'name': 'Anita Sharma', 'relation': 'Mother', 'status': 'valid'}, 'kycUpdated': '2024-01-10'},
@@ -87,7 +87,7 @@ PERSONAS: Dict[str, Dict[str, Any]] = {
         "holdings": [
             {'regulator': 'RBI', 'type': 'Pension savings account', 'institution': 'State Bank of India · Kolkata Main', 'ref': 'XXXX3318', 'value': 640000, 'status': 'active', 'lastActivity': '2026-10-28', 'nominee': {'name': 'Ananya Sengupta', 'relation': 'Spouse', 'status': 'valid'}, 'kycUpdated': '2024-02-14'},
             {'regulator': 'RBI', 'type': 'Senior citizen fixed deposit', 'institution': 'UCO Bank', 'ref': 'XXXX8821', 'value': 1200000, 'status': 'inoperative', 'lastActivity': '2016-04-12', 'nominee': None, 'kycUpdated': '2014-08-10'},
-            {'regulator': 'DOP', 'type': 'Senior Citizen Savings Scheme (SCSS)', 'institution': 'India Post · GPO Kolkata', 'ref': 'SCSS XXXX9941', 'value': 1500000, 'status': 'active', 'lastActivity': '2026-07-15', 'nominee': None, 'kycUpdated': '2021-04-10'},
+            {'regulator': 'DOP', 'type': 'Senior Citizen Savings Scheme (SCSS)', 'institution': 'India Post · GPO Kolkata', 'ref': 'SCSS XXXX9941', 'value': 1500000, 'status': 'active', 'lastActivity': '2026-07-15', 'nominee': None, 'kycUpdated': '2021-04-10', 'registeredName': 'V. Sengupta', 'registeredDob': '1957-06-18'},
             {'regulator': 'SEBI', 'type': 'IEPF Unclaimed Shares (Tata Motors)', 'institution': 'IEPF Authority · MCA', 'ref': 'IEPF/TATAMOT/5512', 'value': 480000, 'status': 'unclaimed', 'lastActivity': '2014-11-20', 'nominee': None, 'kycUpdated': '2008-03-12'},
             {'regulator': 'SEBI', 'type': 'IEPF Unclaimed Dividend', 'institution': 'IEPF Authority · MCA', 'ref': 'IEPF/DIV/88123', 'value': 142000, 'status': 'unclaimed', 'lastActivity': '2015-08-15', 'nominee': None, 'kycUpdated': '2008-03-12'},
             {'regulator': 'EPFO', 'type': 'EPS 1995 Pensioner Folio', 'institution': 'EPFO Regional Office Kolkata', 'ref': 'WB/CAL/0018821/PPO', 'value': 28000, 'sip': 0, 'status': 'active', 'lastActivity': '2026-10-01', 'nominee': {'name': 'Ananya Sengupta', 'relation': 'Spouse', 'status': 'valid'}, 'kycUpdated': '2023-09-01'},
@@ -115,7 +115,7 @@ PERSONAS: Dict[str, Dict[str, Any]] = {
             {'regulator': 'RBI', 'type': 'Current / Business account', 'institution': 'Bank of Baroda · Pune Camp', 'ref': 'XXXX9012', 'value': 3500000, 'status': 'active', 'lastActivity': '2026-10-29', 'nominee': {'name': 'Prakash Deshmukh', 'relation': 'Spouse', 'status': 'deceased'}, 'kycUpdated': '2023-11-20'},
             {'regulator': 'RBI', 'type': 'Sovereign Gold Bonds', 'institution': 'RBI · via Bank of Baroda', 'ref': 'SGB 2020-21 S-VII', 'value': 1250000, 'status': 'active', 'lastActivity': '2026-05-10', 'nominee': None, 'kycUpdated': '2020-11-15'},
             {'regulator': 'LIC', 'type': 'Jeevan Labh Policy', 'institution': 'LIC of India · Shivaji Nagar', 'ref': 'POL 8812XX44', 'value': 2500000, 'status': 'active', 'lastActivity': '2026-03-15', 'nominee': {'name': 'Prakash Deshmukh', 'relation': 'Spouse', 'status': 'deceased'}, 'kycUpdated': '2019-02-10'},
-            {'regulator': 'IRDAI', 'type': 'Term life insurance', 'institution': 'HDFC Life', 'ref': 'POL-33XX8819', 'value': 7500000, 'status': 'active', 'lastActivity': '2026-06-20', 'nominee': {'name': 'Rohan Deshmukh', 'relation': 'Son', 'status': 'valid'}, 'kycUpdated': '2024-01-15'},
+            {'regulator': 'IRDAI', 'type': 'Term life insurance', 'institution': 'HDFC Life', 'ref': 'POL-33XX8819', 'value': 7500000, 'status': 'active', 'lastActivity': '2026-06-20', 'nominee': {'name': 'Rohan Deshmukh', 'relation': 'Son', 'status': 'valid'}, 'kycUpdated': '2024-01-15', 'registeredName': 'Sunita D. Deshmukh', 'registeredDob': '1973-11-05'},
             {'regulator': 'SEBI', 'type': 'Mutual fund portfolio', 'institution': 'Kotak Mutual Fund · via CAMS', 'ref': 'FOLIO 4412XX09', 'value': 1850000, 'status': 'active', 'lastActivity': '2026-08-14', 'nominee': None, 'kycUpdated': '2022-07-19'},
             {'regulator': 'DOP', 'type': 'Public Provident Fund', 'institution': 'India Post · Pune City SO', 'ref': 'PPF XXXX3310', 'value': 1420000, 'status': 'active', 'lastActivity': '2026-04-05', 'nominee': {'name': 'Neha Deshmukh', 'relation': 'Daughter', 'status': 'valid'}, 'kycUpdated': '2021-09-12'}
         ]
@@ -139,7 +139,7 @@ PERSONAS: Dict[str, Dict[str, Any]] = {
         "holdings": [
             {'regulator': 'RBI', 'type': 'NRE Fixed Deposit (Tax-Free)', 'institution': 'ICICI Bank · Ahmedabad Branch', 'ref': 'NRE-XXXX1145', 'value': 4500000, 'status': 'active', 'lastActivity': '2026-09-18', 'nominee': {'name': 'Bhavna Patel', 'relation': 'Spouse', 'status': 'valid'}, 'kycUpdated': '2024-04-12'},
             {'regulator': 'RBI', 'type': 'NRO Savings Account', 'institution': 'Axis Bank · Ellisbridge', 'ref': 'NRO-XXXX8829', 'value': 820000, 'status': 'inoperative', 'lastActivity': '2017-03-22', 'nominee': None, 'kycUpdated': '2015-01-10'},
-            {'regulator': 'SEBI', 'type': 'NRI Mutual Fund Folio', 'institution': 'Mirae Asset Large Cap · via KFintech', 'ref': 'FOLIO 9920XX11', 'value': 2800000, 'status': 'active', 'lastActivity': '2026-07-10', 'nominee': {'name': 'Bhavna Patel', 'relation': 'Spouse', 'status': 'valid'}, 'kycUpdated': '2023-10-15'},
+            {'regulator': 'SEBI', 'type': 'NRI Mutual Fund Folio', 'institution': 'Mirae Asset Large Cap · via KFintech', 'ref': 'FOLIO 9920XX11', 'value': 2800000, 'status': 'active', 'lastActivity': '2026-07-10', 'nominee': {'name': 'Bhavna Patel', 'relation': 'Spouse', 'status': 'valid'}, 'kycUpdated': '2023-10-15', 'registeredName': 'Rajesh K. Patel', 'registeredDob': '1978-04-12'},
             {'regulator': 'DOP', 'type': 'Pre-NRI Public Provident Fund', 'institution': 'India Post · Navrangpura SO', 'ref': 'PPF XXXX0012', 'value': 2250000, 'status': 'active', 'lastActivity': '2026-03-30', 'nominee': None, 'kycUpdated': '2018-05-14'},
             {'regulator': 'IRDAI', 'type': 'Offshore NRI Term Plan', 'institution': 'Max Life Insurance', 'ref': 'POL-NRI-4412', 'value': 15000000, 'status': 'active', 'lastActivity': '2026-02-15', 'nominee': {'name': 'Bhavna Patel', 'relation': 'Spouse', 'status': 'valid'}, 'kycUpdated': '2024-02-28'}
         ]

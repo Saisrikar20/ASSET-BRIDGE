@@ -9,6 +9,7 @@ from app.core.store import store, uid
 from app.core.auth import hash_password
 from app.aggregation.personas import PERSONAS
 from app.aggregation.documents import ingest_document
+from scripts.poll_regulations import poll_all_regulators
 from app.core.identity import verify_identity
 
 SAMPLE_DOCS_DIR = DATA_DIR / "sample_documents"
@@ -24,6 +25,7 @@ def seed_persona(persona_key: str, reset: bool = False):
     if reset:
         print("[INFO] Resetting SQLite database tables...")
         store.reset()
+        poll_all_regulators(limit=3, persist=True)
 
     for pkey in keys_to_seed:
         p = PERSONAS[pkey]
@@ -69,6 +71,7 @@ def seed_persona(persona_key: str, reset: bool = False):
             h_copy = dict(h)
             h_copy["userId"] = user_id
             h_copy["registeredName"] = h.get("registeredName") or p["name"]
+            h_copy["registeredDob"] = h.get("registeredDob") or p["dob"]
             store.insert("holdings", h_copy)
         print(f"     [OK] {len(p['holdings'])} holdings seeded into SQLite.")
 

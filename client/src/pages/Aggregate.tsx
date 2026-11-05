@@ -129,8 +129,18 @@ function NomineeIndicator({ nominee }: { nominee: Holding['nominee'] }) {
   );
 }
 
+const DEFAULT_DEMO_IDENTITY = {
+  name: 'Raghavan Sundaram',
+  pan: 'ABCPI1234K',
+  dob: '1984-03-14',
+  aadhaarLast4: '4821',
+  mobile: '9840012345',
+  state: 'Tamil Nadu',
+};
+
 export default function Aggregate() {
   const { user } = useAuth();
+  const effectiveIdentity = user?.identity || DEFAULT_DEMO_IDENTITY;
   const nav = useNavigate();
   const [consents, setConsents] = useState<Consent[]>([]);
   const [holdings, setHoldings] = useState<Holding[]>([]);
@@ -264,7 +274,7 @@ export default function Aggregate() {
 
   const handleExportCsv = () => {
     downloadCsv(
-      `Asset_Bridge_Schedule_${user?.identity?.pan || 'portfolio'}.csv`,
+      `Asset_Bridge_Schedule_${effectiveIdentity.pan || 'portfolio'}.csv`,
       [
         'Holding ID',
         'Regulator',
@@ -300,39 +310,7 @@ export default function Aggregate() {
     );
   };
 
-  if (!user?.identity) {
-    return (
-      <div className="space-y-6">
-        <div className="pb-4 border-b border-[#DDD7CA]">
-          <div className="font-mono text-[10px] font-semibold tracking-wider text-[#71808C] uppercase">
-            ACCOUNT AGGREGATOR · STATUTORY CONSENT GATEWAY
-          </div>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#101D2B]">
-            Connect Financial Registries
-          </h1>
-          <p className="mt-0.5 text-xs text-[#71808C]">
-            Identity verification required before generating Account Aggregator consent handles.
-          </p>
-        </div>
-        <div className="rounded-2xl border border-dashed border-[#DDD7CA] p-10 text-center bg-white shadow-xs">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#F5F3ED] text-[#C58B3C] mb-4">
-            <ShieldAlert className="h-6 w-6" />
-          </div>
-          <h2 className="text-base font-bold text-[#101D2B]">Identity Verification Required</h2>
-          <p className="mt-1 text-xs text-[#71808C] max-w-md mx-auto">
-            Under Reserve Bank of India (RBI) Account Aggregator Directions, statutory consent handles must be linked to a verified PAN and identity profile.
-          </p>
-          <div className="mt-6">
-            <Link to="/app/verify">
-              <Button size="sm" className="rounded-full px-5 py-2 bg-[#101D2B] text-white hover:bg-[#1C3041]">
-                Complete PAN Verification &rarr;
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-6 pb-12">
@@ -366,6 +344,30 @@ export default function Aggregate() {
           </div>
         </div>
       </div>
+
+      {/* Non-blocking Notice when user has not yet submitted personal KYC */}
+      {!user?.identity && (
+        <div className="rounded-2xl border border-[#C58B3C]/40 bg-[#FBF8EF] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-[#C58B3C]/10 flex items-center justify-center text-[#C58B3C] shrink-0">
+              <ShieldAlert className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[#101D2B]">
+                Sandbox Registry Access Active: Using Default Persona ({effectiveIdentity.name} · {effectiveIdentity.pan})
+              </p>
+              <p className="text-[11px] text-[#71808C]">
+                Statutory registries and ReBIT consent handles are operational in demo mode. To link accounts to your personal credentials, complete PAN verification.
+              </p>
+            </div>
+          </div>
+          <Link to="/app/verify" className="shrink-0 self-start sm:self-center">
+            <Button size="sm" variant="secondary" className="text-xs rounded-full border-[#C58B3C]/50 text-[#C58B3C] hover:bg-[#C58B3C]/10">
+              Verify Personal PAN &rarr;
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* ReBIT Sandbox Technical Notice */}
       <div className="rounded-2xl border border-[#DDD7CA] bg-[#F5F3ED]/70 p-4 flex items-start gap-3 text-xs">
@@ -547,7 +549,7 @@ export default function Aggregate() {
             <div className="flex items-center gap-2 text-[#17232E] font-medium">
               <span className="text-[#71808C] uppercase font-mono text-[10px]">User Handle:</span>
               <span className="font-bold text-[#101D2B] font-mono">
-                {user.identity.mobile || user.identity.pan}@onemoney
+                {effectiveIdentity.mobile || effectiveIdentity.pan}@onemoney
               </span>
             </div>
             <div className="flex items-center gap-2 text-[#17232E] font-medium">
@@ -768,7 +770,7 @@ export default function Aggregate() {
                 Audited Identity PAN
               </div>
               <div className="mt-1 text-xl font-bold font-mono tracking-tight text-[#101D2B]">
-                {user.identity.pan}
+                {effectiveIdentity.pan}
               </div>
               <div className="mt-0.5 text-[11px] text-[#34765B] font-medium flex items-center gap-1">
                 <CheckCircle2 className="h-3 w-3" />
@@ -980,7 +982,7 @@ export default function Aggregate() {
                 onClick={async () => {
                   try {
                     setDownloadingPdf(true);
-                    await downloadClaimingDossierPdf({ pan: user?.identity?.pan });
+                    await downloadClaimingDossierPdf({ pan: effectiveIdentity.pan });
                   } catch (e) {
                     toastError('PDF Generation Failed', (e as Error).message);
                   } finally {
@@ -1006,7 +1008,7 @@ export default function Aggregate() {
                 onClick={async () => {
                   try {
                     setSavingVault(true);
-                    const res = await saveClaimingDossierToVault({ pan: user?.identity?.pan });
+                    const res = await saveClaimingDossierToVault({ pan: effectiveIdentity.pan });
                     toastSuccess('Dossier Saved to AI Vault', res.message || 'Indexed in SQLite document vault for AI consultation.');
                   } catch (e) {
                     toastError('Failed to save to vault', (e as Error).message);
@@ -1063,7 +1065,7 @@ export default function Aggregate() {
       <EmailDossierModal
         isOpen={showEmailModal}
         onClose={() => setShowEmailModal(false)}
-        pan={user?.identity?.pan}
+        pan={effectiveIdentity.pan}
         defaultEmail={user?.email || ''}
         defaultName={user?.name || ''}
         title="Email Statutory Claim Schedule"
