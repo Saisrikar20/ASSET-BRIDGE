@@ -36,7 +36,7 @@ export interface DemoPersona {
 export const BACKEND_SUPPORTED_PERSONAS: DemoPersona[] = [
   {
     id: "raghavan",
-    name: "Raghavan Sundaram",
+    name: "Raghavan",
     role: "Salaried IT Specialist",
     state: "Tamil Nadu",
     age: 42,

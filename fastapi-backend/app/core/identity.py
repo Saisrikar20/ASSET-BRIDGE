@@ -75,6 +75,11 @@ def match_name_logic(given: str, registered: str) -> tuple[str, float]:
     ap, bp = a.split(' '), b.split(' ')
     if ap[-1] == bp[-1] and ap[0][0] == bp[0][0]:
         return 'partial', 0.65
+    # Token matching for single name vs full name or patronymic expansion
+    if (len(bp) == 1 and bp[0] in ap) or (len(ap) == 1 and ap[0] in bp):
+        return ('exact', 1.0) if (ap[0] == bp[0]) else ('partial', 0.85)
+    if ap[0] == bp[0] or (set(ap) & set(bp)):
+        return 'partial', 0.75
     return 'mismatch', 0.0
 
 def name_match(given: str, registered: str) -> str:

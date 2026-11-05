@@ -9,6 +9,7 @@ from app.core.store import store, uid
 from app.core.auth import hash_password
 from app.aggregation.personas import PERSONAS
 from app.aggregation.documents import ingest_document
+from app.core.identity import verify_identity
 
 SAMPLE_DOCS_DIR = DATA_DIR / "sample_documents"
 
@@ -32,22 +33,23 @@ def seed_persona(persona_key: str, reset: bool = False):
         print(f"\n---> Seeding Persona: {p['name']} ({p['pan']} · {p['state']})")
         
         # 1. Seed User
+        identity_data = {
+            "name": p["name"],
+            "pan": p["pan"],
+            "dob": p["dob"],
+            "aadhaarLast4": p["aadhaarLast4"],
+            "mobile": p["mobile"],
+            "state": p["state"]
+        }
         user_record = {
             "id": user_id,
             "email": email,
             "name": p["name"],
             "passwordHash": hash_password("demo1234"),
-            "identity": {
-                "name": p["name"],
-                "pan": p["pan"],
-                "dob": p["dob"],
-                "aadhaarLast4": p["aadhaarLast4"],
-                "mobile": p["mobile"],
-                "state": p["state"]
-            },
+            "identity": identity_data,
             "verification": {
                 "at": "2026-11-04T12:00:00Z",
-                "results": []
+                "results": verify_identity(identity_data)
             },
             "deceased": {
                 "dateOfDeath": "2025-10-14",
