@@ -7,14 +7,19 @@ and regulatory API endpoints.
 
 import sys
 import uuid
+import json
 from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BACKEND_DIR.parent
+SCRAPERS_DIR = ROOT_DIR / "scrapers"
+
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
-if str(ROOT_DIR / "scrapers") not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR / "scrapers"))
+if str(SCRAPERS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRAPERS_DIR))
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from fastapi.testclient import TestClient
 from app.main import app
@@ -31,8 +36,17 @@ from scripts.poll_regulations import (
     poll_irdai_circulars,
     poll_all_regulators
 )
-from scrapers.items import RegulationItem
-from scrapers.pipelines import AssetBridgeVaultPipeline, RedisRegulationPipeline
+
+try:
+    from scrapers.items import RegulationItem
+except ImportError:
+    from scrapers.scrapers.items import RegulationItem
+
+try:
+    from scrapers.pipelines import AssetBridgeVaultPipeline, RedisRegulationPipeline
+except ImportError:
+    from scrapers.scrapers.pipelines import AssetBridgeVaultPipeline, RedisRegulationPipeline
+
 try:
     from scrapers.redis_store import RedisRegulationStore
 except ImportError:
@@ -132,12 +146,13 @@ def test_scrapy_pipeline_processing():
             def warning(self, msg): pass
         logger = Logger()
 
+    unique_tag = uuid.uuid4().hex[:6]
     item = RegulationItem(
         regulator="SEBI",
-        title="SEBI Test Circular for Mutual Fund Unit Transmission",
-        circular_no="SEBI/HO/IMD/TEST-99",
+        title=f"SEBI Test Circular for Mutual Fund Unit Transmission {unique_tag}",
+        circular_no=f"SEBI/HO/IMD/TEST-{unique_tag}",
         date="May 05, 2026",
-        source_url="https://www.sebi.gov.in/test/mf-transmission.html",
+        source_url=f"https://www.sebi.gov.in/test/mf-transmission-{unique_tag}.html",
         raw_text="Mutual fund units must be transmitted within 15 calendar days upon submission of death certificate and KYC.",
         category="Mutual Funds",
         scraped_at="2026-05-05T00:00:00Z"
@@ -145,7 +160,12 @@ def test_scrapy_pipeline_processing():
 
     processed = pipeline.process_item(item, DummySpider())
     assert processed["title"] == item["title"]
-    print("[PASS] Scrapy pipeline item processed into Document Vault successfully.")
+    assert pipeline.ingested_count == 1
+
+    # Second pass: duplicate verification
+    processed_dup = pipeline.process_item(item, DummySpider())
+    assert pipeline.duplicate_count == 1
+    print("[PASS] Scrapy pipeline item processed into Document Vault with duplicate detection.")
 
 def test_redis_store_and_pipeline():
     print("--- 5. Testing Redis Storage Engine and Pipeline Fallback ---")
@@ -159,12 +179,14 @@ def test_redis_store_and_pipeline():
         logger = Logger()
 
     redis_pipe = RedisRegulationPipeline()
+    unique_tag = uuid.uuid4().hex[:6]
+    unique_circ = f"RBI/TEST/REDIS/{unique_tag}"
     item = RegulationItem(
         regulator="RBI",
-        title="RBI Notification on Deceased Claim Interest Penalty",
-        circular_no="RBI/TEST/REDIS/01",
+        title=f"RBI Notification on Deceased Claim Interest Penalty {unique_tag}",
+        circular_no=unique_circ,
         date="June 01, 2026",
-        source_url="https://rbi.org.in/test/redis-interest-notice.aspx",
+        source_url=f"https://rbi.org.in/test/redis-interest-notice-{unique_tag}.aspx",
         raw_text="Bank Rate + 4% penal interest applies on delayed settlement.",
         category="Banking",
         scraped_at="2026-06-01T00:00:00Z"
@@ -172,15 +194,16 @@ def test_redis_store_and_pipeline():
 
     processed = redis_pipe.process_item(item, DummySpider())
     assert processed["title"] == item["title"]
+    assert "sha256" in processed
     assert redis_pipe.jsonl_path.exists()
     
-    # Check JSONL contents
+    # Check JSONL contents contains our unique circular reference
     with open(redis_pipe.jsonl_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
         assert len(lines) > 0
-        assert "RBI/TEST/REDIS/01" in lines[-1]
+        assert any(unique_circ in line for line in lines)
     
-    print("[PASS] Redis pipeline processed item cleanly with JSONL persistence.")
+    print("[PASS] Redis pipeline processed item cleanly with JSONL persistence and sha256 checksum.")
 
 def test_api_endpoints():
     print("--- 6. Testing Regulatory API Endpoints ---")
@@ -192,11 +215,12 @@ def test_api_endpoints():
     assert "regulations" in data
 
     # POST /api/documents/ingest-regulation
+    unique_no = f"EPFO/TEST/2026/{uuid.uuid4().hex[:6]}"
     post_res = client.post("/api/documents/ingest-regulation", json={
         "regulator": "EPFO",
-        "title": "EPFO Form 20 Digital Fast-Track Settlement Notice",
-        "sourceUrl": "https://epfindia.gov.in/test/notice-20.html",
-        "circularNo": "EPFO/TEST/2026/01",
+        "title": f"EPFO Form 20 Digital Fast-Track Settlement Notice {unique_no}",
+        "sourceUrl": f"https://epfindia.gov.in/test/notice-20-{unique_no}.html",
+        "circularNo": unique_no,
         "date": "May 10, 2026",
         "text": "Digital settlement for Form 20 and EDLI insurance processed via Aadhaar authentication."
     })
@@ -211,6 +235,7 @@ def test_api_endpoints():
     poll_data = poll_res.json()
     assert poll_data["ok"] is True
     assert "summary" in poll_data
+
     # POST /api/documents/regulations/crawl
     crawl_res = client.post("/api/documents/regulations/crawl?spider=sebi_circulars&limit=1")
     assert crawl_res.status_code == 200
@@ -218,4 +243,14 @@ def test_api_endpoints():
     assert crawl_data["ok"] is True
     assert crawl_data["engine"] == "scrapy"
     assert crawl_data["spidersRun"] == 1
+    assert "results" in crawl_data
     print("[PASS] API endpoints (GET, POST ingest, POST poll, POST crawl) verified 200 OK.")
+
+if __name__ == "__main__":
+    test_ingest_regulation_document_and_fts5_indexing()
+    test_list_and_search_regulations()
+    test_phase1_lightweight_pollers()
+    test_scrapy_pipeline_processing()
+    test_redis_store_and_pipeline()
+    test_api_endpoints()
+    print("\nALL 6 REGULATION CRAWLER & PIPELINE TESTS PASSED!")
