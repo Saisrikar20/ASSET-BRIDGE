@@ -183,9 +183,11 @@ export default function Layout() {
             <Menu className="h-4 w-4" />
           </button>
 
-          <div className="lg:hidden shrink-0">
+          <div className="shrink-0">
             <Logo size="md" />
           </div>
+
+          <div className="hidden lg:block h-5 w-px bg-[#DDD7CA]" />
 
           <div className="hidden lg:block min-w-0">
             <div className="font-bold text-sm text-[#101D2B] tracking-tight leading-tight truncate">
