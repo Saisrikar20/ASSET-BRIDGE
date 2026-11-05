@@ -35,14 +35,14 @@ export function Logo({ light = false, size = 'md', tagline = size === 'lg', onCl
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'ghost' | 'danger'; loading?: boolean; size?: 'sm' | 'md' };
 export function Button({ variant = 'primary', loading, size = 'md', className, children, disabled, ...rest }: BtnProps) {
   const styles = {
-    primary: 'bg-brand-700 text-white hover:bg-brand-800 shadow-sm',
-    secondary: 'bg-surface text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm',
-    ghost: 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
-    danger: 'bg-rose-600 text-white hover:bg-rose-700',
+    primary: 'bg-[#244B3C] text-white hover:bg-[#1E3E32] shadow-xs',
+    secondary: 'bg-[#EFE9DC] text-[#26352D] border border-[#C8BEAA] hover:bg-[#E9E0CC] shadow-xs',
+    ghost: 'text-[#26352D] hover:bg-[#EFE9DC]/60',
+    danger: 'bg-rose-600 text-white hover:bg-rose-700 shadow-xs',
   }[variant];
   return (
     <button
-      className={cx('inline-flex items-center justify-center gap-2 rounded-lg font-semibold whitespace-nowrap transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer', size === 'sm' ? 'px-3 py-1.5 text-sm' : 'px-4 py-2.5 text-sm', styles, className)}
+      className={cx('inline-flex items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer', size === 'sm' ? 'px-4 py-1.5 text-xs' : 'px-5 py-2.5 text-sm', styles, className)}
       disabled={disabled || loading}
       {...rest}
     >
@@ -95,7 +95,7 @@ export function Badge({ tone = 'slate', children }: { tone?: 'slate' | 'green' |
 export function RegChip({ code }: { code: string }) {
   const s = REG_STYLE[code];
   return (
-    <span className={cx('inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-bold', s.bg, s.text)}>
+    <span className={cx('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold', s.bg, s.text)}>
       <span className={cx('h-1.5 w-1.5 rounded-full', s.dot)} />
       {code}
     </span>

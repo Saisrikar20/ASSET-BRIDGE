@@ -1,3 +1,4 @@
+import DetentDial from '../components/kokonutui/detent-dial';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, BookOpen, Trash2, UserPlus, Users, Download } from 'lucide-react';
@@ -63,9 +64,7 @@ export default function Heirs() {
       {/* STEP 2 — Header */}
       <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-            SUCCESSION / HEIRS
-          </div>
+          
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
             Your heirs
           </h1>
@@ -273,7 +272,7 @@ export default function Heirs() {
                   onClick={() => nav('/app/reunite')}
                   className="gap-1.5 text-xs"
                 >
-                  <span>Next: Reunite (Step 04)</span>
+                  <span>Next: Reunite</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -344,35 +343,22 @@ export default function Heirs() {
               </Field>
             </div>
 
-            <Field label="Intended share (%)" hint="Target proportion of total estate">
-              <div className="flex items-center gap-3 pt-1">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={5}
-                  value={f.share}
-                  onChange={(e) => setF({ ...f, share: Number(e.target.value) })}
-                  className="flex-1 accent-brand-700 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer"
-                />
-                <div className="flex items-center gap-1 w-18 shrink-0">
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={f.share}
-                    onChange={(e) =>
-                      setF({
-                        ...f,
-                        share: Math.max(0, Math.min(100, Number(e.target.value))),
-                      })
-                    }
-                    className="py-1 px-2 text-xs text-right font-mono"
-                  />
-                  <span className="text-xs text-slate-500 font-mono">%</span>
-                </div>
-              </div>
-            </Field>
+            <div className="pt-2 pb-1 flex flex-col items-center justify-center bg-[#F7F4EB] rounded-xl p-3 border border-[#E2D9C5]">
+              <DetentDial
+                label="Allocated share"
+                min={0}
+                max={100}
+                step={5}
+                defaultValue={50}
+                size={136}
+                value={f.share}
+                onValueChange={(v) => setF({ ...f, share: v })}
+                formatValue={(v) => `${v}%`}
+              />
+              <span className="text-[11px] text-[#5A6B54] mt-1.5 font-medium">
+                Target estate proportion · Total allocated: {totalShare + f.share}%
+              </span>
+            </div>
 
             <ErrorNote msg={err} />
 

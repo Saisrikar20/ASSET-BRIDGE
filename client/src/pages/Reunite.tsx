@@ -93,7 +93,7 @@ export default function Reunite() {
       <div className="space-y-6">
         <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
           <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-            STEP 04 / REUNITE
+            
           </div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
             Reunite
@@ -157,7 +157,7 @@ export default function Reunite() {
       {/* STEP 2 — Header */}
       <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
         <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-          STEP 04 / REUNITE
+          
         </div>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
           {existing ? 'Estate case created' : 'Reunite'}
@@ -311,7 +311,7 @@ export default function Reunite() {
                 <button
                   type="button"
                   onClick={copyId}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-mono font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#C8BEAA] bg-[#EFE9DC] text-xs font-mono font-medium text-[#26352D] hover:bg-[#E9E0CC] transition cursor-pointer shadow-xs"
                 >
                   {copiedId ? (
                     <>
@@ -423,7 +423,7 @@ export default function Reunite() {
                 onClick={() => nav(`/app/cases/${existing}`)}
                 className="flex-1 justify-between text-xs py-2.5"
               >
-                <span>Open transfer workflow (Step 05)</span>
+                <span>Open transfer workflow</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
               <Button

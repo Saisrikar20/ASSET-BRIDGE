@@ -1,13 +1,13 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import BridgeTransition, { BRIDGE_TRANSITION_MS } from '../components/BridgeTransition';
+import CircuitTransition, { CIRCUIT_MS } from '../components/CircuitTransition';
 
-/** Open the app through the Asset Bridge transition: runs `task` (which returns destination route) while the bridge animation plays, navigates, then lifts the overlay. */
+/** Open the app through the Asset Bridge transition: runs `task` (which returns destination route) while the circuit animation plays, navigates, then lifts the overlay. */
 type Go = (task: () => Promise<string>) => Promise<void>;
 const Ctx = createContext<Go>(async () => {});
 
-const MIN_MS = BRIDGE_TRANSITION_MS;
-const FADE_MS = 400;
+const MIN_MS = CIRCUIT_MS;
+const FADE_MS = 380;
 
 export function SplashProvider({ children }: { children: ReactNode }) {
   const nav = useNavigate();
@@ -46,7 +46,7 @@ export function SplashProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={go}>
       {children}
-      {phase !== 'idle' && <BridgeTransition leaving={phase === 'leaving'} />}
+      {phase !== 'idle' && <CircuitTransition leaving={phase === 'leaving'} />}
     </Ctx.Provider>
   );
 }

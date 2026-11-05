@@ -1,17 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowRight,
   BellOff,
   BookOpen,
   CheckCircle2,
-  Compass,
   ExternalLink,
-  HeartHandshake,
   Landmark,
   Loader2,
   RefreshCw,
-  Users,
 } from 'lucide-react';
 import { api, getRegulations, pollRegulations, crawlRegulations, type Alert, type Heir, type Holding, type RegulatoryCircular } from '../lib/api';
 import { useLive, useLiveStatus } from '../lib/live';
@@ -188,9 +184,7 @@ export default function Alerts() {
       {/* STEP 2 — Header */}
       <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-            STEP 03 / ALERTS
-          </div>
+          
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
             Alerts
           </h1>
@@ -202,8 +196,8 @@ export default function Alerts() {
           <button
             type="button"
             onClick={handlePollRegulations}
-            disabled={pollingRegs || crawlingScrapy}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer shadow-xs disabled:opacity-60"
+disabled={pollingRegs || crawlingScrapy}
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#C8BEAA] bg-[#EFE9DC] text-xs font-semibold text-[#26352D] hover:bg-[#E9E0CC] transition cursor-pointer shadow-xs disabled:opacity-60"
           >
             {pollingRegs ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-600" />
@@ -216,7 +210,7 @@ export default function Alerts() {
             type="button"
             onClick={handleRunScrapy}
             disabled={pollingRegs || crawlingScrapy}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50/80 dark:bg-teal-950/40 text-xs font-semibold text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition cursor-pointer shadow-xs disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#A8B7A1] bg-[#E9E0CC] text-xs font-semibold text-[#244B3C] hover:bg-[#D8CDBA] transition cursor-pointer shadow-xs disabled:opacity-60"
             title="Execute Scrapy crawler suite with Redis deduplication and Document Vault indexing"
           >
             {crawlingScrapy ? (
@@ -254,9 +248,7 @@ export default function Alerts() {
                   Weekly Scrapy Feed
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Monitors RBI, SEBI, EPFO, and IRDAI gazette notifications for claim settlement timeframes and interest penalties.
-              </p>
+              
             </div>
           </div>
           <button
@@ -359,19 +351,19 @@ export default function Alerts() {
           className={cx(
             'rounded-xl border p-3 text-left transition cursor-pointer',
             filter === 'all'
-              ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 shadow-sm'
-              : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-slate-300'
+              ? 'border-[#244B3C] bg-[#244B3C] text-white shadow-sm ring-1 ring-[#244B3C]'
+              : 'border-[#E2D9C5] bg-white text-[#26352D] hover:border-[#244B3C]/50'
           )}
         >
           <div
             className={cx(
               'text-[10px] uppercase font-mono font-semibold',
-              filter === 'all' ? 'text-slate-300 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'
+              filter === 'all' ? 'text-[#E9E0CC]' : 'text-[#5A6B54]'
             )}
           >
             Open Alerts
           </div>
-          <div className={cx("text-xl font-bold tracking-tight mt-0.5 tabular-nums", filter === 'all' ? 'text-white dark:text-slate-900' : 'text-slate-900 dark:text-white')}>
+          <div className={cx("text-xl font-bold tracking-tight mt-0.5 tabular-nums", filter === 'all' ? 'text-white' : 'text-[#26352D]')}>
             {openAlerts.length}
           </div>
         </button>
@@ -502,38 +494,8 @@ export default function Alerts() {
         </button>
       </div>
 
-      {/* STEP 4 — Filter Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-        {(['all', 'high', 'medium', 'low', 'resolved'] as const).map((f) => {
-          const label =
-            f === 'all'
-              ? `All open (${openAlerts.length})`
-              : f === 'high'
-                ? `High (${highCount})`
-                : f === 'medium'
-                  ? `Medium (${medCount})`
-                  : f === 'low'
-                    ? `Low (${lowCount})`
-                    : `Resolved (${resolvedAlerts.length})`;
-          return (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setFilter(f)}
-              className={cx(
-                'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
-                filter === f
-                  ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-              )}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      {/* Alert List */}
 
-      {/* STEP 5 & 6 — Alert List */}
       {list.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900">
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mb-2">
@@ -689,89 +651,7 @@ export default function Alerts() {
         </div>
       )}
 
-      {/* STEP 7 — Next Steps in Your Succession Journey */}
-      <div className="pt-6 border-t border-slate-200/60 dark:border-slate-800 space-y-3">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-          Next Steps in Your Succession Journey
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300">
-                  <Compass className="h-4 w-4" />
-                </div>
-                <h4 className="text-xs font-semibold text-slate-900 dark:text-white">
-                  Plan Financial Life
-                </h4>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Simulate retirement, goals, and asset allocation across life stages.
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => nav('/app/plan')}
-              className="w-full justify-between text-xs"
-            >
-              <span>Open Life Plan</span>
-              <ArrowRight className="h-3 w-3" />
-            </Button>
-          </div>
-
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300">
-                  <Users className="h-4 w-4" />
-                </div>
-                <h4 className="text-xs font-semibold text-slate-900 dark:text-white">
-                  Register Family Heirs
-                </h4>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Add legal heirs with PAN verification so they can claim your estate.
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => nav('/app/heirs')}
-              className="w-full justify-between text-xs"
-            >
-              <span>Manage Heirs</span>
-              <ArrowRight className="h-3 w-3" />
-            </Button>
-          </div>
-
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300">
-                  <HeartHandshake className="h-4 w-4" />
-                </div>
-                <h4 className="text-xs font-semibold text-slate-900 dark:text-white">
-                  Simulate Succession
-                </h4>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Test the Civil Registration System (CRS) death notification flow.
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => nav('/app/reunite')}
-              className="w-full justify-between text-xs"
-            >
-              <span>Go to Reunite (Step 04)</span>
-              <ArrowRight className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
       </div>
-    </div>
   );
 }
 
