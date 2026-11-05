@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, RotateCcw, Search, ShieldAlert, FileDown, Mail } from 'lucide-react';
+import { ArrowRight, Copy, BookOpen, RotateCcw, Search, ShieldAlert, FileDown, Mail, Database, Loader2 } from 'lucide-react';
 import EmailDossierModal from '../components/EmailDossierModal';
 import { downloadCsv } from '../lib/csv';
-import { api, downloadClaimingDossierPdf, type Consent, type Holding, type Regulator } from '../lib/api';
+import { api, downloadClaimingDossierPdf, saveClaimingDossierToVault, type Consent, type Holding, type Regulator } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { date, inr } from '../lib/format';
-import { Badge, Button, ErrorNote, Input, RegChip, Select, cx } from '../components/ui';
+import { Badge, Button, ErrorNote, Input, RegChip, Select, cx, useToast } from '../components/ui';
 
 const ALL: Regulator[] = ['RBI', 'EPFO', 'IRDAI', 'SEBI', 'LIC', 'PFRDA', 'DOP'];
 
@@ -75,6 +75,8 @@ export default function Aggregate() {
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [savingVault, setSavingVault] = useState(false);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   const load = async () => {
     try {
@@ -167,7 +169,7 @@ export default function Aggregate() {
       <div className="space-y-6">
         <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
           <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-            STEP 02 / AGGREGATE
+            
           </div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
             Connect your financial assets.
@@ -233,7 +235,7 @@ export default function Aggregate() {
       {/* STEP 3 — Page Header */}
       <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
         <div className="font-mono text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-          STEP 02 / AGGREGATE
+          
         </div>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
           Connect your financial assets.
@@ -243,37 +245,60 @@ export default function Aggregate() {
         </p>
       </div>
 
-      {/* STEP 3 — Compact Consent Status Header */}
+      {/* Consent Status Section */}
       {currentConsent && (
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:px-5 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <Badge
-                tone={
-                  currentConsent.status === 'ACTIVE'
-                    ? 'green'
+        <div className="rounded-2xl border border-[#E2D9C5] bg-white p-5 space-y-3 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className={cx(
+                    'inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold tracking-wide',
+                    currentConsent.status === 'ACTIVE'
+                      ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200'
+                      : currentConsent.status === 'REVOKED'
+                        ? 'bg-rose-50 text-rose-800 ring-1 ring-rose-200'
+                        : 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'
+                  )}
+                >
+                  <span
+                    className={cx(
+                      'h-1.5 w-1.5 rounded-full',
+                      currentConsent.status === 'ACTIVE' ? 'bg-emerald-600' : 'bg-rose-600'
+                    )}
+                  />
+                  {currentConsent.status === 'ACTIVE'
+                    ? 'Active consent'
                     : currentConsent.status === 'REVOKED'
-                      ? 'red'
-                      : 'amber'
-                }
-              >
-                {currentConsent.status}
-              </Badge>
-              <span className="font-mono text-xs text-slate-700 dark:text-slate-300 font-medium">
-                {currentConsent.id}
-              </span>
-              <span className="text-slate-300 dark:text-slate-600">·</span>
-              <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
-                {currentConsent.regulators?.length || ALL.length} regulators
-              </span>
-              <span className="text-slate-300 dark:text-slate-600">·</span>
-              <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
-                {currentConsent.status === 'REVOKED'
-                  ? 'Consent revoked'
-                  : currentConsent.status === 'EXPIRED'
-                    ? `Expired ${date(currentConsent.expiresAt)}`
+                      ? 'Consent revoked'
+                      : 'Consent expired'}
+                </span>
+
+                {/* Subtle Copy ID for technical audits */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(currentConsent.id);
+                  }}
+                  className="inline-flex items-center gap-1 text-[11px] font-mono text-[#62755D] hover:text-[#26352D] transition cursor-pointer"
+                  title="Copy technical consent identifier"
+                >
+                  <span>Ref: {currentConsent.id.slice(0, 10)}…</span>
+                  <Copy className="h-3 w-3" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-[#4B5E47] flex-wrap">
+                <span className="font-semibold text-[#26352D]">
+                  Connected to {currentConsent.regulators?.length || ALL.length} statutory registries
+                </span>
+                <span>·</span>
+                <span>
+                  {currentConsent.status === 'REVOKED'
+                    ? 'Monitoring revoked'
                     : `Expires ${date(currentConsent.expiresAt)}`}
-              </span>
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -283,17 +308,17 @@ export default function Aggregate() {
                 loading={refreshing}
                 onClick={handleRefresh}
               >
-                <RotateCcw className="h-3 w-3 mr-1" />
+                <RotateCcw className="h-3.5 w-3.5 mr-1" />
                 Refresh data
               </Button>
               {currentConsent.status === 'ACTIVE' && !confirmRevoke && (
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-rose-600 hover:text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                   onClick={() => setConfirmRevoke(true)}
                 >
-                  Revoke
+                  Revoke consent
                 </Button>
               )}
             </div>
@@ -504,7 +529,7 @@ export default function Aggregate() {
                   type="button"
                   onClick={() => setReg('all')}
                   className={cx(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
+                    'px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap cursor-pointer',
                     reg === 'all'
                       ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                       : 'text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -520,7 +545,7 @@ export default function Aggregate() {
                       type="button"
                       onClick={() => setReg(r)}
                       className={cx(
-                        'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
+                        'px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
                         reg === r
                           ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-sm'
                           : 'text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -665,10 +690,8 @@ export default function Aggregate() {
                 <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
                 <span>Email Dossier</span>
               </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                loading={downloadingPdf}
+              <button
+                type="button"
                 disabled={downloadingPdf}
                 onClick={async () => {
                   try {
@@ -680,11 +703,37 @@ export default function Aggregate() {
                     setDownloadingPdf(false);
                   }
                 }}
-                className="gap-1.5"
-                title="Export statutory claim schedule as PDF"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#244B3C] text-white hover:bg-[#1E3E32] text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                title="Download consolidated statutory claim dossier PDF"
               >
-                <FileDown className="h-3.5 w-3.5" />
-                <span>{downloadingPdf ? 'Generating…' : 'Export Claim Schedule (PDF)'}</span>
+                {downloadingPdf ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-400 dark:text-brand-600" />
+                ) : (
+                  <FileDown className="h-3.5 w-3.5 text-brand-400 dark:text-brand-600" />
+                )}
+                <span>{downloadingPdf ? 'Generating PDF…' : 'Download Claim Dossier (PDF)'}</span>
+              </button>
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={savingVault}
+                disabled={savingVault}
+                onClick={async () => {
+                  try {
+                    setSavingVault(true);
+                    const res = await saveClaimingDossierToVault({ pan: user?.identity?.pan });
+                    toastSuccess('Dossier Saved to AI Vault', res.message || 'Indexed in SQLite document vault for AI consultation.');
+                  } catch (e) {
+                    toastError('Failed to save to vault', (e as Error).message);
+                  } finally {
+                    setSavingVault(false);
+                  }
+                }}
+                className="gap-1.5"
+                title="Index official claim schedule into SQLite Document Vault for AI consultation"
+              >
+                <Database className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>{savingVault ? 'Indexing…' : 'Save to Vault'}</span>
               </Button>
               <Button
                 variant="secondary"
@@ -702,7 +751,7 @@ export default function Aggregate() {
                 <span>Ask AI Guide</span>
               </Button>
               <Button size="sm" onClick={() => nav('/app/alerts')}>
-                <span>Next: Review Alerts (Step 03)</span>
+                <span>Next: Review Alerts</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </div>

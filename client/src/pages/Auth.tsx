@@ -116,12 +116,12 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
       <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#244B3C]/10 blur-[100px] pointer-events-none" />
 
       {/* Main Split Floating Modal Card (Compact & Proportionate) */}
-      <div className="relative w-full max-w-4xl rounded-[28px] bg-white shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 p-3 sm:p-4 border border-[#E2D9C5] transition-all">
+      <div className="relative w-full max-w-3xl rounded-[24px] bg-white shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 p-3 sm:p-3.5 border border-[#E2D9C5] transition-all">
         
         {/* =========================================================================
             LEFT COLUMN: Compact Cosmic Visual Card (5 cols)
             ========================================================================= */}
-        <div className="lg:col-span-5 rounded-[22px] overflow-hidden relative min-h-[260px] lg:min-h-[460px] flex flex-col justify-between p-5 bg-[#080B10] text-white shadow-inner select-none">
+        <div className="lg:col-span-4 rounded-[18px] overflow-hidden relative min-h-[200px] lg:min-h-[380px] flex flex-col justify-between p-4 bg-[#080B10] text-white shadow-inner select-none">
           
           {/* Deep Cosmic Background Vector Illustration */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -289,7 +289,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
         {/* =========================================================================
             RIGHT COLUMN: Clean Minimal Form Panel (7 cols)
             ========================================================================= */}
-        <div className="lg:col-span-7 flex flex-col justify-between p-4 sm:p-7 bg-white text-[#26352D]">
+        <div className="lg:col-span-8 flex flex-col justify-between p-4 sm:p-7 bg-white text-[#26352D]">
           
           {/* Top Bar: Brand Logo */}
           <div className="flex items-center justify-between pb-4">

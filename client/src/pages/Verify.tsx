@@ -1,7 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  ArrowRight,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
@@ -9,20 +7,15 @@ import {
   CircleDashed,
   RotateCcw,
   XCircle,
-  FileDown,
-  Mail,
-  Loader2,
   Lock,
   User,
   CreditCard,
   MapPin,
   Building2,
 } from 'lucide-react';
-import { api, downloadClaimingDossierPdf, type User as ApiUser, type VerifyResult, type Heir } from '../lib/api';
+import { api, type User as ApiUser, type VerifyResult } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { date } from '../lib/format';
 import { Badge, Button, ErrorNote, RegChip, Select, cx } from '../components/ui';
-import EmailDossierModal from '../components/EmailDossierModal';
 
 const STATUS = {
   verified: {
@@ -53,8 +46,7 @@ const STATUS = {
 
 export default function Verify() {
   const { user, meta, refresh } = useAuth();
-  const nav = useNavigate();
-  const results = user?.verification?.results;
+    const results = user?.verification?.results;
 
   const [form, setForm] = useState(
     user?.identity || {
@@ -70,10 +62,7 @@ export default function Verify() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [heirs] = useState<Heir[]>([]);
-
+      
   const toggleExpand = (code: string) => {
     setExpanded((prev) => ({ ...prev, [code]: !prev[code] }));
   };
@@ -431,83 +420,8 @@ export default function Verify() {
               );
             })}
           </div>
-
-          {/* 4. Refined Actions Bar with Primary/Secondary Dossier Controls */}
-          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-xs">
-            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
-              <div>
-                Registry authentication timestamp:{' '}
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  {date(user!.verification!.at)}
-                </span>
-              </div>
-              <div className="text-[11px]">
-                {totalRecords} records matched across {regulatorCount} statutory registries
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2.5">
-              {/* Secondary Action: Email Dossier */}
-              <button
-                type="button"
-                onClick={() => setShowEmailModal(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#C8BEAA] bg-[#EFE9DC] text-xs font-medium text-[#26352D] hover:bg-[#E9E0CC] shadow-xs transition-colors cursor-pointer"
-                title="Email statutory claiming dossier with PDF attachment"
-              >
-                <Mail className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
-                <span>Email Dossier</span>
-              </button>
-
-              {/* Primary Action: Download Claim Dossier (PDF) */}
-              <button
-                type="button"
-                disabled={downloadingPdf}
-                onClick={async () => {
-                  try {
-                    setDownloadingPdf(true);
-                    await downloadClaimingDossierPdf({ pan: form.pan });
-                  } catch (e) {
-                    alert((e as Error).message || 'Failed to download dossier');
-                  } finally {
-                    setDownloadingPdf(false);
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#244B3C] text-white hover:bg-[#1E3E32] text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                title="Download consolidated statutory claim dossier PDF"
-              >
-                {downloadingPdf ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-400 dark:text-brand-600" />
-                ) : (
-                  <FileDown className="h-3.5 w-3.5 text-brand-400 dark:text-brand-600" />
-                )}
-                <span>{downloadingPdf ? 'Generating PDF…' : 'Download Claim Dossier (PDF)'}</span>
-              </button>
-
-              {/* Stepper Navigation: Continue */}
-              <Button
-                type="button"
-                onClick={() => nav('/app/aggregate')}
-                className="px-5 py-2 text-xs font-semibold gap-1.5"
-              >
-                <span>Continue to consent</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
         </div>
       )}
-
-      {/* Email Dossier Modal */}
-      <EmailDossierModal
-        isOpen={showEmailModal}
-        onClose={() => setShowEmailModal(false)}
-        pan={form.pan || user?.identity?.pan}
-        defaultEmail={user?.email || ''}
-        defaultName={form.name || user?.name || ''}
-        heirs={heirs}
-        title="Email Claiming Dossier"
-        subtitle="Statutory Identity & Registry Verification Report"
-      />
     </div>
   );
 }

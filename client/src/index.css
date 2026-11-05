@@ -32,9 +32,9 @@
   --color-slate-100: #EFE9DC;
   --color-slate-200: #E2D9C5;
   --color-slate-300: #C8BEAA;
-  --color-slate-400: #8C9C84;
-  --color-slate-500: #5A6B54;
-  --color-slate-600: #3E4F42;
+  --color-slate-400: #62755D;
+  --color-slate-500: #4B5E47;
+  --color-slate-600: #364A35;
   --color-slate-700: #324236;
   --color-slate-800: #26352D;
   --color-slate-900: #1A251F;
@@ -121,8 +121,8 @@ html {
 .cb .nd text { fill: #5A6B54; font: 600 13px Inter, system-ui, sans-serif; text-anchor: middle; transition: fill 0.3s; }
 .cb .nd.on rect { stroke: #244B3C; fill: #E9E0CC; }
 .cb .nd.on .ic { color: #244B3C; }
-.cb .lotus { fill: #5A6B54; transition: fill 0.3s; }
-.cb .nd.on .lotus { fill: #244B3C; }
+.cb .lotus { stroke: #5A6B54; transition: stroke 0.3s; }
+.cb .nd.on .lotus { stroke: #244B3C; }
 .cb .nd.on text { fill: #26352D; font-weight: 700; }
 .cb .halo { fill: none !important; stroke: #244B3C !important; stroke-width: 1.5; opacity: 0; transition: opacity 0.3s; filter: url(#cbGlow); }
 .cb .nd.on .halo { opacity: 0.85; }

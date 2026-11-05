@@ -2,21 +2,28 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
+  ArrowUp,
   BookOpen,
   Database,
+  FileSpreadsheet,
   FileText,
+  Landmark,
+  Mic,
   Plus,
-  Send,
+  Scale,
   Sparkles,
+  Upload,
 } from 'lucide-react';
 import {
   api,
+  uploadDocument,
   type ChatSession,
   type GuideAction,
   type GuideAnswer,
   type GuideSource,
 } from '../lib/api';
-import { Button, Input, cx } from './ui';
+import { useAuth } from '../lib/auth';
+import { cx } from './ui';
 
 interface Msg {
   role: 'user' | 'assistant';
@@ -27,11 +34,27 @@ interface Msg {
   error?: boolean;
 }
 
-const SUGGESTIONS = [
-  'There was no nominee on the bank FD. What do we need?',
-  'How do we claim the EPF and family pension?',
-  'What documents do I still need based on my uploaded files?',
-  'Where do we get a legal heir certificate?',
+const ACTION_SUGGESTIONS = [
+  {
+    icon: Landmark,
+    label: 'Claim bank deposits (15-day rule)',
+    query: 'What is the RBI 15-day claim settlement rule for bank deposits without nominee?',
+  },
+  {
+    icon: FileSpreadsheet,
+    label: 'EPFO Form 20 & pension checklist',
+    query: 'What documents are required for EPFO Form 20 and widow pension claim?',
+  },
+  {
+    icon: Scale,
+    label: 'Missing nominee succession rules',
+    query: 'How are assets divided under Hindu Succession Act when no nominee is registered?',
+  },
+  {
+    icon: FileText,
+    label: 'Draft claim intimation letter',
+    query: 'Please draft a statutory claim intimation letter for bank and mutual fund transmission.',
+  },
 ];
 
 // Minimal markdown parser: **bold**, numbered / bulleted lines, paragraphs, and citations
@@ -43,7 +66,7 @@ function render(md: string) {
       .replace(/_(.+?)_/g, '<em>$1</em>')
       .replace(
         /\[(User Doc \d+|Law \d+|\d+)\]/g,
-        '<span class="inline-block px-1.5 py-0.2 mx-0.5 text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 rounded">[$1]</span>'
+        '<span class="inline-block px-1.5 py-0.2 mx-0.5 text-[11px] font-semibold bg-[#E9E0CC] text-[#244B3C] border border-[#244B3C]/20 rounded">[$1]</span>'
       );
 
   const out: string[] = [];
@@ -57,11 +80,11 @@ function render(md: string) {
       list = null;
     }
     if (kind && !list) {
-      out.push(`<${kind} class="space-y-1 my-1.5 pl-4 list-decimal text-xs">`);
+      out.push(`<${kind} class="space-y-1.5 my-2 pl-4 list-decimal text-xs leading-relaxed text-[#26352D]">`);
       list = kind;
     }
     if (kind) out.push(`<li>${inline((ol || ul)![1])}</li>`);
-    else if (line.trim()) out.push(`<p class="my-1.5 leading-relaxed">${inline(line)}</p>`);
+    else if (line.trim()) out.push(`<p class="my-2 leading-relaxed text-[#26352D]">${inline(line)}</p>`);
   }
   if (list) out.push(`</${list}>`);
   return out.join('');
@@ -76,6 +99,7 @@ export default function GuideChat({
   caseId?: string;
   compact?: boolean;
 }) {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -84,8 +108,18 @@ export default function GuideChat({
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [docCount, setDocCount] = useState<number>(0);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const end = useRef<HTMLDivElement>(null);
   const initialTriggered = useRef(false);
+
+  // Greeting computation
+  const hour = new Date().getHours();
+  const greetingTime = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+  const displayName =
+    user?.identity?.name?.split(' ')[0] ||
+    user?.name?.split(' ')[0] ||
+    'there';
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -150,6 +184,41 @@ export default function GuideChat({
       .catch(() => {});
   }, [activeSessionId]);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingDoc(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('docType', 'User Supporting Document');
+      if (caseId) fd.append('caseId', caseId);
+
+      const res = await uploadDocument(fd);
+      setDocCount((n) => n + 1);
+      setMsgs((m) => [
+        ...m,
+        {
+          role: 'assistant',
+          content: `I have indexed **${file.name}** into your SQLite Document Vault (${res.chunks_indexed} semantic chunks). You can now ask questions about this document or reference it for your succession filings.`,
+          engine: 'vault-indexer',
+        },
+      ]);
+    } catch (err: any) {
+      setMsgs((m) => [
+        ...m,
+        {
+          role: 'assistant',
+          content: `Failed to upload document: ${err?.message || 'Upload error'}`,
+          error: true,
+        },
+      ]);
+    } finally {
+      setUploadingDoc(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const startNewSession = () => {
     setActiveSessionId(null);
     setMsgs([]);
@@ -210,52 +279,52 @@ export default function GuideChat({
   return (
     <div
       className={cx(
-        'rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col overflow-hidden shadow-sm',
-        compact ? 'h-[520px]' : 'h-[calc(100vh-230px)] min-h-[500px]'
+        'rounded-3xl border border-[#E2D9C5] bg-[#F7F4EB] flex flex-col overflow-hidden shadow-sm transition-all',
+        compact ? 'h-[520px]' : 'h-[calc(100vh-210px)] min-h-[560px]'
       )}
     >
-      {/* STEP 4 & 6 — Source and Grounding Information Bar + New Consultation */}
-      <div className="p-3 sm:px-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+      {/* Top Header Bar: Grounding & Regulatory Context */}
+      <div className="px-4 py-3 border-b border-[#E2D9C5] bg-white/70 backdrop-blur-sm flex flex-wrap items-center justify-between gap-2.5 text-xs">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-brand-700 dark:text-brand-400" />
+          <span className="font-semibold text-[#26352D] flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-[#244B3C]" />
             AI Succession Navigator
           </span>
-          <span className="text-slate-300 dark:text-slate-700">·</span>
-          <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-mono text-slate-500 dark:text-slate-400">
-            <span className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+          <span className="text-[#8C9C84]">·</span>
+          <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-mono text-[#4B5E47]">
+            <span className="px-2 py-0.5 rounded-full bg-white border border-[#E2D9C5] font-semibold">
               RBI
             </span>
-            <span className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <span className="px-2 py-0.5 rounded-full bg-white border border-[#E2D9C5] font-semibold">
               EPFO
             </span>
-            <span className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <span className="px-2 py-0.5 rounded-full bg-white border border-[#E2D9C5] font-semibold">
               IRDAI
             </span>
-            <span className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <span className="px-2 py-0.5 rounded-full bg-white border border-[#E2D9C5] font-semibold">
               SEBI
             </span>
             {docCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+              <span className="px-2 py-0.5 rounded-full bg-[#E9E0CC] text-[#244B3C] border border-[#244B3C]/20 flex items-center gap-1 font-semibold">
                 <Database className="h-2.5 w-2.5" />
-                {docCount} user doc{docCount === 1 ? '' : 's'}
+                {docCount} user doc{docCount === 1 ? '' : 's'} in vault
               </span>
             )}
             {state && (
-              <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+              <span className="px-2 py-0.5 rounded-full bg-white border border-[#E2D9C5] text-[#244B3C] font-semibold">
                 {state}
               </span>
             )}
           </div>
         </div>
 
-        {/* STEP 6 — New Consultation & Sessions selector */}
+        {/* Sessions & Vault Upload Controls */}
         <div className="flex items-center gap-2 ml-auto">
           {sessions.length > 0 && (
             <select
               value={activeSessionId || ''}
               onChange={(e) => setActiveSessionId(e.target.value)}
-              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-700 dark:text-slate-300 focus:outline-none"
+              className="rounded-full border border-[#E2D9C5] bg-white px-2.5 py-1 text-xs text-[#26352D] focus:outline-none focus:border-[#244B3C]"
             >
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -264,46 +333,106 @@ export default function GuideChat({
               ))}
             </select>
           )}
-          <Button
-            variant="secondary"
-            size="sm"
+          <button
+            type="button"
             onClick={startNewSession}
-            className="text-xs gap-1 py-1 px-2.5"
+            className="inline-flex items-center gap-1 py-1 px-2.5 rounded-full border border-[#E2D9C5] bg-white hover:bg-[#F7F4EB] text-xs font-medium text-[#26352D] transition cursor-pointer shadow-xs"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5 text-[#244B3C]" />
             <span>New Consultation</span>
-          </Button>
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept=".pdf,.png,.jpg,.jpeg"
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingDoc}
+            className="inline-flex items-center gap-1 py-1 px-2.5 rounded-full border border-[#244B3C]/30 bg-[#244B3C]/10 hover:bg-[#244B3C]/15 text-xs font-medium text-[#244B3C] transition cursor-pointer shadow-xs disabled:opacity-60"
+            title="Upload Will, passbook, or death certificate to SQLite Vault"
+          >
+            <Upload className="h-3.5 w-3.5" />
+            <span>{uploadingDoc ? 'Uploading…' : 'Upload to Vault'}</span>
+          </button>
         </div>
       </div>
 
-      {/* STEP 5 & 7 — Messages & Conversation Area */}
-      <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
-        {/* Empty State with Suggested Questions */}
+      {/* Main Conversation Stream */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+        {/* Empty State with Radiant Orb & Revolving Prompt Pills */}
         {msgs.length === 0 && (
-          <div className="space-y-4 my-auto p-4 max-w-2xl mx-auto">
-            <div className="text-center space-y-1">
-              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 mb-2">
-                <BookOpen className="h-5 w-5" />
+          <div className="h-full min-h-[380px] flex flex-col items-center justify-center py-6 px-4 max-w-2xl mx-auto select-none">
+            
+            {/* Radiant Ambient Orb Container with Floating Pills */}
+            <div className="relative w-full max-w-md h-64 flex items-center justify-center my-2">
+              
+              {/* Outer Glowing Blur Corona */}
+              <div className="absolute w-44 h-44 rounded-full bg-gradient-to-tr from-cyan-400/35 via-fuchsia-400/35 to-rose-400/30 blur-3xl animate-pulse pointer-events-none" />
+
+              {/* Middle Floating Animated Gradient Orb */}
+              <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-full shadow-2xl flex items-center justify-center overflow-hidden transition-all duration-700 hover:scale-105">
+                {/* Radial iridescent core */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#38bdf8] via-[#a855f7] to-[#ec4899] opacity-90 blur-xs" />
+                <div className="absolute inset-2 rounded-full bg-gradient-to-b from-white/40 via-transparent to-black/20" />
+                <div className="absolute inset-4 rounded-full bg-gradient-to-tl from-cyan-300/40 via-transparent to-pink-300/40 blur-xs" />
               </div>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-                Statutory Succession Guidance
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Ask questions about asset transmission rules, required affidavits, court heirship procedures, or uploaded documents.
-              </p>
+
+              {/* Pill 1: Top-Left */}
+              <button
+                type="button"
+                onClick={() => ask(ACTION_SUGGESTIONS[0].query)}
+                className="absolute top-2 -left-2 sm:left-0 max-w-[190px] px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-[#26352D] border border-[#E2D9C5] shadow-sm hover:shadow-md hover:border-[#244B3C]/40 text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer transform hover:-translate-y-0.5 backdrop-blur-xs"
+              >
+                <Landmark className="h-3 w-3 text-[#244B3C] shrink-0" />
+                <span className="truncate">{ACTION_SUGGESTIONS[0].label}</span>
+              </button>
+
+              {/* Pill 2: Top-Right */}
+              <button
+                type="button"
+                onClick={() => ask(ACTION_SUGGESTIONS[1].query)}
+                className="absolute top-2 -right-2 sm:right-0 max-w-[210px] px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-[#26352D] border border-[#E2D9C5] shadow-sm hover:shadow-md hover:border-[#244B3C]/40 text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer transform hover:-translate-y-0.5 backdrop-blur-xs"
+              >
+                <FileSpreadsheet className="h-3 w-3 text-[#244B3C] shrink-0" />
+                <span className="truncate">{ACTION_SUGGESTIONS[1].label}</span>
+              </button>
+
+              {/* Pill 3: Bottom-Left */}
+              <button
+                type="button"
+                onClick={() => ask(ACTION_SUGGESTIONS[2].query)}
+                className="absolute bottom-2 -left-2 sm:left-0 max-w-[200px] px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-[#26352D] border border-[#E2D9C5] shadow-sm hover:shadow-md hover:border-[#244B3C]/40 text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer transform hover:-translate-y-0.5 backdrop-blur-xs"
+              >
+                <Scale className="h-3 w-3 text-[#244B3C] shrink-0" />
+                <span className="truncate">{ACTION_SUGGESTIONS[2].label}</span>
+              </button>
+
+              {/* Pill 4: Bottom-Right */}
+              <button
+                type="button"
+                onClick={() => ask(ACTION_SUGGESTIONS[3].query)}
+                className="absolute bottom-2 -right-2 sm:right-0 max-w-[200px] px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-[#26352D] border border-[#E2D9C5] shadow-sm hover:shadow-md hover:border-[#244B3C]/40 text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer transform hover:-translate-y-0.5 backdrop-blur-xs"
+              >
+                <FileText className="h-3 w-3 text-[#244B3C] shrink-0" />
+                <span className="truncate">{ACTION_SUGGESTIONS[3].label}</span>
+              </button>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2 pt-2">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => ask(s)}
-                  className="p-3 text-left rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 text-xs text-slate-700 dark:text-slate-300 transition cursor-pointer shadow-xs"
-                >
-                  <span className="line-clamp-2">{s}</span>
-                </button>
-              ))}
+            {/* Greeting Headline */}
+            <div className="text-center space-y-1 mt-3">
+              <div className="text-xs sm:text-sm font-semibold tracking-wide text-[#244B3C]">
+                {greetingTime}, {displayName}!
+              </div>
+              <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#26352D]">
+                What can I help you with?
+              </h2>
+              <p className="text-xs text-[#62755D] max-w-md pt-0.5">
+                Statutory legal RAG grounded in RBI Master Directions, EPFO gazettes, SEBI rules, and your uploaded estate documents.
+              </p>
             </div>
           </div>
         )}
@@ -313,7 +442,7 @@ export default function GuideChat({
           m.role === 'user' ? (
             <div
               key={i}
-              className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-slate-900 dark:bg-white text-white dark:text-black px-4 py-2.5 text-xs leading-relaxed shadow-xs"
+              className="ml-auto max-w-[80%] rounded-2xl rounded-br-xs bg-[#E9E0CC] text-[#26352D] border border-[#244B3C]/20 px-4 py-2.5 text-xs leading-relaxed shadow-xs font-medium"
             >
               {m.content}
             </div>
@@ -321,27 +450,27 @@ export default function GuideChat({
             <div
               key={i}
               className={cx(
-                'max-w-[92%] rounded-2xl rounded-bl-sm p-4 text-xs shadow-xs space-y-3',
+                'max-w-[88%] rounded-2xl rounded-bl-xs p-4 sm:p-5 text-xs shadow-xs space-y-3.5 transition-all',
                 m.error
-                  ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900'
-                  : 'bg-slate-50/70 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 border border-slate-200/70 dark:border-slate-800'
+                  ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                  : 'bg-white/90 text-[#26352D] border border-[#E2D9C5]'
               )}
             >
               {/* Answer Markdown Body */}
               <div
-                className="leading-relaxed"
+                className="leading-relaxed space-y-2 text-[#26352D]"
                 dangerouslySetInnerHTML={{ __html: render(m.content) }}
               />
 
               {/* Action Navigation Buttons */}
               {m.actions && m.actions.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                <div className="flex flex-wrap gap-2 pt-2.5 border-t border-[#E2D9C5]">
                   {m.actions.map((act, actIdx) => (
                     <button
                       key={actIdx}
                       type="button"
                       onClick={() => navigate(act.url)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 dark:bg-brand-950/40 px-2.5 py-1 text-xs font-semibold text-brand-800 dark:text-brand-300 border border-brand-200 dark:border-brand-800 transition hover:bg-brand-100 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[#244B3C]/10 px-3 py-1 text-xs font-semibold text-[#244B3C] border border-[#244B3C]/25 transition hover:bg-[#244B3C]/20 cursor-pointer"
                     >
                       <span>{act.label}</span>
                       <ArrowRight className="h-3 w-3" />
@@ -352,8 +481,8 @@ export default function GuideChat({
 
               {/* Citations & Evidence Grounding */}
               {m.sources && m.sources.length > 0 && (
-                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800 space-y-1.5">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                <div className="pt-2.5 border-t border-[#E2D9C5] space-y-1.5">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#62755D]">
                     Statutory & Document References
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -361,16 +490,16 @@ export default function GuideChat({
                       <div
                         key={sIdx}
                         className={cx(
-                          'flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] border',
+                          'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] border',
                           s.type === 'user_doc'
-                            ? 'bg-emerald-50/60 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                            ? 'bg-[#E9E0CC]/50 text-[#244B3C] border-[#244B3C]/20 font-medium'
+                            : 'bg-[#F7F4EB] text-[#26352D] border-[#E2D9C5]'
                         )}
                       >
                         {s.type === 'user_doc' ? (
-                          <FileText className="h-3 w-3 text-emerald-600 shrink-0" />
+                          <FileText className="h-3 w-3 text-[#244B3C] shrink-0" />
                         ) : (
-                          <BookOpen className="h-3 w-3 text-brand-600 shrink-0" />
+                          <BookOpen className="h-3 w-3 text-[#244B3C] shrink-0" />
                         )}
                         <span className="truncate">
                           <strong>{s.type === 'user_doc' ? '[User Doc]' : '[Law]'}</strong>{' '}
@@ -380,8 +509,8 @@ export default function GuideChat({
                     ))}
                   </div>
                   {m.engine && (
-                    <div className="text-[10px] text-slate-400 font-mono pt-0.5">
-                      Engine: {m.engine} · Grounded RAG
+                    <div className="text-[10px] text-[#62755D] font-mono pt-0.5">
+                      Grounding Engine: {m.engine} · Verified Act & Gazette Index
                     </div>
                   )}
                 </div>
@@ -391,34 +520,66 @@ export default function GuideChat({
         )}
 
         {busy && (
-          <div className="w-16 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800 px-3 py-2 text-xs text-slate-400 font-mono">
+          <div className="w-16 animate-pulse rounded-2xl bg-white border border-[#E2D9C5] px-3.5 py-2 text-xs text-[#244B3C] font-mono shadow-xs">
             ···
           </div>
         )}
         <div ref={end} />
       </div>
 
-      {/* Input bar & Legal Notice */}
-      <div className="border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-3 space-y-2">
-        <form onSubmit={submit} className="flex gap-2">
-          <Input
+      {/* Sleek Bottom Floating Input Bar */}
+      <div className="p-3 sm:p-4 bg-white/80 border-t border-[#E2D9C5] backdrop-blur-sm">
+        <form
+          onSubmit={submit}
+          className="relative max-w-3xl mx-auto rounded-2xl border border-[#E2D9C5] bg-white p-1.5 pl-2 sm:pl-3 flex items-center gap-2 shadow-xs focus-within:border-[#244B3C] focus-within:ring-2 focus-within:ring-[#244B3C]/10 transition-all"
+        >
+          {/* Document Vault Attachment Button (+) */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            title="Upload Will, death certificate, or passbook to SQLite Vault"
+            className="h-8 w-8 shrink-0 rounded-xl hover:bg-[#F7F4EB] text-[#4B5E47] hover:text-[#244B3C] flex items-center justify-center transition cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+
+          {/* Prompt Input */}
+          <input
+            type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Ask about transmission requirements, documents, or legal heirs…"
-            className="text-xs py-2"
+            placeholder="Ask me anything about succession, RBI rules, claim procedures…"
+            className="flex-1 bg-transparent border-0 text-xs sm:text-sm text-[#26352D] placeholder:text-[#8C9C84] focus:outline-none focus:ring-0 py-1"
           />
-          <Button
-            type="submit"
-            disabled={!q.trim()}
-            loading={busy}
-            aria-label="Send query"
-            className="px-3"
+
+          {/* Model Tag Pill */}
+          <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F7F4EB] border border-[#E2D9C5] text-[11px] font-medium text-[#4B5E47] select-none whitespace-nowrap">
+            <span>Legal RAG · Act & Gazette</span>
+            <span className="text-[10px] text-[#8C9C84]">▾</span>
+          </div>
+
+          {/* Voice Indicator (Visual) */}
+          <button
+            type="button"
+            title="Voice intimation navigator"
+            className="hidden sm:flex h-8 w-8 shrink-0 rounded-xl hover:bg-[#F7F4EB] text-[#8C9C84] hover:text-[#244B3C] items-center justify-center transition cursor-pointer"
           >
-            <Send className="h-4 w-4" />
-          </Button>
+            <Mic className="h-3.5 w-3.5" />
+          </button>
+
+          {/* Rounded Send Button */}
+          <button
+            type="submit"
+            disabled={!q.trim() || busy}
+            className="h-8 w-8 shrink-0 rounded-full bg-[#244B3C] hover:bg-[#1E3E32] text-white flex items-center justify-center transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
+            aria-label="Send message"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
         </form>
-        <div className="text-[10px] text-center text-slate-400">
-          Informational legal assistance grounded in regulator circulars. Verify statutory filings with qualified counsel.
+
+        <div className="text-[10px] text-center text-[#62755D] mt-2">
+          Statutory assistance grounded in regulator circulars & Acts. Verify filings with qualified counsel.
         </div>
       </div>
     </div>
