@@ -27,7 +27,8 @@ from app.core.store import store
 from app.ai_bot import (
     ingest_regulation_document,
     list_regulations,
-    search_user_documents
+    search_user_documents,
+    delete_user_document
 )
 from scripts.poll_regulations import (
     poll_rbi_notifications,
@@ -61,7 +62,7 @@ def test_ingest_regulation_document_and_fts5_indexing():
     circ_no = f"RBI/2026-27/{unique_tag}"
     source_url = f"https://rbi.org.in/test/notification-{unique_tag}.aspx"
     sample_text = (
-        "Under Section 45ZA of the Banking Regulation Act 1949, commercial banks are mandated "
+        f"Section 45ZA special directive {unique_tag}. Commercial banks are mandated "
         "to settle all deceased depositor claims within 15 calendar days. Delay attracts penal interest at Bank Rate + 4%."
     )
 
@@ -95,25 +96,53 @@ def test_ingest_regulation_document_and_fts5_indexing():
     assert res_dup["duplicate"] is True
     assert res_dup["chunksIndexed"] == 0
 
-    # Verify searchable via FTS5
-    search_res = search_user_documents(query=f"{unique_tag} Banking Regulation Act", user_id="SYSTEM", limit=10)
+    # Verify searchable via FTS5 using unique tag
+    search_res = search_user_documents(query=unique_tag, user_id="SYSTEM", limit=10)
     assert len(search_res) > 0
     found_titles = [m.get("title") for m in search_res]
     assert any(unique_tag in t for t in found_titles)
-    print(f"[PASS] Ingested and indexed {circ_title} ({res['chunksIndexed']} chunks in FTS5).")
+
+    # Clean up document to verify cascade FTS5 deletion and avoid disk pollution
+    deleted = delete_user_document(doc_id=doc_id, user_id="SYSTEM")
+    assert deleted is True
+
+    # Post-deletion verification using unique tag
+    post_delete_search = search_user_documents(query=unique_tag, user_id="SYSTEM", limit=10)
+    assert len(post_delete_search) == 0
+    print(f"[PASS] Ingested, indexed, deduplicated, and clean-deleted {circ_title}.")
 
 def test_list_and_search_regulations():
     print("--- 2. Testing Regulatory Listing & Query Filtering ---")
-    all_regs = list_regulations(limit=10)
-    assert isinstance(all_regs, list)
-    assert len(all_regs) > 0
+    unique_tag = uuid.uuid4().hex[:6]
+    # Ingest guaranteed test circular
+    ingest_res = ingest_regulation_document(
+        regulator="RBI",
+        title=f"Reserve Bank Master Direction on Deceased Depositor Settlement {unique_tag}",
+        source_url=f"https://rbi.org.in/test/baseline-settlement-{unique_tag}.aspx",
+        text="Mandates banks to settle claims within 15 days or pay penal interest.",
+        circular_no=f"RBI/BASELINE/SETTLE/{unique_tag}",
+        publication_date="April 02, 2025",
+        category="Banking & Deceased Depositors"
+    )
+    doc_id = ingest_res.get("docId")
 
-    rbi_regs = list_regulations(regulator="RBI", limit=10)
-    for r in rbi_regs:
-        assert r["regulator"] == "RBI"
+    try:
+        all_regs = list_regulations(limit=10)
+        assert isinstance(all_regs, list)
+        assert len(all_regs) > 0
 
-    filtered = list_regulations(q="settle", limit=10)
-    assert len(filtered) > 0
+        rbi_regs = list_regulations(regulator="RBI", limit=10)
+        assert len(rbi_regs) > 0
+        for r in rbi_regs:
+            assert r["regulator"] == "RBI"
+
+        filtered = list_regulations(q="settle", limit=10)
+        assert len(filtered) > 0
+        assert any("settle" in (r.get("title", "") + r.get("fileName", "")).lower() for r in filtered)
+    finally:
+        if doc_id:
+            delete_user_document(doc_id=doc_id, user_id="SYSTEM")
+
     print(f"[PASS] Regulatory catalog query returned {len(filtered)} filtered circulars.")
 
 def test_phase1_lightweight_pollers():
@@ -147,10 +176,11 @@ def test_scrapy_pipeline_processing():
         logger = Logger()
 
     unique_tag = uuid.uuid4().hex[:6]
+    circ_no = f"SEBI/HO/IMD/TEST-{unique_tag}"
     item = RegulationItem(
         regulator="SEBI",
         title=f"SEBI Test Circular for Mutual Fund Unit Transmission {unique_tag}",
-        circular_no=f"SEBI/HO/IMD/TEST-{unique_tag}",
+        circular_no=circ_no,
         date="May 05, 2026",
         source_url=f"https://www.sebi.gov.in/test/mf-transmission-{unique_tag}.html",
         raw_text="Mutual fund units must be transmitted within 15 calendar days upon submission of death certificate and KYC.",
@@ -158,14 +188,20 @@ def test_scrapy_pipeline_processing():
         scraped_at="2026-05-05T00:00:00Z"
     )
 
-    processed = pipeline.process_item(item, DummySpider())
-    assert processed["title"] == item["title"]
-    assert pipeline.ingested_count == 1
+    try:
+        processed = pipeline.process_item(item, DummySpider())
+        assert processed["title"] == item["title"]
+        assert pipeline.ingested_count == 1
 
-    # Second pass: duplicate verification
-    processed_dup = pipeline.process_item(item, DummySpider())
-    assert pipeline.duplicate_count == 1
-    print("[PASS] Scrapy pipeline item processed into Document Vault with duplicate detection.")
+        # Second pass: duplicate verification
+        processed_dup = pipeline.process_item(item, DummySpider())
+        assert pipeline.duplicate_count == 1
+    finally:
+        created_doc = store.find("user_documents", lambda d: d.get("circularNo") == circ_no)
+        if created_doc:
+            delete_user_document(doc_id=created_doc["id"], user_id="SYSTEM")
+
+    print("[PASS] Scrapy pipeline item processed into Document Vault with duplicate detection and clean teardown.")
 
 def test_redis_store_and_pipeline():
     print("--- 5. Testing Redis Storage Engine and Pipeline Fallback ---")
@@ -181,6 +217,11 @@ def test_redis_store_and_pipeline():
     redis_pipe = RedisRegulationPipeline()
     unique_tag = uuid.uuid4().hex[:6]
     unique_circ = f"RBI/TEST/REDIS/{unique_tag}"
+
+    # Use isolated test jsonl file to avoid dirtying git-tracked scrapers/data/regulations.jsonl
+    test_jsonl = redis_pipe.data_dir / f"test_regulations_{unique_tag}.jsonl"
+    redis_pipe.jsonl_path = test_jsonl
+
     item = RegulationItem(
         regulator="RBI",
         title=f"RBI Notification on Deceased Claim Interest Penalty {unique_tag}",
@@ -192,18 +233,22 @@ def test_redis_store_and_pipeline():
         scraped_at="2026-06-01T00:00:00Z"
     )
 
-    processed = redis_pipe.process_item(item, DummySpider())
-    assert processed["title"] == item["title"]
-    assert "sha256" in processed
-    assert redis_pipe.jsonl_path.exists()
+    try:
+        processed = redis_pipe.process_item(item, DummySpider())
+        assert processed["title"] == item["title"]
+        assert "sha256" in processed
+        assert test_jsonl.exists()
+        
+        # Check JSONL contents contains our unique circular reference
+        with open(test_jsonl, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            assert len(lines) > 0
+            assert any(unique_circ in line for line in lines)
+    finally:
+        if test_jsonl.exists():
+            test_jsonl.unlink()
     
-    # Check JSONL contents contains our unique circular reference
-    with open(redis_pipe.jsonl_path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-        assert len(lines) > 0
-        assert any(unique_circ in line for line in lines)
-    
-    print("[PASS] Redis pipeline processed item cleanly with JSONL persistence and sha256 checksum.")
+    print("[PASS] Redis pipeline processed item cleanly with isolated JSONL persistence and sha256 checksum.")
 
 def test_api_endpoints():
     print("--- 6. Testing Regulatory API Endpoints ---")
@@ -228,9 +273,12 @@ def test_api_endpoints():
     post_data = post_res.json()
     assert post_data["ok"] is True
     assert post_data["regulator"] == "EPFO"
+    doc_id = post_data.get("docId")
+    if doc_id:
+        delete_user_document(doc_id=doc_id, user_id="SYSTEM")
 
     # POST /api/documents/regulations/poll
-    poll_res = client.post("/api/documents/regulations/poll?limit=2")
+    poll_res = client.post("/api/documents/regulations/poll?regulator=rbi&limit=1")
     assert poll_res.status_code == 200
     poll_data = poll_res.json()
     assert poll_data["ok"] is True
