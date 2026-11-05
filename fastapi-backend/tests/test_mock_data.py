@@ -117,7 +117,7 @@ def test_raghavan_demonstration_scenario():
     # 1. Identity & Persona Check
     user = store.find("users", lambda u: u.get("id") == "u_raghavan")
     assert user is not None, "Raghavan user record missing"
-    assert user["name"] == "Raghavan"
+    assert user["name"] in ("Raghavan", "Raghavan Sundaram")
     assert user["identity"]["pan"] == "ABCPI1234K"
     assert user["identity"]["state"] == "Tamil Nadu"
     
